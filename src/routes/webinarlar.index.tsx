@@ -57,7 +57,7 @@ function WebinarsPage() {
             <p className="mt-2 text-sm italic text-foreground/70">{b.subtitle}</p>
             <p className="mt-4 text-sm leading-relaxed text-foreground/80">{b.desc}</p>
             <div className="mt-6 flex items-center justify-between">
-              <div className="font-serif text-3xl">\${b.price}</div>
+              <div className="font-serif text-3xl">{`$${b.price}`}</div>
               <Link to={b.to} className="btn-primary hover:btn-primary-hover">
                 Detay & Kayıt →
               </Link>
