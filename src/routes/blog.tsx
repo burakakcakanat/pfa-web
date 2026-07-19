@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { listBlogPosts } from "@/lib/blog.functions";
 
 export const Route = createFileRoute("/blog")({
   head: () => ({
@@ -15,16 +17,6 @@ export const Route = createFileRoute("/blog")({
   component: BlogPage,
 });
 
-const POSTS = [
-  {
-    slug: "bilinc-neden-bir-haritaya-ihtiyac-duyar",
-    title: "Bilinç Neden Bir Haritaya İhtiyaç Duyar?",
-    date: "2026-01-12",
-    excerpt:
-      "Oryantasyonun olmadığı her ortamda kaygının kökü kaybolmuşluktur. PFA bu kaybolmuşluğa yedi işlevsel adres önerir.",
-  },
-];
-
 const fmt = new Intl.DateTimeFormat("tr-TR", { dateStyle: "long" });
 
 type Tab = "yazilar" | "podcastler" | "videolar";
@@ -37,6 +29,10 @@ const TABS: { id: Tab; label: string }[] = [
 
 function BlogPage() {
   const [tab, setTab] = useState<Tab>("yazilar");
+  const { data: posts, isLoading } = useQuery({
+    queryKey: ["blog", "posts"],
+    queryFn: () => listBlogPosts(),
+  });
   return (
     <div className="container-page py-20">
       <header className="mx-auto max-w-2xl text-center">
@@ -71,22 +67,33 @@ function BlogPage() {
 
       {tab === "yazilar" && (
         <div className="mx-auto mt-10 max-w-3xl divide-y divide-border">
-        {POSTS.map((p) => (
+        {isLoading && (
+          <p className="py-10 text-center text-sm text-muted-foreground">Yükleniyor…</p>
+        )}
+        {!isLoading && (posts?.length ?? 0) === 0 && (
+          <p className="py-10 text-center text-sm text-muted-foreground">Henüz yazı yok.</p>
+        )}
+        {posts?.map((p) => (
           <article key={p.slug} className="py-10">
             <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-              {fmt.format(new Date(p.date))}
+              {fmt.format(new Date(p.published_at))}
             </div>
             <h2 className="mt-3 font-serif text-2xl md:text-3xl">
-              <Link to="/blog" className="hover:text-accent">
+              <Link
+                to="/blog/$slug"
+                params={{ slug: p.slug }}
+                className="hover:text-accent"
+              >
                 {p.title}
               </Link>
             </h2>
             <p className="mt-4 text-base leading-relaxed text-foreground/80">
-              {p.excerpt}
+              {p.seo_description}
             </p>
             <div className="mt-5">
               <Link
-                to="/blog"
+                to="/blog/$slug"
+                params={{ slug: p.slug }}
                 className="text-sm underline decoration-accent decoration-2 underline-offset-8 hover:text-accent"
               >
                 Yazıyı oku →
