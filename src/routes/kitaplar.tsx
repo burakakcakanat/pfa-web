@@ -104,6 +104,11 @@ function BooksPage() {
                     {b.cta.label}
                   </a>
                 ))}
+              {"ebookSlug" in b && b.ebookSlug && (
+                <div className="mt-3 flex justify-center">
+                  <BuyButton productSlug={b.ebookSlug} label="Siteden E-Book Al ($9.99)" />
+                </div>
+              )}
             </div>
           </article>
         ))}
