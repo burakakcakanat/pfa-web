@@ -22,10 +22,14 @@ import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
+import { Route as AuthenticatedRaporFinalizeRouteImport } from './routes/_authenticated/rapor-finalize'
 import { Route as AuthenticatedHesabimRouteImport } from './routes/_authenticated/hesabim'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
+import { Route as AuthenticatedRaporSessionIdRouteImport } from './routes/_authenticated/rapor.$sessionId'
+import { Route as AuthenticatedDegerlendirmeTamRouteImport } from './routes/_authenticated/degerlendirme.tam'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 
 const WebinarlarRoute = WebinarlarRouteImport.update({
@@ -92,6 +96,17 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
+  id: '/degerlendirme_/mini',
+  path: '/degerlendirme/mini',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRaporFinalizeRoute =
+  AuthenticatedRaporFinalizeRouteImport.update({
+    id: '/rapor-finalize',
+    path: '/rapor-finalize',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHesabimRoute = AuthenticatedHesabimRouteImport.update({
   id: '/hesabim',
   path: '/hesabim',
@@ -114,6 +129,18 @@ const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   path: '/api/public/stripe-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRaporSessionIdRoute =
+  AuthenticatedRaporSessionIdRouteImport.update({
+    id: '/rapor/$sessionId',
+    path: '/rapor/$sessionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDegerlendirmeTamRoute =
+  AuthenticatedDegerlendirmeTamRouteImport.update({
+    id: '/degerlendirme/tam',
+    path: '/degerlendirme/tam',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
@@ -137,7 +164,11 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/hesabim': typeof AuthenticatedHesabimRoute
+  '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
+  '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
+  '/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -156,7 +187,11 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/hesabim': typeof AuthenticatedHesabimRoute
+  '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
+  '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
+  '/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesById {
@@ -177,7 +212,11 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/hesabim': typeof AuthenticatedHesabimRoute
+  '/_authenticated/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
+  '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
+  '/_authenticated/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRouteTypes {
@@ -198,7 +237,11 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/hesabim'
+    | '/rapor-finalize'
+    | '/degerlendirme/mini'
     | '/.mcp/invoke-tool/$tool'
+    | '/degerlendirme/tam'
+    | '/rapor/$sessionId'
     | '/api/public/stripe-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -217,7 +260,11 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/hesabim'
+    | '/rapor-finalize'
+    | '/degerlendirme/mini'
     | '/.mcp/invoke-tool/$tool'
+    | '/degerlendirme/tam'
+    | '/rapor/$sessionId'
     | '/api/public/stripe-webhook'
   id:
     | '__root__'
@@ -237,7 +284,11 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/hesabim'
+    | '/_authenticated/rapor-finalize'
+    | '/degerlendirme_/mini'
     | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/degerlendirme/tam'
+    | '/_authenticated/rapor/$sessionId'
     | '/api/public/stripe-webhook'
   fileRoutesById: FileRoutesById
 }
@@ -257,6 +308,7 @@ export interface RootRouteChildren {
   WebinarlarRoute: typeof WebinarlarRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  DegerlendirmeMiniRoute: typeof DegerlendirmeMiniRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
 }
@@ -354,6 +406,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/degerlendirme_/mini': {
+      id: '/degerlendirme_/mini'
+      path: '/degerlendirme/mini'
+      fullPath: '/degerlendirme/mini'
+      preLoaderRoute: typeof DegerlendirmeMiniRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/rapor-finalize': {
+      id: '/_authenticated/rapor-finalize'
+      path: '/rapor-finalize'
+      fullPath: '/rapor-finalize'
+      preLoaderRoute: typeof AuthenticatedRaporFinalizeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/hesabim': {
       id: '/_authenticated/hesabim'
       path: '/hesabim'
@@ -382,6 +448,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/rapor/$sessionId': {
+      id: '/_authenticated/rapor/$sessionId'
+      path: '/rapor/$sessionId'
+      fullPath: '/rapor/$sessionId'
+      preLoaderRoute: typeof AuthenticatedRaporSessionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/degerlendirme/tam': {
+      id: '/_authenticated/degerlendirme/tam'
+      path: '/degerlendirme/tam'
+      fullPath: '/degerlendirme/tam'
+      preLoaderRoute: typeof AuthenticatedDegerlendirmeTamRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
       path: '/.mcp/invoke-tool/$tool'
@@ -394,10 +474,16 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedHesabimRoute: typeof AuthenticatedHesabimRoute
+  AuthenticatedRaporFinalizeRoute: typeof AuthenticatedRaporFinalizeRoute
+  AuthenticatedDegerlendirmeTamRoute: typeof AuthenticatedDegerlendirmeTamRoute
+  AuthenticatedRaporSessionIdRoute: typeof AuthenticatedRaporSessionIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHesabimRoute: AuthenticatedHesabimRoute,
+  AuthenticatedRaporFinalizeRoute: AuthenticatedRaporFinalizeRoute,
+  AuthenticatedDegerlendirmeTamRoute: AuthenticatedDegerlendirmeTamRoute,
+  AuthenticatedRaporSessionIdRoute: AuthenticatedRaporSessionIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -420,6 +506,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  DegerlendirmeMiniRoute: DegerlendirmeMiniRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
 }

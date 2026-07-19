@@ -35,6 +35,14 @@ type Entitlement = {
   metadata: Record<string, unknown>;
 };
 
+type AssessmentSessionRow = {
+  id: string;
+  type: "mini" | "full";
+  status: string;
+  created_at: string;
+  completed_at: string | null;
+};
+
 const TABS = [
   { id: "profile", label: "Profil" },
   { id: "orders", label: "Satın Alımlarım" },
@@ -47,6 +55,7 @@ function AccountPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [entitlements, setEntitlements] = useState<Entitlement[]>([]);
+  const [assessments, setAssessments] = useState<AssessmentSessionRow[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
   const [tab, setTab] = useState<string>("profile");
   const [fullName, setFullName] = useState("");
@@ -60,7 +69,7 @@ function AccountPage() {
       const uid = userRes.user?.id;
       if (!uid) return;
 
-      const [{ data: p }, { data: o }, { data: e }, { data: r }] = await Promise.all([
+      const [{ data: p }, { data: o }, { data: e }, { data: r }, { data: a }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
         supabase
           .from("orders")
@@ -68,6 +77,11 @@ function AccountPage() {
           .order("created_at", { ascending: false }),
         supabase.from("user_entitlements").select("id,type,created_at,metadata").order("created_at", { ascending: false }),
         supabase.from("user_roles").select("role"),
+        supabase
+          .from("assessment_sessions")
+          .select("id, type, status, created_at, completed_at")
+          .eq("status", "completed")
+          .order("completed_at", { ascending: false }),
       ]);
       if (p) {
         setProfile(p as Profile);
@@ -77,6 +91,7 @@ function AccountPage() {
       setOrders((o ?? []) as unknown as Order[]);
       setEntitlements((e ?? []) as unknown as Entitlement[]);
       setRoles(((r ?? []) as { role: string }[]).map((x) => x.role));
+      setAssessments((a ?? []) as unknown as AssessmentSessionRow[]);
     })();
   }, []);
 
@@ -97,7 +112,6 @@ function AccountPage() {
 
   const ebooks = entitlements.filter((x) => x.type === "ebook");
   const webinars = entitlements.filter((x) => x.type === "webinar_bsc" || x.type === "pfa_pro");
-  const reports = entitlements.filter((x) => x.type === "assessment_full");
 
   return (
     <div className="container-page py-16">
@@ -171,10 +185,30 @@ function AccountPage() {
         )}
 
         {tab === "reports" && (
-          <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
-            {reports.length === 0
-              ? <>Değerlendirme raporlarınız burada görünecek. <Link to="/degerlendirme" className="text-accent">Tam Assessment satın al →</Link></>
-              : <ul className="space-y-2">{reports.map((r) => <li key={r.id}>Rapor #{r.id.slice(0, 8)} — {new Date(r.created_at).toLocaleDateString("tr-TR")} (yakında indirilebilir)</li>)}</ul>}
+          <div className="rounded-lg border border-border bg-card">
+            {assessments.length === 0 ? (
+              <div className="p-6 text-sm text-muted-foreground">
+                Henüz bir raporunuz yok. <Link to="/degerlendirme" className="text-accent">Değerlendirmeye başla →</Link>
+              </div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {assessments.map((a) => (
+                  <li key={a.id} className="flex items-center justify-between p-4 text-sm">
+                    <div>
+                      <div className="font-medium">
+                        {a.type === "full" ? "Tam Assessment Raporu" : "Mini Değerlendirme"}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(a.completed_at ?? a.created_at).toLocaleString("tr-TR")}
+                      </div>
+                    </div>
+                    <Link to="/rapor/$sessionId" params={{ sessionId: a.id }} className="text-accent hover:underline">
+                      Görüntüle →
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 
