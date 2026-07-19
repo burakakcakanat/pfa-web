@@ -12,7 +12,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
-import pfaLogo from "@/assets/pfa-logo.png.asset.json";
+import pfaLogo from "@/assets/pfa-logo-transparent.png.asset.json";
 
 function NotFoundComponent() {
   return (
