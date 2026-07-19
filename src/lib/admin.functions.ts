@@ -441,7 +441,7 @@ export const createEbookUploadUrl = createServerFn({ method: "POST" })
       .from("ebooks")
       .createSignedUploadUrl(path);
     if (error) throw new Error(error.message);
-    return { path, ...signed };
+    return { path, token: signed.token, signedUrl: signed.signedUrl };
   });
 
 export const deleteEbookFile = createServerFn({ method: "POST" })
