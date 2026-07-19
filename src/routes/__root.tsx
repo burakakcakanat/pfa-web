@@ -139,7 +139,7 @@ function RootComponent() {
 const NAV_LINKS = [
   { to: "/", label: "Ana Sayfa" },
   { to: "/kitaplar", label: "Kitaplar" },
-  { to: "/degerlendirme", label: "Değerlendirme" },
+  { to: "/degerlendirme", label: "PA Ölçeği" },
   { to: "/seanslar", label: "Seanslar" },
   { to: "/webinarlar", label: "Webinarlar" },
   { to: "/blog", label: "Blog" },
