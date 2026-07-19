@@ -27,6 +27,7 @@ import { Route as AuthenticatedHesabimRouteImport } from './routes/_authenticate
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
+import { Route as AuthenticatedRaporSessionIdRouteImport } from './routes/_authenticated/rapor.$sessionId'
 import { Route as AuthenticatedDegerlendirmeTamRouteImport } from './routes/_authenticated/degerlendirme.tam'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 
@@ -121,6 +122,12 @@ const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   path: '/api/public/stripe-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRaporSessionIdRoute =
+  AuthenticatedRaporSessionIdRouteImport.update({
+    id: '/rapor/$sessionId',
+    path: '/rapor/$sessionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDegerlendirmeTamRoute =
   AuthenticatedDegerlendirmeTamRouteImport.update({
     id: '/degerlendirme/tam',
@@ -153,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
+  '/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -174,6 +182,7 @@ export interface FileRoutesByTo {
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
+  '/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesById {
@@ -197,6 +206,7 @@ export interface FileRoutesById {
   '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
+  '/_authenticated/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRouteTypes {
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/degerlendirme/mini'
     | '/.mcp/invoke-tool/$tool'
     | '/degerlendirme/tam'
+    | '/rapor/$sessionId'
     | '/api/public/stripe-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/degerlendirme/mini'
     | '/.mcp/invoke-tool/$tool'
     | '/degerlendirme/tam'
+    | '/rapor/$sessionId'
     | '/api/public/stripe-webhook'
   id:
     | '__root__'
@@ -263,6 +275,7 @@ export interface FileRouteTypes {
     | '/degerlendirme_/mini'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/degerlendirme/tam'
+    | '/_authenticated/rapor/$sessionId'
     | '/api/public/stripe-webhook'
   fileRoutesById: FileRoutesById
 }
@@ -415,6 +428,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/rapor/$sessionId': {
+      id: '/_authenticated/rapor/$sessionId'
+      path: '/rapor/$sessionId'
+      fullPath: '/rapor/$sessionId'
+      preLoaderRoute: typeof AuthenticatedRaporSessionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/degerlendirme/tam': {
       id: '/_authenticated/degerlendirme/tam'
       path: '/degerlendirme/tam'
@@ -435,11 +455,13 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedHesabimRoute: typeof AuthenticatedHesabimRoute
   AuthenticatedDegerlendirmeTamRoute: typeof AuthenticatedDegerlendirmeTamRoute
+  AuthenticatedRaporSessionIdRoute: typeof AuthenticatedRaporSessionIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHesabimRoute: AuthenticatedHesabimRoute,
   AuthenticatedDegerlendirmeTamRoute: AuthenticatedDegerlendirmeTamRoute,
+  AuthenticatedRaporSessionIdRoute: AuthenticatedRaporSessionIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
