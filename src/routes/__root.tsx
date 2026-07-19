@@ -12,6 +12,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
+import pfaLogo from "@/assets/pfa-logo.png.asset.json";
 
 function NotFoundComponent() {
   return (
@@ -165,12 +166,12 @@ function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-sm">
       <div className="container-page flex h-16 items-center justify-between gap-6">
-        <Link to="/" className="flex items-center gap-2 font-serif text-lg tracking-wide">
-          <span className="inline-block h-2 w-2 rounded-full bg-accent" aria-hidden />
-          <span>PFA</span>
-          <span className="hidden text-xs uppercase tracking-[0.2em] text-muted-foreground sm:inline">
-            Psiko-Fonksiyonel Analiz
-          </span>
+        <Link to="/" className="flex items-center" aria-label="PFA — Psiko-Fonksiyonel Analiz">
+          <img
+            src={pfaLogo.url}
+            alt="PFA — Psycho-Functional Analysis"
+            className="h-10 w-auto md:h-12"
+          />
         </Link>
         <nav className="hidden items-center gap-6 text-[0.82rem] tracking-wide lg:flex">
           {NAV_LINKS.map((l) => (
@@ -233,8 +234,12 @@ function SiteFooter() {
     <footer className="mt-24 border-t border-border/60 bg-background">
       <div className="container-page grid gap-10 py-14 md:grid-cols-3">
         <div>
-          <div className="font-serif text-xl">Psycho-Functional Analysis</div>
-          <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
+          <img
+            src={pfaLogo.url}
+            alt="PFA — Psycho-Functional Analysis"
+            className="h-14 w-auto"
+          />
+          <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
             İnsan bilincinin yedi seviyeli işlevsel haritası.
           </p>
         </div>
