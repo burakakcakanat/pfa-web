@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WebinarlarRouteImport } from './routes/webinarlar'
-import { Route as VideolarRouteImport } from './routes/videolar'
 import { Route as SeanslarRouteImport } from './routes/seanslar'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as KitaplarRouteImport } from './routes/kitaplar'
@@ -35,11 +34,6 @@ import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[
 const WebinarlarRoute = WebinarlarRouteImport.update({
   id: '/webinarlar',
   path: '/webinarlar',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VideolarRoute = VideolarRouteImport.update({
-  id: '/videolar',
-  path: '/videolar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SeanslarRoute = SeanslarRouteImport.update({
@@ -159,7 +153,6 @@ export interface FileRoutesByFullPath {
   '/kitaplar': typeof KitaplarRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
-  '/videolar': typeof VideolarRoute
   '/webinarlar': typeof WebinarlarRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -182,7 +175,6 @@ export interface FileRoutesByTo {
   '/kitaplar': typeof KitaplarRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
-  '/videolar': typeof VideolarRoute
   '/webinarlar': typeof WebinarlarRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -207,7 +199,6 @@ export interface FileRoutesById {
   '/kitaplar': typeof KitaplarRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
-  '/videolar': typeof VideolarRoute
   '/webinarlar': typeof WebinarlarRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -232,7 +223,6 @@ export interface FileRouteTypes {
     | '/kitaplar'
     | '/mcp'
     | '/seanslar'
-    | '/videolar'
     | '/webinarlar'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -255,7 +245,6 @@ export interface FileRouteTypes {
     | '/kitaplar'
     | '/mcp'
     | '/seanslar'
-    | '/videolar'
     | '/webinarlar'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -279,7 +268,6 @@ export interface FileRouteTypes {
     | '/kitaplar'
     | '/mcp'
     | '/seanslar'
-    | '/videolar'
     | '/webinarlar'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -304,7 +292,6 @@ export interface RootRouteChildren {
   KitaplarRoute: typeof KitaplarRoute
   McpRoute: typeof McpRoute
   SeanslarRoute: typeof SeanslarRoute
-  VideolarRoute: typeof VideolarRoute
   WebinarlarRoute: typeof WebinarlarRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -320,13 +307,6 @@ declare module '@tanstack/react-router' {
       path: '/webinarlar'
       fullPath: '/webinarlar'
       preLoaderRoute: typeof WebinarlarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/videolar': {
-      id: '/videolar'
-      path: '/videolar'
-      fullPath: '/videolar'
-      preLoaderRoute: typeof VideolarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/seanslar': {
@@ -501,7 +481,6 @@ const rootRouteChildren: RootRouteChildren = {
   KitaplarRoute: KitaplarRoute,
   McpRoute: McpRoute,
   SeanslarRoute: SeanslarRoute,
-  VideolarRoute: VideolarRoute,
   WebinarlarRoute: WebinarlarRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
