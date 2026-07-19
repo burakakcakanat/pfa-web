@@ -38,6 +38,7 @@ const BOOKS = [
     cover: hcdCover.url,
     desc: "Aydınlanmanın bilimi üzerine ilk eser; PFA modelinin kökleri.",
     cta: null,
+    mute: true,
   },
 ] as const;
 
