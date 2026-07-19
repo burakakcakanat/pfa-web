@@ -38,6 +38,7 @@ const BOOKS = [
     cover: hcdCover.url,
     desc: "Aydınlanmanın bilimi üzerine ilk eser; PFA modelinin kökleri.",
     cta: null,
+    mute: true,
   },
 ] as const;
 
@@ -54,12 +55,21 @@ function BooksPage() {
           <article key={b.title} className="flex flex-col">
             <div className="relative mx-auto aspect-[5/8] w-full max-w-[280px] overflow-hidden rounded-md border border-border bg-card shadow-[0_20px_50px_-30px_rgba(31,78,82,0.4)]">
               {b.cover ? (
-                <img
-                  src={b.cover}
-                  alt={`${b.title} kapağı`}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
+                <>
+                  <img
+                    src={b.cover}
+                    alt={`${b.title} kapağı`}
+                    className={`h-full w-full object-cover ${
+                      "mute" in b && b.mute
+                        ? "opacity-85 saturate-[0.6] contrast-[0.92] brightness-[0.95]"
+                        : ""
+                    }`}
+                    loading="lazy"
+                  />
+                  {"mute" in b && b.mute && (
+                    <div className="pointer-events-none absolute inset-0 bg-background/25 mix-blend-soft-light" />
+                  )}
+                </>
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-muted p-6 text-center font-serif text-lg text-foreground/60">
                   {b.title}
