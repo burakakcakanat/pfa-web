@@ -24,6 +24,7 @@ import { Route as WebinarlarIndexRouteImport } from './routes/webinarlar.index'
 import { Route as WebinarlarPfaProRouteImport } from './routes/webinarlar.pfa-pro'
 import { Route as WebinarlarBilincSeviyeleriRouteImport } from './routes/webinarlar.bilinc-seviyeleri'
 import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthenticatedRaporFinalizeRouteImport } from './routes/_authenticated/rapor-finalize'
 import { Route as AuthenticatedHesabimRouteImport } from './routes/_authenticated/hesabim'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -108,6 +109,11 @@ const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
   path: '/degerlendirme/mini',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
+} as any)
 const AuthenticatedRaporFinalizeRoute =
   AuthenticatedRaporFinalizeRouteImport.update({
     id: '/rapor-finalize',
@@ -158,7 +164,7 @@ const Char91DotmcpChar93InvokeToolToolRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRoute
+  '/blog': typeof BlogRouteWithChildren
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
   '/hakkinda': typeof HakkindaRoute
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/hesabim': typeof AuthenticatedHesabimRoute
   '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
@@ -182,7 +189,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRoute
+  '/blog': typeof BlogRouteWithChildren
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
   '/hakkinda': typeof HakkindaRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/hesabim': typeof AuthenticatedHesabimRoute
   '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
@@ -208,7 +216,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRoute
+  '/blog': typeof BlogRouteWithChildren
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
   '/hakkinda': typeof HakkindaRoute
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/hesabim': typeof AuthenticatedHesabimRoute
   '/_authenticated/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
@@ -246,6 +255,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/hesabim'
     | '/rapor-finalize'
+    | '/blog/$slug'
     | '/degerlendirme/mini'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
@@ -270,6 +280,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/hesabim'
     | '/rapor-finalize'
+    | '/blog/$slug'
     | '/degerlendirme/mini'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
@@ -295,6 +306,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/hesabim'
     | '/_authenticated/rapor-finalize'
+    | '/blog/$slug'
     | '/degerlendirme_/mini'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
@@ -309,7 +321,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  BlogRoute: typeof BlogRoute
+  BlogRoute: typeof BlogRouteWithChildren
   DegerlendirmeRoute: typeof DegerlendirmeRoute
   EgitimRoute: typeof EgitimRoute
   HakkindaRoute: typeof HakkindaRoute
@@ -434,6 +446,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DegerlendirmeMiniRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
+    }
     '/_authenticated/rapor-finalize': {
       id: '/_authenticated/rapor-finalize'
       path: '/rapor-finalize'
@@ -510,11 +529,21 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  BlogRoute: BlogRoute,
+  BlogRoute: BlogRouteWithChildren,
   DegerlendirmeRoute: DegerlendirmeRoute,
   EgitimRoute: EgitimRoute,
   HakkindaRoute: HakkindaRoute,
