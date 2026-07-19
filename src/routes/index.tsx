@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import pfaHeroLogo from "@/assets/pfa-logo-hero.png.asset.json";
 
 const TORUS_URL =
   "https://static.wixstatic.com/media/db0c25_c6821ab1b9bb4810a0f8df2c8e676e81~mv2.png";
@@ -46,12 +47,15 @@ function HomePage() {
         <Ornament />
         <div className="container-page relative py-24 md:py-36">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-6 text-xs uppercase tracking-[0.3em] text-accent">
-              Psycho-Functional Analysis
-            </div>
-            <h1 className="font-serif text-4xl leading-[1.1] md:text-6xl">
-              PFA: İnsan Bilincinin İşlevsel Haritası
-            </h1>
+            <img
+              src={pfaHeroLogo.url}
+              alt="PFA — Psycho-Functional Analysis"
+              className="mx-auto h-auto w-full max-w-xl md:max-w-2xl"
+            />
+            <h1 className="sr-only">PFA: İnsan Bilincinin İşlevsel Haritası</h1>
+            <p className="mt-8 font-serif text-2xl leading-snug text-foreground md:text-3xl">
+              İnsan Bilincinin İşlevsel Haritası
+            </p>
             <p className="mx-auto mt-8 max-w-2xl text-base leading-relaxed text-foreground/80 md:text-lg">
               Psiko-Fonksiyonel Analiz, insan bilincini yedi işlevsel seviyeye
               ayırır — tek bir hücrenin hayatta kalma güdüsünden evrensel birlik
