@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SeanslarRouteImport } from './routes/seanslar'
 import { Route as KitaplarRouteImport } from './routes/kitaplar'
 import { Route as DegerlendirmeRouteImport } from './routes/degerlendirme'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SeanslarRoute = SeanslarRouteImport.update({
+  id: '/seanslar',
+  path: '/seanslar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KitaplarRoute = KitaplarRouteImport.update({
   id: '/kitaplar',
   path: '/kitaplar',
@@ -33,34 +39,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/kitaplar': typeof KitaplarRoute
+  '/seanslar': typeof SeanslarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/kitaplar': typeof KitaplarRoute
+  '/seanslar': typeof SeanslarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/kitaplar': typeof KitaplarRoute
+  '/seanslar': typeof SeanslarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/degerlendirme' | '/kitaplar'
+  fullPaths: '/' | '/degerlendirme' | '/kitaplar' | '/seanslar'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/degerlendirme' | '/kitaplar'
-  id: '__root__' | '/' | '/degerlendirme' | '/kitaplar'
+  to: '/' | '/degerlendirme' | '/kitaplar' | '/seanslar'
+  id: '__root__' | '/' | '/degerlendirme' | '/kitaplar' | '/seanslar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DegerlendirmeRoute: typeof DegerlendirmeRoute
   KitaplarRoute: typeof KitaplarRoute
+  SeanslarRoute: typeof SeanslarRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/seanslar': {
+      id: '/seanslar'
+      path: '/seanslar'
+      fullPath: '/seanslar'
+      preLoaderRoute: typeof SeanslarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/kitaplar': {
       id: '/kitaplar'
       path: '/kitaplar'
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DegerlendirmeRoute: DegerlendirmeRoute,
   KitaplarRoute: KitaplarRoute,
+  SeanslarRoute: SeanslarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
