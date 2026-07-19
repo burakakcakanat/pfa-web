@@ -21,6 +21,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WebinarlarIndexRouteImport } from './routes/webinarlar.index'
+import { Route as WebinarlarPfaProRouteImport } from './routes/webinarlar.pfa-pro'
+import { Route as WebinarlarBilincSeviyeleriRouteImport } from './routes/webinarlar.bilinc-seviyeleri'
 import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
 import { Route as AuthenticatedRaporFinalizeRouteImport } from './routes/_authenticated/rapor-finalize'
 import { Route as AuthenticatedHesabimRouteImport } from './routes/_authenticated/hesabim'
@@ -90,6 +92,17 @@ const WebinarlarIndexRoute = WebinarlarIndexRouteImport.update({
   path: '/webinarlar/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WebinarlarPfaProRoute = WebinarlarPfaProRouteImport.update({
+  id: '/webinarlar/pfa-pro',
+  path: '/webinarlar/pfa-pro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WebinarlarBilincSeviyeleriRoute =
+  WebinarlarBilincSeviyeleriRouteImport.update({
+    id: '/webinarlar/bilinc-seviyeleri',
+    path: '/webinarlar/bilinc-seviyeleri',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
   id: '/degerlendirme_/mini',
   path: '/degerlendirme/mini',
@@ -158,6 +171,8 @@ export interface FileRoutesByFullPath {
   '/hesabim': typeof AuthenticatedHesabimRoute
   '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
+  '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
+  '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -180,6 +195,8 @@ export interface FileRoutesByTo {
   '/hesabim': typeof AuthenticatedHesabimRoute
   '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
+  '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
+  '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/webinarlar': typeof WebinarlarIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -204,6 +221,8 @@ export interface FileRoutesById {
   '/_authenticated/hesabim': typeof AuthenticatedHesabimRoute
   '/_authenticated/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
+  '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
+  '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -228,6 +247,8 @@ export interface FileRouteTypes {
     | '/hesabim'
     | '/rapor-finalize'
     | '/degerlendirme/mini'
+    | '/webinarlar/bilinc-seviyeleri'
+    | '/webinarlar/pfa-pro'
     | '/webinarlar/'
     | '/.mcp/invoke-tool/$tool'
     | '/degerlendirme/tam'
@@ -250,6 +271,8 @@ export interface FileRouteTypes {
     | '/hesabim'
     | '/rapor-finalize'
     | '/degerlendirme/mini'
+    | '/webinarlar/bilinc-seviyeleri'
+    | '/webinarlar/pfa-pro'
     | '/webinarlar'
     | '/.mcp/invoke-tool/$tool'
     | '/degerlendirme/tam'
@@ -273,6 +296,8 @@ export interface FileRouteTypes {
     | '/_authenticated/hesabim'
     | '/_authenticated/rapor-finalize'
     | '/degerlendirme_/mini'
+    | '/webinarlar/bilinc-seviyeleri'
+    | '/webinarlar/pfa-pro'
     | '/webinarlar/'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/degerlendirme/tam'
@@ -295,6 +320,8 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   DegerlendirmeMiniRoute: typeof DegerlendirmeMiniRoute
+  WebinarlarBilincSeviyeleriRoute: typeof WebinarlarBilincSeviyeleriRoute
+  WebinarlarPfaProRoute: typeof WebinarlarPfaProRoute
   WebinarlarIndexRoute: typeof WebinarlarIndexRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
@@ -384,6 +411,20 @@ declare module '@tanstack/react-router' {
       path: '/webinarlar'
       fullPath: '/webinarlar/'
       preLoaderRoute: typeof WebinarlarIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/webinarlar/pfa-pro': {
+      id: '/webinarlar/pfa-pro'
+      path: '/webinarlar/pfa-pro'
+      fullPath: '/webinarlar/pfa-pro'
+      preLoaderRoute: typeof WebinarlarPfaProRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/webinarlar/bilinc-seviyeleri': {
+      id: '/webinarlar/bilinc-seviyeleri'
+      path: '/webinarlar/bilinc-seviyeleri'
+      fullPath: '/webinarlar/bilinc-seviyeleri'
+      preLoaderRoute: typeof WebinarlarBilincSeviyeleriRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/degerlendirme_/mini': {
@@ -485,6 +526,8 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   DegerlendirmeMiniRoute: DegerlendirmeMiniRoute,
+  WebinarlarBilincSeviyeleriRoute: WebinarlarBilincSeviyeleriRoute,
+  WebinarlarPfaProRoute: WebinarlarPfaProRoute,
   WebinarlarIndexRoute: WebinarlarIndexRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
