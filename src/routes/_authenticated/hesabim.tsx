@@ -1,6 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { BuyButton } from "@/components/buy-button";
+import { getProDashboard, createProInvite } from "@/lib/pro.functions";
+import { getEbookDownloadUrl } from "@/lib/ebooks.functions";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
   head: () => ({
@@ -12,36 +16,11 @@ export const Route = createFileRoute("/_authenticated/hesabim")({
   component: AccountPage,
 });
 
-type Profile = {
-  id: string;
-  full_name: string | null;
-  email: string | null;
-  preferred_language: string;
-};
-
-type Order = {
-  id: string;
-  status: string;
-  amount_cents: number;
-  currency: string;
-  created_at: string;
-  products: { name_tr: string; slug: string } | null;
-};
-
-type Entitlement = {
-  id: string;
-  type: string;
-  created_at: string;
-  metadata: Record<string, unknown>;
-};
-
-type AssessmentSessionRow = {
-  id: string;
-  type: "mini" | "full";
-  status: string;
-  created_at: string;
-  completed_at: string | null;
-};
+type Profile = { id: string; full_name: string | null; email: string | null; preferred_language: string };
+type Order = { id: string; status: string; amount_cents: number; currency: string; created_at: string; products: { name_tr: string; slug: string } | null };
+type Entitlement = { id: string; type: string; created_at: string; metadata: Record<string, unknown> };
+type AssessmentSessionRow = { id: string; type: "mini" | "full"; status: string; created_at: string; completed_at: string | null };
+type ProInvite = { id: string; client_name: string; token: string; status: string; created_at: string };
 
 const TABS = [
   { id: "profile", label: "Profil" },
@@ -68,26 +47,14 @@ function AccountPage() {
       const { data: userRes } = await supabase.auth.getUser();
       const uid = userRes.user?.id;
       if (!uid) return;
-
       const [{ data: p }, { data: o }, { data: e }, { data: r }, { data: a }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
-        supabase
-          .from("orders")
-          .select("id,status,amount_cents,currency,created_at,products(name_tr,slug)")
-          .order("created_at", { ascending: false }),
+        supabase.from("orders").select("id,status,amount_cents,currency,created_at,products(name_tr,slug)").order("created_at", { ascending: false }),
         supabase.from("user_entitlements").select("id,type,created_at,metadata").order("created_at", { ascending: false }),
         supabase.from("user_roles").select("role"),
-        supabase
-          .from("assessment_sessions")
-          .select("id, type, status, created_at, completed_at")
-          .eq("status", "completed")
-          .order("completed_at", { ascending: false }),
+        supabase.from("assessment_sessions").select("id, type, status, created_at, completed_at").eq("status", "completed").order("completed_at", { ascending: false }),
       ]);
-      if (p) {
-        setProfile(p as Profile);
-        setFullName((p as Profile).full_name ?? "");
-        setPreferredLanguage((p as Profile).preferred_language ?? "tr");
-      }
+      if (p) { setProfile(p as Profile); setFullName((p as Profile).full_name ?? ""); setPreferredLanguage((p as Profile).preferred_language ?? "tr"); }
       setOrders((o ?? []) as unknown as Order[]);
       setEntitlements((e ?? []) as unknown as Entitlement[]);
       setRoles(((r ?? []) as { role: string }[]).map((x) => x.role));
@@ -100,14 +67,9 @@ function AccountPage() {
 
   async function saveProfile() {
     if (!profile) return;
-    setSaving(true);
-    setMsg(null);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ full_name: fullName, preferred_language: preferredLanguage })
-      .eq("id", profile.id);
-    setSaving(false);
-    setMsg(error ? `Hata: ${error.message}` : "Kaydedildi.");
+    setSaving(true); setMsg(null);
+    const { error } = await supabase.from("profiles").update({ full_name: fullName, preferred_language: preferredLanguage }).eq("id", profile.id);
+    setSaving(false); setMsg(error ? `Hata: ${error.message}` : "Kaydedildi.");
   }
 
   const ebooks = entitlements.filter((x) => x.type === "ebook");
@@ -123,12 +85,8 @@ function AccountPage() {
 
       <div className="mt-10 flex flex-wrap gap-2 border-b border-border">
         {tabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTab(t.id)}
-            className={`-mb-px border-b-2 px-4 py-2 text-sm transition-colors ${tab === t.id ? "border-accent text-accent" : "border-transparent text-muted-foreground hover:text-foreground"}`}
-          >
+          <button key={t.id} type="button" onClick={() => setTab(t.id)}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm transition-colors ${tab === t.id ? "border-accent text-accent" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
             {t.label}
           </button>
         ))}
@@ -137,25 +95,15 @@ function AccountPage() {
       <div className="mt-8 max-w-3xl">
         {tab === "profile" && (
           <div className="space-y-4 rounded-lg border border-border bg-card p-6">
-            <label className="block text-sm">
-              <span className="mb-1 block text-foreground/80">E-posta</span>
-              <input readOnly value={profile?.email ?? ""} className="w-full rounded-md border border-border bg-muted/40 px-3 py-2" />
-            </label>
-            <label className="block text-sm">
-              <span className="mb-1 block text-foreground/80">Ad Soyad</span>
-              <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full rounded-md border border-border bg-background px-3 py-2" />
-            </label>
-            <label className="block text-sm">
-              <span className="mb-1 block text-foreground/80">Dil Tercihi</span>
+            <label className="block text-sm"><span className="mb-1 block text-foreground/80">E-posta</span>
+              <input readOnly value={profile?.email ?? ""} className="w-full rounded-md border border-border bg-muted/40 px-3 py-2" /></label>
+            <label className="block text-sm"><span className="mb-1 block text-foreground/80">Ad Soyad</span>
+              <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full rounded-md border border-border bg-background px-3 py-2" /></label>
+            <label className="block text-sm"><span className="mb-1 block text-foreground/80">Dil Tercihi</span>
               <select value={preferredLanguage} onChange={(e) => setPreferredLanguage(e.target.value)} className="w-full rounded-md border border-border bg-background px-3 py-2">
-                <option value="tr">Türkçe</option>
-                <option value="en">English</option>
-              </select>
-            </label>
+                <option value="tr">Türkçe</option><option value="en">English</option></select></label>
             <div className="flex items-center gap-3">
-              <button type="button" onClick={saveProfile} disabled={saving} className="btn-primary disabled:opacity-60">
-                {saving ? "..." : "Kaydet"}
-              </button>
+              <button type="button" onClick={saveProfile} disabled={saving} className="btn-primary disabled:opacity-60">{saving ? "..." : "Kaydet"}</button>
               {msg && <span className="text-xs text-muted-foreground">{msg}</span>}
             </div>
           </div>
@@ -163,9 +111,7 @@ function AccountPage() {
 
         {tab === "orders" && (
           <div className="rounded-lg border border-border bg-card">
-            {orders.length === 0 ? (
-              <EmptyState text="Henüz bir satın alımınız yok." />
-            ) : (
+            {orders.length === 0 ? <EmptyState text="Henüz bir satın alımınız yok." /> : (
               <ul className="divide-y divide-border">
                 {orders.map((o) => (
                   <li key={o.id} className="flex items-center justify-between p-4 text-sm">
@@ -195,16 +141,10 @@ function AccountPage() {
                 {assessments.map((a) => (
                   <li key={a.id} className="flex items-center justify-between p-4 text-sm">
                     <div>
-                      <div className="font-medium">
-                        {a.type === "full" ? "Tam Assessment Raporu" : "Mini Değerlendirme"}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {new Date(a.completed_at ?? a.created_at).toLocaleString("tr-TR")}
-                      </div>
+                      <div className="font-medium">{a.type === "full" ? "Tam Assessment Raporu" : "Mini Değerlendirme"}</div>
+                      <div className="text-xs text-muted-foreground">{new Date(a.completed_at ?? a.created_at).toLocaleString("tr-TR")}</div>
                     </div>
-                    <Link to="/rapor/$sessionId" params={{ sessionId: a.id }} className="text-accent hover:underline">
-                      Görüntüle →
-                    </Link>
+                    <Link to="/rapor/$sessionId" params={{ sessionId: a.id }} className="text-accent hover:underline">Görüntüle →</Link>
                   </li>
                 ))}
               </ul>
@@ -212,13 +152,7 @@ function AccountPage() {
           </div>
         )}
 
-        {tab === "ebooks" && (
-          <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
-            {ebooks.length === 0
-              ? <>E-book'larınız burada görünecek. <Link to="/kitaplar" className="text-accent">Kitaplara göz at →</Link></>
-              : <ul className="space-y-2">{ebooks.map((e) => <li key={e.id}>PFA E-Book — indirme linki hazırlanıyor.</li>)}</ul>}
-          </div>
-        )}
+        {tab === "ebooks" && <EbookTab ebooks={ebooks} />}
 
         {tab === "webinars" && (
           <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
@@ -228,10 +162,142 @@ function AccountPage() {
           </div>
         )}
 
-        {tab === "clients" && (
-          <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
-            PFA-Pro danışan paneli yakında aktif olacak.
-          </div>
+        {tab === "clients" && <ClientsTab />}
+      </div>
+    </div>
+  );
+}
+
+function EbookTab({ ebooks }: { ebooks: Entitlement[] }) {
+  const fetchUrl = useServerFn(getEbookDownloadUrl);
+  const [loading, setLoading] = useState(false);
+  const [state, setState] = useState<{ url: string | null; filename: string | null } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function download() {
+    setErr(null); setLoading(true);
+    try {
+      const res = await fetchUrl({ data: undefined as unknown as never });
+      setState(res);
+      if (res?.url) window.open(res.url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Hata");
+    } finally { setLoading(false); }
+  }
+
+  if (ebooks.length === 0) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
+        E-book'larınız burada görünecek. <Link to="/kitaplar" className="text-accent">Kitaplara göz at →</Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="font-serif text-xl">PFA: Bilinç Çözümleme (TR)</div>
+          <div className="mt-1 text-xs text-muted-foreground">E-Book — kişisel kullanım için lisanslı.</div>
+          {state && !state.url && (
+            <div className="mt-3 text-sm text-muted-foreground">
+              Dosya yakında eklenecek. Yönetici yüklediğinde bu alandan indirebileceksiniz.
+            </div>
+          )}
+          {err && <div className="mt-3 text-sm text-destructive">{err}</div>}
+        </div>
+        <button type="button" onClick={download} disabled={loading} className="btn-primary disabled:opacity-60">
+          {loading ? "..." : "İndir"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ClientsTab() {
+  const fetchDash = useServerFn(getProDashboard);
+  const createInvite = useServerFn(createProInvite);
+  const [data, setData] = useState<Awaited<ReturnType<typeof getProDashboard>> | null>(null);
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setData(await fetchDash({ data: undefined as unknown as never }));
+  }, [fetchDash]);
+  useEffect(() => { load(); }, [load]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setErr(null); setBusy(true);
+    try {
+      await createInvite({ data: { client_name: name } });
+      setName("");
+      await load();
+    } catch (ex) {
+      const msg = ex instanceof Error ? ex.message : "Hata";
+      setErr(msg.includes("QUOTA_EXHAUSTED") ? "Kalan hakkınız kalmadı. Ek paket satın alarak devam edebilirsiniz." : msg);
+    } finally { setBusy(false); }
+  }
+
+  if (!data) return <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">Yükleniyor…</div>;
+  if (!data.hasPro) return <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">PFA-Pro lisansı gerekli.</div>;
+
+  const exhausted = data.remaining <= 0;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border bg-card p-6">
+        <div>
+          <div className="text-xs uppercase tracking-[0.25em] text-accent">Danışan Ölçek Hakkı</div>
+          <div className="mt-1 font-serif text-3xl">{data.remaining} <span className="text-base text-muted-foreground">/ {data.quota} kalan</span></div>
+          <div className="text-xs text-muted-foreground">{data.used} kullanıldı</div>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <div className="text-sm text-muted-foreground">Ek paket: 10 hak · $50</div>
+          <BuyButton productSlug="client-pack-10" label="Ek Paket Satın Al (+10)" />
+        </div>
+      </div>
+
+      <form onSubmit={submit} className="rounded-lg border border-border bg-card p-6">
+        <div className="font-serif text-xl">Yeni danışan davet et</div>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+          <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Danışan adı" className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm" />
+          <button type="submit" disabled={busy || exhausted || !name.trim()} className="btn-primary disabled:opacity-50">
+            {busy ? "..." : "Davet Oluştur"}
+          </button>
+        </div>
+        {exhausted && <div className="mt-3 text-sm text-muted-foreground">Kalan hakkınız kalmadı — yukarıdan ek paket satın alabilirsiniz.</div>}
+        {err && <div className="mt-3 text-sm text-destructive">{err}</div>}
+      </form>
+
+      <div className="rounded-lg border border-border bg-card">
+        <div className="border-b border-border p-4 font-serif text-lg">Davetler</div>
+        {data.invites.length === 0 ? (
+          <EmptyState text="Henüz davet oluşturmadınız." />
+        ) : (
+          <ul className="divide-y divide-border">
+            {data.invites.map((i: ProInvite) => {
+              const link = typeof window !== "undefined" ? `${window.location.origin}/degerlendirme?invite=${i.token}` : "";
+              return (
+                <li key={i.id} className="p-4 text-sm">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="font-medium">{i.client_name}</div>
+                      <div className="text-xs text-muted-foreground">{new Date(i.created_at).toLocaleString("tr-TR")}</div>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-xs ${i.status === "completed" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                      {i.status === "completed" ? "Tamamlandı" : "Beklemede"}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <input readOnly value={link} className="flex-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs" />
+                    <button type="button" onClick={() => navigator.clipboard?.writeText(link)} className="btn-outline text-xs">Kopyala</button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
     </div>

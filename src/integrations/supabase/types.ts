@@ -373,6 +373,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_pro_invite: {
+        Args: { _client_name: string }
+        Returns: {
+          client_name: string
+          created_at: string
+          id: string
+          pro_user_id: string
+          status: Database["public"]["Enums"]["invite_status"]
+          token: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pro_client_invites"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
