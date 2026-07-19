@@ -142,9 +142,7 @@ const NAV_LINKS = [
   { to: "/degerlendirme", label: "Değerlendirme" },
   { to: "/seanslar", label: "Seanslar" },
   { to: "/webinarlar", label: "Webinarlar" },
-  { to: "/egitim", label: "Eğitim" },
   { to: "/blog", label: "Blog" },
-  { to: "/videolar", label: "Videolar" },
   { to: "/hakkinda", label: "Hakkında" },
   { to: "/iletisim", label: "İletişim" },
 ] as const;
@@ -243,7 +241,7 @@ function SiteFooter() {
         <div>
           <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Keşfet</div>
           <ul className="mt-4 space-y-2 text-sm">
-            {NAV_LINKS.slice(1, 6).map((l) => (
+            {NAV_LINKS.slice(1, 5).map((l) => (
               <li key={l.to}>
                 <Link to={l.to} className="hover:text-accent">
                   {l.label}
@@ -255,7 +253,7 @@ function SiteFooter() {
         <div>
           <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Daha</div>
           <ul className="mt-4 space-y-2 text-sm">
-            {NAV_LINKS.slice(6).map((l) => (
+            {NAV_LINKS.slice(5).map((l) => (
               <li key={l.to}>
                 <Link to={l.to} className="hover:text-accent">
                   {l.label}
