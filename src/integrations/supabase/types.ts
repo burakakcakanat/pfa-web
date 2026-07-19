@@ -410,11 +410,59 @@ export type Database = {
         }
         Relationships: []
       }
+      webinar_sessions: {
+        Row: {
+          capacity: number | null
+          created_at: string
+          id: string
+          join_url: string | null
+          notes: string | null
+          product_id: string
+          starts_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string
+          id?: string
+          join_url?: string | null
+          notes?: string | null
+          product_id: string
+          starts_at: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string
+          id?: string
+          join_url?: string | null
+          notes?: string | null
+          product_id?: string
+          starts_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webinar_sessions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      admin_set_client_quota: {
+        Args: { _entitlement_id: string; _quota: number; _used: number }
+        Returns: undefined
+      }
       create_pro_invite: {
         Args: { _client_name: string }
         Returns: {
