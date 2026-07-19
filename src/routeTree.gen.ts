@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WebinarlarRouteImport } from './routes/webinarlar'
 import { Route as VideolarRouteImport } from './routes/videolar'
 import { Route as SeanslarRouteImport } from './routes/seanslar'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as KitaplarRouteImport } from './routes/kitaplar'
 import { Route as IletisimRouteImport } from './routes/iletisim'
 import { Route as HakkindaRouteImport } from './routes/hakkinda'
@@ -19,6 +20,9 @@ import { Route as EgitimRouteImport } from './routes/egitim'
 import { Route as DegerlendirmeRouteImport } from './routes/degerlendirme'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 
 const WebinarlarRoute = WebinarlarRouteImport.update({
   id: '/webinarlar',
@@ -33,6 +37,11 @@ const VideolarRoute = VideolarRouteImport.update({
 const SeanslarRoute = SeanslarRouteImport.update({
   id: '/seanslar',
   path: '/seanslar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KitaplarRoute = KitaplarRouteImport.update({
@@ -70,6 +79,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -79,9 +106,13 @@ export interface FileRoutesByFullPath {
   '/hakkinda': typeof HakkindaRoute
   '/iletisim': typeof IletisimRoute
   '/kitaplar': typeof KitaplarRoute
+  '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
   '/videolar': typeof VideolarRoute
   '/webinarlar': typeof WebinarlarRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -91,9 +122,13 @@ export interface FileRoutesByTo {
   '/hakkinda': typeof HakkindaRoute
   '/iletisim': typeof IletisimRoute
   '/kitaplar': typeof KitaplarRoute
+  '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
   '/videolar': typeof VideolarRoute
   '/webinarlar': typeof WebinarlarRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -104,9 +139,13 @@ export interface FileRoutesById {
   '/hakkinda': typeof HakkindaRoute
   '/iletisim': typeof IletisimRoute
   '/kitaplar': typeof KitaplarRoute
+  '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
   '/videolar': typeof VideolarRoute
   '/webinarlar': typeof WebinarlarRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -118,9 +157,13 @@ export interface FileRouteTypes {
     | '/hakkinda'
     | '/iletisim'
     | '/kitaplar'
+    | '/mcp'
     | '/seanslar'
     | '/videolar'
     | '/webinarlar'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
+    | '/.mcp/invoke-tool/$tool'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -130,9 +173,13 @@ export interface FileRouteTypes {
     | '/hakkinda'
     | '/iletisim'
     | '/kitaplar'
+    | '/mcp'
     | '/seanslar'
     | '/videolar'
     | '/webinarlar'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
+    | '/.mcp/invoke-tool/$tool'
   id:
     | '__root__'
     | '/'
@@ -142,9 +189,13 @@ export interface FileRouteTypes {
     | '/hakkinda'
     | '/iletisim'
     | '/kitaplar'
+    | '/mcp'
     | '/seanslar'
     | '/videolar'
     | '/webinarlar'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
+    | '/.mcp/invoke-tool/$tool'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -155,9 +206,13 @@ export interface RootRouteChildren {
   HakkindaRoute: typeof HakkindaRoute
   IletisimRoute: typeof IletisimRoute
   KitaplarRoute: typeof KitaplarRoute
+  McpRoute: typeof McpRoute
   SeanslarRoute: typeof SeanslarRoute
   VideolarRoute: typeof VideolarRoute
   WebinarlarRoute: typeof WebinarlarRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -181,6 +236,13 @@ declare module '@tanstack/react-router' {
       path: '/seanslar'
       fullPath: '/seanslar'
       preLoaderRoute: typeof SeanslarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kitaplar': {
@@ -232,6 +294,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -243,10 +326,25 @@ const rootRouteChildren: RootRouteChildren = {
   HakkindaRoute: HakkindaRoute,
   IletisimRoute: IletisimRoute,
   KitaplarRoute: KitaplarRoute,
+  McpRoute: McpRoute,
   SeanslarRoute: SeanslarRoute,
   VideolarRoute: VideolarRoute,
   WebinarlarRoute: WebinarlarRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

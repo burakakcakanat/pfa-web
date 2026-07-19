@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "sdk_version": "0.23.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "pfa-mcp",
+      "version": "0.1.0",
+      "title": "Psiko-Fonksiyonel Analiz (PFA)"
+    },
+    "tools": [
+      {
+        "name": "pfa_overview",
+        "title": "PFA hakkında genel bilgi",
+        "description": "PFA modelinin özeti, yedi bilinç seviyesi ve sitedeki tüm sayfa yollarını döndürür. İlk keşif için kullanışlı.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_books",
+        "title": "PFA kitaplarını listele",
+        "description": "Burak Akçakanat'ın Psiko-Fonksiyonel Analiz (PFA) kitaplarını başlık, dil, açıklama ve satın alma linkiyle döndürür.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_webinars",
+        "title": "Yaklaşan webinarları listele",
+        "description": "Yaklaşan PFA webinarlarını tarih, saat, fiyat (USD), kontenjan ve seviye bilgisiyle döndürür. Tüm saatler Europe/Istanbul.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_session_availability",
+        "title": "Seans müsaitliğini göster",
+        "description": "Burak Akçakanat ile 60 dakikalık birebir online danışmanlık (150 USD, Zoom, Europe/Istanbul) için uygun tarih ve saat aralıklarını döndürür. Hafta içi 10:00–18:00.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "days": {
+              "description": "Kaç hafta içi günü döndürüleceği (varsayılan 10).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "submit_inquiry",
+        "title": "Başvuru / iletişim talebi gönder",
+        "description": "Değerlendirme (PA Ölçeği), seans rezervasyonu, webinar kaydı veya genel iletişim için başvuru gönderir. Başvuru sunucu loglarına düşer; Burak ekibi e-posta ile geri döner.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "assessment",
+                "session",
+                "webinar",
+                "training",
+                "contact"
+              ],
+              "description": "Başvuru türü."
+            },
+            "name": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 120,
+              "description": "Başvuranın adı soyadı."
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+              "description": "Geri dönüş için e-posta."
+            },
+            "message": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 2000,
+              "description": "Konu, tercih edilen tarih/saat veya not."
+            },
+            "preferred_date": {
+              "description": "Seans/webinar için tercih edilen tarih (YYYY-MM-DD).",
+              "type": "string"
+            },
+            "preferred_time": {
+              "description": "Tercih edilen saat (HH:MM, Europe/Istanbul).",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "name",
+            "email",
+            "message"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
