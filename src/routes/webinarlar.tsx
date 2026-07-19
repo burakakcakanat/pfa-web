@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { BuyButton } from "@/components/buy-button";
 
 export const Route = createFileRoute("/webinarlar")({
   head: () => ({
@@ -15,16 +16,18 @@ export const Route = createFileRoute("/webinarlar")({
 
 const WEBINARS = [
   {
+    slug: "bilinc-seviyeleri-calismalari",
     title: "Yedi Seviyeye Giriş",
     date: "2026-02-14T19:00:00+03:00",
-    price: 25,
+    price: 150,
     capacity: 100,
     desc: "PFA modelinin yedi seviyesine bütünsel bir bakış. Başlangıç düzeyi.",
   },
   {
+    slug: "pfa-pro-lisans-paketi",
     title: "İşlevsel Farkındalık Atölyesi",
     date: "2026-03-07T19:00:00+03:00",
-    price: 40,
+    price: 450,
     capacity: 60,
     desc: "Kendi haritanız üzerinde çalıştıran uygulamalı bir seans. Ara düzey.",
   },
@@ -67,12 +70,7 @@ function WebinarsPage() {
             </div>
             <div className="flex flex-col items-start gap-3 md:items-end">
               <div className="font-serif text-3xl">${w.price}</div>
-              <button
-                type="button"
-                className="btn-primary hover:btn-primary-hover"
-              >
-                Kayıt Ol
-              </button>
+              <BuyButton productSlug={w.slug} label="Kayıt Ol" />
             </div>
           </article>
         ))}

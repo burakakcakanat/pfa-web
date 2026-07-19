@@ -7,10 +7,11 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
@@ -149,6 +150,20 @@ const NAV_LINKS = [
 ] as const;
 
 function SiteHeader() {
+  const [email, setEmail] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setEmail(session?.user?.email ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  }
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-sm">
       <div className="container-page flex h-16 items-center justify-between gap-6">
@@ -170,6 +185,21 @@ function SiteHeader() {
               {l.label}
             </Link>
           ))}
+          {email ? (
+            <details className="relative">
+              <summary className="cursor-pointer list-none rounded-md border border-border px-3 py-1.5 text-xs tracking-wide">
+                {email.split("@")[0]}
+              </summary>
+              <div className="absolute right-0 mt-2 flex w-44 flex-col rounded-md border border-border bg-background shadow-sm">
+                <Link to="/hesabim" className="border-b border-border/60 px-4 py-2 text-sm hover:text-accent">Hesabım</Link>
+                <button type="button" onClick={signOut} className="px-4 py-2 text-left text-sm hover:text-accent">Çıkış</button>
+              </div>
+            </details>
+          ) : (
+            <Link to="/auth" className="rounded-md border border-accent px-3 py-1.5 text-xs tracking-wide text-accent hover:bg-accent hover:text-accent-foreground">
+              Giriş Yap
+            </Link>
+          )}
         </nav>
         <details className="lg:hidden">
           <summary className="cursor-pointer list-none rounded-md border border-border px-3 py-1.5 text-sm">
@@ -185,6 +215,14 @@ function SiteHeader() {
                 {l.label}
               </Link>
             ))}
+            {email ? (
+              <>
+                <Link to="/hesabim" className="border-b border-border/60 px-4 py-2.5 text-sm">Hesabım</Link>
+                <button type="button" onClick={signOut} className="px-4 py-2.5 text-left text-sm">Çıkış</button>
+              </>
+            ) : (
+              <Link to="/auth" className="px-4 py-2.5 text-sm text-accent">Giriş Yap</Link>
+            )}
           </div>
         </details>
       </div>
