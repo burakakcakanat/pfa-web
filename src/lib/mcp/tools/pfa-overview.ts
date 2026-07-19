@@ -15,11 +15,11 @@ const OVERVIEW = {
   author: "Burak Akçakanat",
   summary:
     "İnsan bilincini yedi işlevsel seviyeye ayıran bir harita. Terapistler, koçlar ve kendini anlamak isteyen herkes için yol bulma aracı.",
-  offerings: ["Kitaplar", "PA Ölçeği (değerlendirme)", "Birebir seanslar", "Webinarlar", "Eğitim"],
+  offerings: ["Kitaplar", "PA Ölçeği (değerlendirme)", "Birebir seanslar", "Webinarlar"],
   levels: LEVELS,
   website_pages: [
     "/", "/kitaplar", "/degerlendirme", "/seanslar", "/webinarlar",
-    "/egitim", "/blog", "/videolar", "/hakkinda", "/iletisim",
+    "/blog", "/hakkinda", "/iletisim",
   ],
 };
 
