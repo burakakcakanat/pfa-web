@@ -10,6 +10,7 @@ export const Route = createFileRoute("/egitim")({
         content:
           "PFA Temel Eğitimi: dokuz modüllük online program. Terapistler, koçlar ve eğitimciler için.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: TrainingPage,
