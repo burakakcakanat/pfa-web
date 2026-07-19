@@ -23,6 +23,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
+import { Route as AuthenticatedRaporFinalizeRouteImport } from './routes/_authenticated/rapor-finalize'
 import { Route as AuthenticatedHesabimRouteImport } from './routes/_authenticated/hesabim'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
@@ -100,6 +101,12 @@ const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
   path: '/degerlendirme/mini',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRaporFinalizeRoute =
+  AuthenticatedRaporFinalizeRouteImport.update({
+    id: '/rapor-finalize',
+    path: '/rapor-finalize',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHesabimRoute = AuthenticatedHesabimRouteImport.update({
   id: '/hesabim',
   path: '/hesabim',
@@ -157,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/hesabim': typeof AuthenticatedHesabimRoute
+  '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -179,6 +187,7 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/hesabim': typeof AuthenticatedHesabimRoute
+  '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -203,6 +212,7 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/hesabim': typeof AuthenticatedHesabimRoute
+  '/_authenticated/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/hesabim'
+    | '/rapor-finalize'
     | '/degerlendirme/mini'
     | '/.mcp/invoke-tool/$tool'
     | '/degerlendirme/tam'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/hesabim'
+    | '/rapor-finalize'
     | '/degerlendirme/mini'
     | '/.mcp/invoke-tool/$tool'
     | '/degerlendirme/tam'
@@ -272,6 +284,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/hesabim'
+    | '/_authenticated/rapor-finalize'
     | '/degerlendirme_/mini'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/degerlendirme/tam'
@@ -400,6 +413,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DegerlendirmeMiniRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/rapor-finalize': {
+      id: '/_authenticated/rapor-finalize'
+      path: '/rapor-finalize'
+      fullPath: '/rapor-finalize'
+      preLoaderRoute: typeof AuthenticatedRaporFinalizeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/hesabim': {
       id: '/_authenticated/hesabim'
       path: '/hesabim'
@@ -454,12 +474,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedHesabimRoute: typeof AuthenticatedHesabimRoute
+  AuthenticatedRaporFinalizeRoute: typeof AuthenticatedRaporFinalizeRoute
   AuthenticatedDegerlendirmeTamRoute: typeof AuthenticatedDegerlendirmeTamRoute
   AuthenticatedRaporSessionIdRoute: typeof AuthenticatedRaporSessionIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHesabimRoute: AuthenticatedHesabimRoute,
+  AuthenticatedRaporFinalizeRoute: AuthenticatedRaporFinalizeRoute,
   AuthenticatedDegerlendirmeTamRoute: AuthenticatedDegerlendirmeTamRoute,
   AuthenticatedRaporSessionIdRoute: AuthenticatedRaporSessionIdRoute,
 }
