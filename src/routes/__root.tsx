@@ -150,10 +150,20 @@ const NAV_LINKS = [
 
 function SiteHeader() {
   const [email, setEmail] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+    const check = async (uid: string | undefined) => {
+      if (!uid) { setIsAdmin(false); return; }
+      const { data } = await supabase.rpc("has_role", { _user_id: uid, _role: "admin" });
+      setIsAdmin(!!data);
+    };
+    supabase.auth.getUser().then(({ data }) => {
+      setEmail(data.user?.email ?? null);
+      check(data.user?.id);
+    });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       setEmail(session?.user?.email ?? null);
+      check(session?.user?.id);
     });
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -191,6 +201,9 @@ function SiteHeader() {
               </summary>
               <div className="absolute right-0 mt-2 flex w-44 flex-col rounded-md border border-border bg-background shadow-sm">
                 <Link to="/hesabim" className="border-b border-border/60 px-4 py-2 text-sm hover:text-accent">Hesabım</Link>
+                {isAdmin && (
+                  <Link to="/admin" className="border-b border-border/60 px-4 py-2 text-sm hover:text-accent">Yönetim</Link>
+                )}
                 <button type="button" onClick={signOut} className="px-4 py-2 text-left text-sm hover:text-accent">Çıkış</button>
               </div>
             </details>
@@ -217,6 +230,7 @@ function SiteHeader() {
             {email ? (
               <>
                 <Link to="/hesabim" className="border-b border-border/60 px-4 py-2.5 text-sm">Hesabım</Link>
+                {isAdmin && (<Link to="/admin" className="border-b border-border/60 px-4 py-2.5 text-sm">Yönetim</Link>)}
                 <button type="button" onClick={signOut} className="px-4 py-2.5 text-left text-sm">Çıkış</button>
               </>
             ) : (
