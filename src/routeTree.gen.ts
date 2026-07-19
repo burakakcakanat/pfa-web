@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as KitaplarRouteImport } from './routes/kitaplar'
+import { Route as DegerlendirmeRouteImport } from './routes/degerlendirme'
 import { Route as IndexRouteImport } from './routes/index'
 
 const KitaplarRoute = KitaplarRouteImport.update({
   id: '/kitaplar',
   path: '/kitaplar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DegerlendirmeRoute = DegerlendirmeRouteImport.update({
+  id: '/degerlendirme',
+  path: '/degerlendirme',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -25,27 +31,31 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/degerlendirme': typeof DegerlendirmeRoute
   '/kitaplar': typeof KitaplarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/degerlendirme': typeof DegerlendirmeRoute
   '/kitaplar': typeof KitaplarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/degerlendirme': typeof DegerlendirmeRoute
   '/kitaplar': typeof KitaplarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/kitaplar'
+  fullPaths: '/' | '/degerlendirme' | '/kitaplar'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/kitaplar'
-  id: '__root__' | '/' | '/kitaplar'
+  to: '/' | '/degerlendirme' | '/kitaplar'
+  id: '__root__' | '/' | '/degerlendirme' | '/kitaplar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DegerlendirmeRoute: typeof DegerlendirmeRoute
   KitaplarRoute: typeof KitaplarRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/kitaplar'
       fullPath: '/kitaplar'
       preLoaderRoute: typeof KitaplarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/degerlendirme': {
+      id: '/degerlendirme'
+      path: '/degerlendirme'
+      fullPath: '/degerlendirme'
+      preLoaderRoute: typeof DegerlendirmeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DegerlendirmeRoute: DegerlendirmeRoute,
   KitaplarRoute: KitaplarRoute,
 }
 export const routeTree = rootRouteImport
