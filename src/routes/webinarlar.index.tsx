@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BuyButton } from "@/components/buy-button";
 
-export const Route = createFileRoute("/webinarlar")({
+export const Route = createFileRoute("/webinarlar/")({
   head: () => ({
     meta: [
       { title: "Webinarlar — PFA" },
