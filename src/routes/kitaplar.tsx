@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import hcdCover from "@/assets/hcd-cover.png.asset.json";
 
 export const Route = createFileRoute("/kitaplar")({
   head: () => ({
@@ -34,7 +35,7 @@ const BOOKS = [
   {
     title: "Human Consciousness Decoded",
     lang: "EN · 2015",
-    cover: null,
+    cover: hcdCover.url,
     desc: "Aydınlanmanın bilimi üzerine ilk eser; PFA modelinin kökleri.",
     cta: null,
   },
