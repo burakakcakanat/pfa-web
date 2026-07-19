@@ -27,6 +27,7 @@ import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.m
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthenticatedRaporFinalizeRouteImport } from './routes/_authenticated/rapor-finalize'
 import { Route as AuthenticatedHesabimRouteImport } from './routes/_authenticated/hesabim'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
@@ -125,6 +126,11 @@ const AuthenticatedHesabimRoute = AuthenticatedHesabimRouteImport.update({
   path: '/hesabim',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const Char91DotwellKnownChar93OauthProtectedResourceRoute =
   Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
     id: '/.well-known/oauth-protected-resource',
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/seanslar': typeof SeanslarRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/hesabim': typeof AuthenticatedHesabimRoute
   '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -199,6 +206,7 @@ export interface FileRoutesByTo {
   '/seanslar': typeof SeanslarRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/hesabim': typeof AuthenticatedHesabimRoute
   '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -226,6 +234,7 @@ export interface FileRoutesById {
   '/seanslar': typeof SeanslarRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/hesabim': typeof AuthenticatedHesabimRoute
   '/_authenticated/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -253,6 +262,7 @@ export interface FileRouteTypes {
     | '/seanslar'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/admin'
     | '/hesabim'
     | '/rapor-finalize'
     | '/blog/$slug'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/seanslar'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/admin'
     | '/hesabim'
     | '/rapor-finalize'
     | '/blog/$slug'
@@ -304,6 +315,7 @@ export interface FileRouteTypes {
     | '/seanslar'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/_authenticated/admin'
     | '/_authenticated/hesabim'
     | '/_authenticated/rapor-finalize'
     | '/blog/$slug'
@@ -467,6 +479,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHesabimRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/.well-known/oauth-protected-resource': {
       id: '/.well-known/oauth-protected-resource'
       path: '/.well-known/oauth-protected-resource'
@@ -513,6 +532,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedHesabimRoute: typeof AuthenticatedHesabimRoute
   AuthenticatedRaporFinalizeRoute: typeof AuthenticatedRaporFinalizeRoute
   AuthenticatedDegerlendirmeTamRoute: typeof AuthenticatedDegerlendirmeTamRoute
@@ -520,6 +540,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedHesabimRoute: AuthenticatedHesabimRoute,
   AuthenticatedRaporFinalizeRoute: AuthenticatedRaporFinalizeRoute,
   AuthenticatedDegerlendirmeTamRoute: AuthenticatedDegerlendirmeTamRoute,
