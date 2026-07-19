@@ -22,6 +22,7 @@ import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
 import { Route as AuthenticatedHesabimRouteImport } from './routes/_authenticated/hesabim'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
@@ -92,6 +93,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
+  id: '/degerlendirme_/mini',
+  path: '/degerlendirme/mini',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedHesabimRoute = AuthenticatedHesabimRouteImport.update({
   id: '/hesabim',
   path: '/hesabim',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/hesabim': typeof AuthenticatedHesabimRoute
+  '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/hesabim': typeof AuthenticatedHesabimRoute
+  '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/hesabim': typeof AuthenticatedHesabimRoute
+  '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/hesabim'
+    | '/degerlendirme/mini'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/stripe-webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/hesabim'
+    | '/degerlendirme/mini'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/stripe-webhook'
   id:
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/hesabim'
+    | '/degerlendirme_/mini'
     | '/.mcp/invoke-tool/$tool'
     | '/api/public/stripe-webhook'
   fileRoutesById: FileRoutesById
@@ -257,6 +269,7 @@ export interface RootRouteChildren {
   WebinarlarRoute: typeof WebinarlarRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  DegerlendirmeMiniRoute: typeof DegerlendirmeMiniRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
 }
@@ -354,6 +367,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/degerlendirme_/mini': {
+      id: '/degerlendirme_/mini'
+      path: '/degerlendirme/mini'
+      fullPath: '/degerlendirme/mini'
+      preLoaderRoute: typeof DegerlendirmeMiniRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/hesabim': {
       id: '/_authenticated/hesabim'
       path: '/hesabim'
@@ -420,6 +440,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  DegerlendirmeMiniRoute: DegerlendirmeMiniRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
 }
