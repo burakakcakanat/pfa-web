@@ -54,12 +54,15 @@ function BooksPage() {
           <article key={b.title} className="flex flex-col">
             <div className="relative mx-auto aspect-[5/8] w-full max-w-[280px] overflow-hidden rounded-md border border-border bg-card shadow-[0_20px_50px_-30px_rgba(31,78,82,0.4)]">
               {b.cover ? (
-                <img
-                  src={b.cover}
-                  alt={`${b.title} kapağı`}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
+                <>
+                  <img
+                    src={b.cover}
+                    alt={`${b.title} kapağı`}
+                    className="h-full w-full object-cover opacity-90 saturate-[0.75] contrast-[0.95] mix-blend-multiply"
+                    loading="lazy"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-background/15" />
+                </>
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-muted p-6 text-center font-serif text-lg text-foreground/60">
                   {b.title}
