@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { BuyButton } from "@/components/buy-button";
 
 export const Route = createFileRoute("/degerlendirme")({
   head: () => ({
@@ -17,6 +20,21 @@ export const Route = createFileRoute("/degerlendirme")({
 
 function AssessmentPage() {
   const [sent, setSent] = useState(false);
+  const [hasFull, setHasFull] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return;
+      const { data } = await supabase
+        .from("user_entitlements")
+        .select("id")
+        .eq("user_id", u.user.id)
+        .eq("type", "assessment_full")
+        .limit(1);
+      setHasFull(!!data && data.length > 0);
+    })();
+  }, []);
 
   return (
     <div className="container-page py-20">
@@ -35,6 +53,35 @@ function AssessmentPage() {
           uygulanabilir.
         </p>
       </header>
+
+      <div className="mx-auto mt-14 grid max-w-4xl gap-6 md:grid-cols-2">
+        <div className="rounded-lg border border-border bg-card p-8">
+          <div className="text-xs uppercase tracking-[0.25em] text-accent">Ücretsiz</div>
+          <h2 className="mt-2 font-serif text-2xl">Mini Test</h2>
+          <p className="mt-3 text-sm text-foreground/80">
+            35 soru, 7 seviyede kısa bir görünüm. Sonucu görmek için ücretsiz üyelik gerekir.
+          </p>
+          <Link to="/degerlendirme_/mini" className="btn-primary mt-6 inline-block">
+            Ücretsiz Mini Testi Başlat
+          </Link>
+        </div>
+        <div className="rounded-lg border-2 border-accent/50 bg-accent/5 p-8">
+          <div className="text-xs uppercase tracking-[0.25em] text-accent">$29</div>
+          <h2 className="mt-2 font-serif text-2xl">Tam Assessment + Bilinç Seviyesi Raporu</h2>
+          <p className="mt-3 text-sm text-foreground/80">
+            Tüm aktif sorular, seviye seviye ayrıntılı yorum, zeka türü skorları ve destek alınacak alanların derinlemesine haritası.
+          </p>
+          <div className="mt-6">
+            {hasFull ? (
+              <Link to="/degerlendirme/tam" className="btn-primary inline-block">
+                Tam Testi Başlat
+              </Link>
+            ) : (
+              <BuyButton productSlug="tam-assessment-rapor" label="Tam Assessment Satın Al" />
+            )}
+          </div>
+        </div>
+      </div>
 
       <div className="mx-auto mt-16 max-w-2xl rounded-lg border border-border bg-card p-8 md:p-10">
         <h2 className="font-serif text-2xl">Ön Kayıt & Bilgi Talebi</h2>
