@@ -58,10 +58,16 @@ function BooksPage() {
                   <img
                     src={b.cover}
                     alt={`${b.title} kapağı`}
-                    className="h-full w-full object-cover opacity-90 saturate-[0.75] contrast-[0.95] mix-blend-multiply"
+                    className={`h-full w-full object-cover ${
+                      b.mute
+                        ? "opacity-85 saturate-[0.6] contrast-[0.92] brightness-[0.95]"
+                        : ""
+                    }`}
                     loading="lazy"
                   />
-                  <div className="pointer-events-none absolute inset-0 bg-background/15" />
+                  {b.mute && (
+                    <div className="pointer-events-none absolute inset-0 bg-background/25 mix-blend-soft-light" />
+                  )}
                 </>
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-muted p-6 text-center font-serif text-lg text-foreground/60">
