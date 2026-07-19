@@ -41,7 +41,7 @@ export const createProInvite = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const { data: invite, error } = await supabase.rpc("create_pro_invite", {
+    const { data: invite, error } = await (supabase as any).rpc("create_pro_invite", {
       _client_name: data.client_name,
     });
     if (error) {
