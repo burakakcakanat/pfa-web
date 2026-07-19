@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BuyButton } from "@/components/buy-button";
 import { getProDashboard, createProInvite } from "@/lib/pro.functions";
-import { getEbookDownloadUrl } from "@/lib/ebooks.functions";
+import { listMyEbooks, getEbookUrl } from "@/lib/ebooks.functions";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
   head: () => ({
@@ -152,7 +152,7 @@ function AccountPage() {
           </div>
         )}
 
-        {tab === "ebooks" && <EbookTab ebooks={ebooks} />}
+        {tab === "ebooks" && <EbookTab hasAny={ebooks.length > 0} />}
 
         {tab === "webinars" && (
           <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
@@ -168,24 +168,16 @@ function AccountPage() {
   );
 }
 
-function EbookTab({ ebooks }: { ebooks: Entitlement[] }) {
-  const fetchUrl = useServerFn(getEbookDownloadUrl);
-  const [loading, setLoading] = useState(false);
-  const [state, setState] = useState<{ url: string | null; filename: string | null } | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+function EbookTab({ hasAny }: { hasAny: boolean }) {
+  const fetchList = useServerFn(listMyEbooks);
+  const [items, setItems] = useState<Awaited<ReturnType<typeof listMyEbooks>> | null>(null);
 
-  async function download() {
-    setErr(null); setLoading(true);
-    try {
-      const res = await fetchUrl({ data: undefined as unknown as never });
-      setState(res);
-      if (res?.url) window.open(res.url, "_blank", "noopener,noreferrer");
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Hata");
-    } finally { setLoading(false); }
-  }
+  useEffect(() => {
+    if (!hasAny) { setItems([]); return; }
+    fetchList().then(setItems).catch(() => setItems([]));
+  }, [hasAny, fetchList]);
 
-  if (ebooks.length === 0) {
+  if (!hasAny) {
     return (
       <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
         E-book'larınız burada görünecek. <Link to="/kitaplar" className="text-accent">Kitaplara göz at →</Link>
@@ -193,24 +185,66 @@ function EbookTab({ ebooks }: { ebooks: Entitlement[] }) {
     );
   }
 
+  if (!items) return <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">Yükleniyor…</div>;
+
   return (
-    <div className="rounded-lg border border-border bg-card p-6">
-      <div className="flex items-start justify-between gap-4">
+    <ul className="space-y-4">
+      {items.map((it) => (
+        <EbookRow key={it.slug} slug={it.slug} label={it.label} available={it.available} />
+      ))}
+    </ul>
+  );
+}
+
+function EbookRow({ slug, label, available }: { slug: string; label: string; available: boolean }) {
+  const getUrl = useServerFn(getEbookUrl);
+  const [busy, setBusy] = useState<null | "view" | "download">(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function open(mode: "view" | "download") {
+    setErr(null); setBusy(mode);
+    try {
+      const res = await getUrl({ data: { slug, mode } });
+      if (res?.url) window.open(res.url, "_blank", "noopener,noreferrer");
+      else setErr("Dosya yakında eklenecek.");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Hata");
+    } finally { setBusy(null); }
+  }
+
+  return (
+    <li className="rounded-lg border border-border bg-card p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="font-serif text-xl">PFA: Bilinç Çözümleme (TR)</div>
+          <div className="font-serif text-xl">{label}</div>
           <div className="mt-1 text-xs text-muted-foreground">E-Book — kişisel kullanım için lisanslı.</div>
-          {state && !state.url && (
+          {!available && (
             <div className="mt-3 text-sm text-muted-foreground">
-              Dosya yakında eklenecek. Yönetici yüklediğinde bu alandan indirebileceksiniz.
+              Dosya yakında eklenecek. Yüklendiğinde bu alandan okuyabilir veya indirebilirsiniz.
             </div>
           )}
           {err && <div className="mt-3 text-sm text-destructive">{err}</div>}
         </div>
-        <button type="button" onClick={download} disabled={loading} className="btn-primary disabled:opacity-60">
-          {loading ? "..." : "İndir"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => open("view")}
+            disabled={!available || busy !== null}
+            className="btn-outline disabled:opacity-50"
+          >
+            {busy === "view" ? "..." : "Oku"}
+          </button>
+          <button
+            type="button"
+            onClick={() => open("download")}
+            disabled={!available || busy !== null}
+            className="btn-primary disabled:opacity-50"
+          >
+            {busy === "download" ? "..." : "İndir"}
+          </button>
+        </div>
       </div>
-    </div>
+    </li>
   );
 }
 
