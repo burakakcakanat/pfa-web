@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { BuyButton } from "@/components/buy-button";
 import hcdCover from "@/assets/hcd-cover.png.asset.json";
 
 export const Route = createFileRoute("/kitaplar")({
@@ -31,6 +32,7 @@ const BOOKS = [
       "https://static.wixstatic.com/media/db0c25_1409f60fe7f04746beef167966abdd57~mv2.png",
     desc: "Bir bilinç haritası — bekadan birliğe. Terapistler, koçlar, eğitimciler ve kendini anlamaya yola çıkmış herkes için bir yol bulma aracı.",
     cta: { label: "Google Play'de Yakında", href: "#", disabled: true },
+    ebookSlug: "pfa-ebook-tr",
   },
   {
     title: "Human Consciousness Decoded",
