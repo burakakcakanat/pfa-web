@@ -37,7 +37,7 @@ const BOOKS = [
     lang: "EN · 2015",
     cover: hcdCover.url,
     desc: "Aydınlanmanın bilimi üzerine ilk eser; PFA modelinin kökleri.",
-    cta: null,
+    cta: { label: "Amazon'da Satın Al", href: "https://www.amazon.com/dp/B00YJP1ODE", disabled: false },
     mute: true,
   },
 ] as const;
