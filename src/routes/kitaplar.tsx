@@ -60,13 +60,13 @@ function BooksPage() {
                     src={b.cover}
                     alt={`${b.title} kapağı`}
                     className={`h-full w-full object-cover ${
-                      b.mute
+                      "mute" in b && b.mute
                         ? "opacity-85 saturate-[0.6] contrast-[0.92] brightness-[0.95]"
                         : ""
                     }`}
                     loading="lazy"
                   />
-                  {b.mute && (
+                  {"mute" in b && b.mute && (
                     <div className="pointer-events-none absolute inset-0 bg-background/25 mix-blend-soft-light" />
                   )}
                 </>
