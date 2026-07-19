@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WebinarlarRouteImport } from './routes/webinarlar'
+import { Route as VideolarRouteImport } from './routes/videolar'
 import { Route as SeanslarRouteImport } from './routes/seanslar'
 import { Route as KitaplarRouteImport } from './routes/kitaplar'
 import { Route as EgitimRouteImport } from './routes/egitim'
@@ -20,6 +21,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const WebinarlarRoute = WebinarlarRouteImport.update({
   id: '/webinarlar',
   path: '/webinarlar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VideolarRoute = VideolarRouteImport.update({
+  id: '/videolar',
+  path: '/videolar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SeanslarRoute = SeanslarRouteImport.update({
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/egitim': typeof EgitimRoute
   '/kitaplar': typeof KitaplarRoute
   '/seanslar': typeof SeanslarRoute
+  '/videolar': typeof VideolarRoute
   '/webinarlar': typeof WebinarlarRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/egitim': typeof EgitimRoute
   '/kitaplar': typeof KitaplarRoute
   '/seanslar': typeof SeanslarRoute
+  '/videolar': typeof VideolarRoute
   '/webinarlar': typeof WebinarlarRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/egitim': typeof EgitimRoute
   '/kitaplar': typeof KitaplarRoute
   '/seanslar': typeof SeanslarRoute
+  '/videolar': typeof VideolarRoute
   '/webinarlar': typeof WebinarlarRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/egitim'
     | '/kitaplar'
     | '/seanslar'
+    | '/videolar'
     | '/webinarlar'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/egitim'
     | '/kitaplar'
     | '/seanslar'
+    | '/videolar'
     | '/webinarlar'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/egitim'
     | '/kitaplar'
     | '/seanslar'
+    | '/videolar'
     | '/webinarlar'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   EgitimRoute: typeof EgitimRoute
   KitaplarRoute: typeof KitaplarRoute
   SeanslarRoute: typeof SeanslarRoute
+  VideolarRoute: typeof VideolarRoute
   WebinarlarRoute: typeof WebinarlarRoute
 }
 
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/webinarlar'
       fullPath: '/webinarlar'
       preLoaderRoute: typeof WebinarlarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/videolar': {
+      id: '/videolar'
+      path: '/videolar'
+      fullPath: '/videolar'
+      preLoaderRoute: typeof VideolarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/seanslar': {
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   EgitimRoute: EgitimRoute,
   KitaplarRoute: KitaplarRoute,
   SeanslarRoute: SeanslarRoute,
+  VideolarRoute: VideolarRoute,
   WebinarlarRoute: WebinarlarRoute,
 }
 export const routeTree = rootRouteImport
