@@ -13,6 +13,7 @@ import { Route as WebinarlarRouteImport } from './routes/webinarlar'
 import { Route as VideolarRouteImport } from './routes/videolar'
 import { Route as SeanslarRouteImport } from './routes/seanslar'
 import { Route as KitaplarRouteImport } from './routes/kitaplar'
+import { Route as HakkindaRouteImport } from './routes/hakkinda'
 import { Route as EgitimRouteImport } from './routes/egitim'
 import { Route as DegerlendirmeRouteImport } from './routes/degerlendirme'
 import { Route as BlogRouteImport } from './routes/blog'
@@ -36,6 +37,11 @@ const SeanslarRoute = SeanslarRouteImport.update({
 const KitaplarRoute = KitaplarRouteImport.update({
   id: '/kitaplar',
   path: '/kitaplar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HakkindaRoute = HakkindaRouteImport.update({
+  id: '/hakkinda',
+  path: '/hakkinda',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EgitimRoute = EgitimRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
+  '/hakkinda': typeof HakkindaRoute
   '/kitaplar': typeof KitaplarRoute
   '/seanslar': typeof SeanslarRoute
   '/videolar': typeof VideolarRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
+  '/hakkinda': typeof HakkindaRoute
   '/kitaplar': typeof KitaplarRoute
   '/seanslar': typeof SeanslarRoute
   '/videolar': typeof VideolarRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/blog': typeof BlogRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
+  '/hakkinda': typeof HakkindaRoute
   '/kitaplar': typeof KitaplarRoute
   '/seanslar': typeof SeanslarRoute
   '/videolar': typeof VideolarRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/degerlendirme'
     | '/egitim'
+    | '/hakkinda'
     | '/kitaplar'
     | '/seanslar'
     | '/videolar'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/degerlendirme'
     | '/egitim'
+    | '/hakkinda'
     | '/kitaplar'
     | '/seanslar'
     | '/videolar'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/degerlendirme'
     | '/egitim'
+    | '/hakkinda'
     | '/kitaplar'
     | '/seanslar'
     | '/videolar'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   BlogRoute: typeof BlogRoute
   DegerlendirmeRoute: typeof DegerlendirmeRoute
   EgitimRoute: typeof EgitimRoute
+  HakkindaRoute: typeof HakkindaRoute
   KitaplarRoute: typeof KitaplarRoute
   SeanslarRoute: typeof SeanslarRoute
   VideolarRoute: typeof VideolarRoute
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/kitaplar'
       fullPath: '/kitaplar'
       preLoaderRoute: typeof KitaplarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hakkinda': {
+      id: '/hakkinda'
+      path: '/hakkinda'
+      fullPath: '/hakkinda'
+      preLoaderRoute: typeof HakkindaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/egitim': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRoute: BlogRoute,
   DegerlendirmeRoute: DegerlendirmeRoute,
   EgitimRoute: EgitimRoute,
+  HakkindaRoute: HakkindaRoute,
   KitaplarRoute: KitaplarRoute,
   SeanslarRoute: SeanslarRoute,
   VideolarRoute: VideolarRoute,
