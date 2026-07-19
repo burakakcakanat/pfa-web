@@ -14,6 +14,158 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessment_answers: {
+        Row: {
+          created_at: string
+          id: string
+          question_id: string
+          session_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_id: string
+          session_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_id?: string
+          session_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_answers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_questions: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          is_mini: boolean
+          level: number
+          reverse_coded: boolean
+          sort_order: number
+          text_en: string | null
+          text_tr: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          is_mini?: boolean
+          level: number
+          reverse_coded?: boolean
+          sort_order?: number
+          text_en?: string | null
+          text_tr: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          is_mini?: boolean
+          level?: number
+          reverse_coded?: boolean
+          sort_order?: number
+          text_en?: string | null
+          text_tr?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      assessment_results: {
+        Row: {
+          created_at: string
+          id: string
+          intelligence_scores: Json
+          level_scores: Json
+          session_id: string
+          summary_band: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          intelligence_scores?: Json
+          level_scores?: Json
+          session_id: string
+          summary_band?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          intelligence_scores?: Json
+          level_scores?: Json
+          session_id?: string
+          summary_band?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_results_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "assessment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_sessions: {
+        Row: {
+          client_invite_id: string | null
+          completed_at: string | null
+          created_at: string
+          guest_token: string | null
+          id: string
+          started_at: string
+          status: Database["public"]["Enums"]["assessment_status"]
+          type: Database["public"]["Enums"]["assessment_type"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          client_invite_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          guest_token?: string | null
+          id?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["assessment_status"]
+          type: Database["public"]["Enums"]["assessment_type"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          client_invite_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          guest_token?: string | null
+          id?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["assessment_status"]
+          type?: Database["public"]["Enums"]["assessment_type"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           amount_cents: number
@@ -57,6 +209,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pro_client_invites: {
+        Row: {
+          client_name: string
+          created_at: string
+          id: string
+          pro_user_id: string
+          status: Database["public"]["Enums"]["invite_status"]
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          client_name: string
+          created_at?: string
+          id?: string
+          pro_user_id: string
+          status?: Database["public"]["Enums"]["invite_status"]
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          client_name?: string
+          created_at?: string
+          id?: string
+          pro_user_id?: string
+          status?: Database["public"]["Enums"]["invite_status"]
+          token?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       products: {
         Row: {
@@ -201,12 +383,15 @@ export type Database = {
     }
     Enums: {
       app_role: "user" | "pro" | "admin"
+      assessment_status: "in_progress" | "completed"
+      assessment_type: "mini" | "full"
       entitlement_type:
         | "ebook"
         | "assessment_full"
         | "webinar_bsc"
         | "pfa_pro"
         | "session"
+      invite_status: "pending" | "completed"
       order_status: "pending" | "paid" | "failed"
       product_type: "session" | "webinar" | "assessment" | "ebook"
     }
@@ -337,6 +522,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["user", "pro", "admin"],
+      assessment_status: ["in_progress", "completed"],
+      assessment_type: ["mini", "full"],
       entitlement_type: [
         "ebook",
         "assessment_full",
@@ -344,6 +531,7 @@ export const Constants = {
         "pfa_pro",
         "session",
       ],
+      invite_status: ["pending", "completed"],
       order_status: ["pending", "paid", "failed"],
       product_type: ["session", "webinar", "assessment", "ebook"],
     },
