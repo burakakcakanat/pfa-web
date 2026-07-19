@@ -1,0 +1,52 @@
+import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { createCheckout } from "@/lib/checkout.functions";
+
+type Props = {
+  productSlug: string;
+  label?: string;
+  className?: string;
+};
+
+export function BuyButton({ productSlug, label = "Satın Al", className }: Props) {
+  const doCheckout = useServerFn(createCheckout);
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onClick() {
+    setError(null);
+    setLoading(true);
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) {
+        navigate({ to: "/auth", search: { redirect: window.location.pathname } });
+        return;
+      }
+      const res = await doCheckout({
+        data: { product_slug: productSlug, origin: window.location.origin },
+      });
+      if (res?.url) window.location.href = res.url;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Bir hata oluştu.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-start gap-2">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={loading}
+        className={className ?? "btn-primary hover:btn-primary-hover disabled:opacity-60"}
+      >
+        {loading ? "..." : label}
+      </button>
+      {error && <span className="text-xs text-destructive">{error}</span>}
+    </div>
+  );
+}
