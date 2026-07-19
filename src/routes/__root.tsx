@@ -77,14 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "PFA — Psiko-Fonksiyonel Analiz | İnsan Bilincinin İşlevsel Haritası" },
+      { name: "description", content: "Psiko-Fonksiyonel Analiz (PFA): insan bilincini yedi işlevsel seviyeye ayıran bir harita. Kitaplar, PA Ölçeği, birebir seanslar, webinarlar ve eğitim." },
+      { name: "author", content: "Burak Akçakanat" },
+      { property: "og:title", content: "PFA — Psiko-Fonksiyonel Analiz" },
+      { property: "og:description", content: "İnsan bilincinin yedi seviyeli işlevsel haritası." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -92,6 +91,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -119,8 +124,114 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <div className="flex min-h-screen flex-col">
+        <SiteHeader />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <SiteFooter />
+      </div>
     </QueryClientProvider>
+  );
+}
+
+const NAV_LINKS = [
+  { to: "/", label: "Ana Sayfa" },
+  { to: "/kitaplar", label: "Kitaplar" },
+  { to: "/degerlendirme", label: "Değerlendirme" },
+  { to: "/seanslar", label: "Seanslar" },
+  { to: "/webinarlar", label: "Webinarlar" },
+  { to: "/egitim", label: "Eğitim" },
+  { to: "/blog", label: "Blog" },
+  { to: "/videolar", label: "Videolar" },
+  { to: "/hakkinda", label: "Hakkında" },
+  { to: "/iletisim", label: "İletişim" },
+] as const;
+
+function SiteHeader() {
+  return (
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-sm">
+      <div className="container-page flex h-16 items-center justify-between gap-6">
+        <Link to="/" className="flex items-center gap-2 font-serif text-lg tracking-wide">
+          <span className="inline-block h-2 w-2 rounded-full bg-accent" aria-hidden />
+          <span>PFA</span>
+          <span className="hidden text-xs uppercase tracking-[0.2em] text-muted-foreground sm:inline">
+            Psiko-Fonksiyonel Analiz
+          </span>
+        </Link>
+        <nav className="hidden items-center gap-6 text-[0.82rem] tracking-wide lg:flex">
+          {NAV_LINKS.map((l) => (
+            <Link
+              key={l.to}
+              to={l.to}
+              className="text-foreground/75 transition-colors hover:text-accent"
+              activeProps={{ className: "text-accent" }}
+            >
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+        <details className="lg:hidden">
+          <summary className="cursor-pointer list-none rounded-md border border-border px-3 py-1.5 text-sm">
+            Menü
+          </summary>
+          <div className="absolute right-4 mt-2 flex w-56 flex-col rounded-md border border-border bg-background shadow-sm">
+            {NAV_LINKS.map((l) => (
+              <Link
+                key={l.to}
+                to={l.to}
+                className="border-b border-border/60 px-4 py-2.5 text-sm last:border-b-0"
+              >
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        </details>
+      </div>
+    </header>
+  );
+}
+
+function SiteFooter() {
+  return (
+    <footer className="mt-24 border-t border-border/60 bg-background">
+      <div className="container-page grid gap-10 py-14 md:grid-cols-3">
+        <div>
+          <div className="font-serif text-xl">Psycho-Functional Analysis</div>
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
+            İnsan bilincinin yedi seviyeli işlevsel haritası.
+          </p>
+        </div>
+        <div>
+          <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Keşfet</div>
+          <ul className="mt-4 space-y-2 text-sm">
+            {NAV_LINKS.slice(1, 6).map((l) => (
+              <li key={l.to}>
+                <Link to={l.to} className="hover:text-accent">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Daha</div>
+          <ul className="mt-4 space-y-2 text-sm">
+            {NAV_LINKS.slice(6).map((l) => (
+              <li key={l.to}>
+                <Link to={l.to} className="hover:text-accent">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div className="border-t border-border/60">
+        <div className="container-page py-6 text-xs text-muted-foreground">
+          © 2026 Burak Akçakanat — Psiko-Fonksiyonel Analiz. Tüm hakları saklıdır.
+        </div>
+      </div>
+    </footer>
   );
 }
