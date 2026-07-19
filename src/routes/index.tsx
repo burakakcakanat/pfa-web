@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import pfaHeroLogo from "@/assets/pfa-logo-hero.png.asset.json";
 
 const TORUS_URL =
   "https://static.wixstatic.com/media/db0c25_c6821ab1b9bb4810a0f8df2c8e676e81~mv2.png";
@@ -47,20 +46,19 @@ function HomePage() {
         <Ornament />
         <div className="container-page relative py-24 md:py-36">
           <div className="mx-auto max-w-3xl text-center">
-            <img
-              src={pfaHeroLogo.url}
-              alt="PFA — Psycho-Functional Analysis"
-              className="mx-auto h-auto w-full max-w-xl md:max-w-2xl"
-            />
-            <h1 className="sr-only">PFA: İnsan Bilincinin İşlevsel Haritası</h1>
-            <p className="mt-8 font-serif text-2xl leading-snug text-foreground md:text-3xl">
-              İnsan Bilincinin İşlevsel Haritası
-            </p>
+            <div className="text-[0.7rem] uppercase tracking-[0.42em] text-accent">
+              Psiko-Fonksiyonel Analiz
+            </div>
+            <h1 className="mt-6 font-serif text-4xl leading-[1.08] text-foreground md:text-6xl">
+              İnsan bilincinin
+              <br />
+              <em className="not-italic text-accent">işlevsel haritası.</em>
+            </h1>
             <p className="mx-auto mt-8 max-w-2xl text-base leading-relaxed text-foreground/80 md:text-lg">
-              Psiko-Fonksiyonel Analiz, insan bilincini yedi işlevsel seviyeye
-              ayırır — tek bir hücrenin hayatta kalma güdüsünden evrensel birlik
-              deneyimine dek — ve her birini bir beyin bölgesiyle, bir zekâ türüyle
-              ve bir gelişim aşamasıyla eşler.
+              PFA, insan bilincini yedi işlevsel seviyeye ayırır — tek bir
+              hücrenin hayatta kalma güdüsünden evrensel birlik deneyimine
+              dek — ve her birini bir beyin bölgesiyle, bir zekâ türüyle ve
+              bir gelişim aşamasıyla eşler.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-3">
               <Link to="/degerlendirme" className="btn-primary hover:btn-primary-hover">
@@ -69,6 +67,13 @@ function HomePage() {
               <Link to="/kitaplar" className="btn-outline hover:bg-foreground/5">
                 Kitapları İncele
               </Link>
+            </div>
+            <div className="mx-auto mt-14 flex max-w-md items-center justify-center gap-6 text-[0.7rem] uppercase tracking-[0.3em] text-muted-foreground">
+              <span>7 Seviye</span>
+              <span className="h-px w-8 bg-border" />
+              <span>7 Zekâ</span>
+              <span className="h-px w-8 bg-border" />
+              <span>Tek Harita</span>
             </div>
           </div>
         </div>
