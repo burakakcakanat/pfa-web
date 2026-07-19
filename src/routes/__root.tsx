@@ -12,7 +12,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
-import pfaLogo from "@/assets/pfa-logo-stacked.png.asset.json";
+import pfaLogo from "@/assets/pfa-logo-torus.png";
 
 function NotFoundComponent() {
   return (
@@ -178,7 +178,7 @@ function SiteHeader() {
       <div className="container-page flex h-16 items-center justify-between gap-6">
         <Link to="/" className="flex items-center" aria-label="PFA — Psiko-Fonksiyonel Analiz">
           <img
-            src={pfaLogo.url}
+            src={pfaLogo}
             alt="PFA — Psycho-Functional Analysis"
             className="h-10 w-auto md:h-12"
           />
@@ -249,7 +249,7 @@ function SiteFooter() {
       <div className="container-page grid gap-10 py-14 md:grid-cols-3">
         <div>
           <img
-            src={pfaLogo.url}
+            src={pfaLogo}
             alt="PFA — Psycho-Functional Analysis"
             className="h-14 w-auto"
           />
