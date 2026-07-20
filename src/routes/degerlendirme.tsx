@@ -61,7 +61,7 @@ function AssessmentPage() {
           <p className="mt-3 text-sm text-foreground/80">
             35 soru, 7 seviyede kısa bir görünüm. Sonucu görmek için ücretsiz üyelik gerekir.
           </p>
-          <Link to="/degerlendirme_/mini" className="btn-primary mt-6 inline-block">
+          <Link to="/degerlendirme/mini" className="btn-primary mt-6 inline-block">
             Ücretsiz Mini Testi Başlat
           </Link>
         </div>
