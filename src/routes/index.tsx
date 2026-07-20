@@ -10,7 +10,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Psiko-Fonksiyonel Analiz, insan bilincini yedi işlevsel seviyeye ayırır — bekadan birliğe uzanan bir harita.",
+          "Psİko-Fonksİyonel Analİz, insan bilincini yedi işlevsel seviyeye ayırır — bekadan birliğe uzanan bir harita.",
       },
     ],
   }),
@@ -47,7 +47,7 @@ function HomePage() {
         <div className="container-page relative py-24 md:py-36">
           <div className="mx-auto max-w-3xl text-center">
             <div className="text-sm font-medium uppercase tracking-[0.35em] text-accent md:text-base">
-              Psiko-Fonksiyonel Analiz
+              Psİko-Fonksİyonel Analİz
             </div>
             <h1 className="mt-6 font-serif text-4xl leading-[1.08] text-foreground md:text-6xl">
               İnsan bilincinin
