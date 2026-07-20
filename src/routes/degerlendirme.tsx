@@ -7,11 +7,11 @@ import { BuyButton } from "@/components/buy-button";
 export const Route = createFileRoute("/degerlendirme")({
   head: () => ({
     meta: [
-      { title: "PA Ölçeği | PFA" },
+      { title: "PFA Ölçeği | PFA" },
       {
         name: "description",
         content:
-          "PA Ölçeği: her bilinç seviyesi için 30 soru; farkındalığı işlevsel farkındalığa taşıyan değerlendirme aracı.",
+          "PFA Ölçeği: her bilinç seviyesi için 30 soru; farkındalığı işlevsel farkındalığa taşıyan değerlendirme aracı.",
       },
     ],
   }),
@@ -39,14 +39,14 @@ function AssessmentPage() {
   return (
     <div className="container-page py-20">
       <header className="mx-auto max-w-3xl text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">PA Ölçeği</div>
+        <div className="text-xs uppercase tracking-[0.3em] text-accent">PFA Ölçeği</div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">
-          PA Ölçeği: Farkındalıktan İşlevsel Farkındalığa
+          PFA Ölçeği: Farkındalıktan İşlevsel Farkındalığa
         </h1>
         <p className="mt-8 text-base leading-relaxed text-foreground/80">
           Resiflerde dalış yapan herkes anda ve farkındadır; ama yalnızca bir deniz
           biyoloğu hangi canlının neden renk değiştirdiğini görür. Bu fark,
-          farkındalık ile işlevsel farkındalık arasındaki farktır. PA Ölçeği bu
+          farkındalık ile işlevsel farkındalık arasındaki farktır. PFA Ölçeği bu
           geçişin aracıdır. Her bilinç seviyesi için 30 soru; hangi seviyede işlev
           aksadığını ve gelişimin nereden destek alacağını gösteren rapor. Bireysel
           gelişimden psikolojiye, eğitimden kurumsal seçme-yerleştirme-geliştirmeye
