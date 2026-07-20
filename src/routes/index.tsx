@@ -138,13 +138,14 @@ function HomePage() {
             Neden Bir Harita?
           </div>
           <p className="mt-6 font-serif text-2xl leading-relaxed text-foreground md:text-3xl">
-            “Bilinç, yedi enstrümanlı bir orkestradır — duymayı öğrenen kulak,
-            detone bir müzikle karşılaştığında hangi enstrümana bakacağını bilir.”
+            “Bilinç, yedi enstrümanlı bir orkestradan ortaya çıkan müziktir—
+            duymayı öğrenen kulak, orkestradaki detone enstrümanı ayırabilir
+            hatta akordunu yapabilir.”
           </p>
           <p className="mt-8 text-base leading-relaxed text-foreground/80">
-            Oryantasyonun olmadığı her ortamda kaygının temel nedeni kaybolmuşluktur.
-            PFA, bilincin işlevlerini muğlak tek bir adreste değil, yedi ayrı
-            işlevsel adreste ele alır.
+            Oryantasyonun olmadığı her ortamda kaygının temel nedeni bilinç
+            seviyeleri arasındaki kaybolmuşluktur. PFA, bilincin işlevlerini
+            muğlak tek bir adreste değil, yedi ayrı işlevsel adreste ele alır.
           </p>
         </div>
       </section>
