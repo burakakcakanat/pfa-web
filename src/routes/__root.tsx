@@ -12,7 +12,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
-import pfaLogo from "@/assets/pfa-logo-canva.png";
+import pfaLogoAsset from "@/assets/pfa-logo-canva.png.asset.json";
+const pfaLogo = pfaLogoAsset.url;
 
 function NotFoundComponent() {
   return (
