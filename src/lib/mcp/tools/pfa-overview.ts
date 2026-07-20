@@ -11,7 +11,7 @@ const LEVELS = [
 ];
 
 const OVERVIEW = {
-  title: "Psiko-Fonksiyonel Analiz (PFA)",
+  title: "Psİko-Fonksİyonel Analİz (PFA)",
   author: "Burak Akçakanat",
   summary:
     "İnsan bilincini yedi işlevsel seviyeye ayıran bir harita. Terapistler, koçlar ve kendini anlamak isteyen herkes için yol bulma aracı.",

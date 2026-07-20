@@ -31,7 +31,7 @@ export default defineTool({
   name: "list_books",
   title: "PFA kitaplarını listele",
   description:
-    "Burak Akçakanat'ın Psiko-Fonksiyonel Analiz (PFA) kitaplarını başlık, dil, açıklama ve satın alma linkiyle döndürür.",
+    "Burak Akçakanat'ın Psİko-Fonksİyonel Analİz (PFA) kitaplarını başlık, dil, açıklama ve satın alma linkiyle döndürür.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: () => ({
