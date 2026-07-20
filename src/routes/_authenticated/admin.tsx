@@ -81,7 +81,7 @@ function AdminPage() {
             <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
             <TabsTrigger value="products">Ürünler</TabsTrigger>
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
-            <TabsTrigger value="questions">PA Ölçeği</TabsTrigger>
+            <TabsTrigger value="questions">PFA Ölçeği</TabsTrigger>
             <TabsTrigger value="webinars">Webinarlar</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
             <TabsTrigger value="ebooks">E-Kitaplar</TabsTrigger>
