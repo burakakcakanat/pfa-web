@@ -15,7 +15,15 @@ async function signedForSlug(slug: string, mode: "view" | "download") {
     limit: 10,
     sortBy: { column: "updated_at", order: "desc" },
   });
-  const file = list?.[0];
+  const files = list ?? [];
+  // View mode → prefer PDF (in-browser viewer). Download → prefer EPUB if
+  // present, else PDF. Falls back to newest file otherwise.
+  const pickBy = (ext: string) =>
+    files.find((f) => f.name.toLowerCase().endsWith(ext));
+  const file =
+    mode === "view"
+      ? pickBy(".pdf") ?? files[0]
+      : pickBy(".epub") ?? pickBy(".pdf") ?? files[0];
   if (!file) return { url: null, filename: null };
 
   const path = `${slug}/${file.name}`;
