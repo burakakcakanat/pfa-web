@@ -1,7 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-
-const TORUS_URL =
-  "https://static.wixstatic.com/media/db0c25_c6821ab1b9bb4810a0f8df2c8e676e81~mv2.png";
+import pfaMapAsset from "@/assets/pfa-map-hero.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -100,33 +98,25 @@ function HomePage() {
       </section>
 
       {/* Bilinç Döngüsü */}
-      <section className="container-page py-20">
-        <div className="grid items-center gap-14 md:grid-cols-2">
-          <div className="order-2 md:order-1">
-            <div className="text-xs uppercase tracking-[0.3em] text-accent">
-              Bilinç Döngüsü
-            </div>
-            <h2 className="mt-4 font-serif text-3xl md:text-4xl">
-              Bekadan birliğe uzanan tek bir döngü
-            </h2>
-            <p className="mt-6 text-base leading-relaxed text-foreground/80">
-              Bilinç, beka ile birlik arasında uzanan tek bir döngüde hareket eder:
-              ilk üç seviyede genişleme, dördüncü seviyeden itibaren bütünleşme.
-              Harita, bu yolculukta kaybolmanın bir kader olmadığını gösterir.
-            </p>
+      <section className="container-page pt-6 pb-24">
+        <div className="mx-auto max-w-6xl text-center">
+          <div className="text-xs uppercase tracking-[0.3em] text-accent">
+            Bilinç Döngüsü
           </div>
-          <figure className="order-1 md:order-2">
-            <div className="rounded-lg border border-border bg-card p-4 md:p-6">
-              <img
-                src={TORUS_URL}
-                alt="Bilinç Döngüsü — İşlevsel Harita"
-                className="mx-auto h-auto w-full"
-                loading="lazy"
-              />
-            </div>
-            <figcaption className="mt-3 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground">
-              Bilinç Döngüsü
-            </figcaption>
+          <h2 className="mt-4 font-serif text-3xl md:text-4xl">
+            Bekadan birliğe uzanan tek bir döngü
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-foreground/80">
+            İlk üç seviyede genişleme, dördüncü seviyeden itibaren bütünleşme —
+            yedi işlevsel seviye tek bir toroidal döngü içinde birleşir.
+          </p>
+          <figure className="mt-10">
+            <img
+              src={pfaMapAsset.url}
+              alt="PFA Bilinç Döngüsü — Yedi İşlevsel Seviye Haritası"
+              className="mx-auto h-auto w-full max-w-5xl"
+              loading="lazy"
+            />
           </figure>
         </div>
       </section>
