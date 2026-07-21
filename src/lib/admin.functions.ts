@@ -400,6 +400,98 @@ export const upsertPost = createServerFn({ method: "POST" })
   });
 
 // -------- EBOOKS --------
+// Dedication şablonu ve imza yönetimi.
+export const listEbookConfig = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("ebook_dedication_templates")
+      .select("id, locale, body_template, footer_template, signature_path, author_name, updated_at")
+      .order("locale", { ascending: true });
+    return data ?? [];
+  });
+
+export const updateEbookDedication = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        body_template: z.string().min(1).max(2000),
+        footer_template: z.string().min(1).max(500),
+        author_name: z.string().min(1).max(200),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { id, ...patch } = data;
+    const { error } = await supabaseAdmin
+      .from("ebook_dedication_templates")
+      .update(patch)
+      .eq("id", id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// Adminin imza görselini yüklemesi için signed upload URL.
+export const createSignatureUploadUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ locale: z.enum(["tr", "en"]), filename: z.string().min(1).max(200) }).parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Aynı yola upsert için önceki dosyayı sil.
+    const path = `signatures/${data.locale}-${data.filename}`;
+    await supabaseAdmin.storage.from("ebooks").remove([path]);
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from("ebooks")
+      .createSignedUploadUrl(path);
+    if (error) throw new Error(error.message);
+    // Şablona kaydet.
+    await supabaseAdmin
+      .from("ebook_dedication_templates")
+      .update({ signature_path: path })
+      .eq("locale", data.locale);
+    return { path, token: signed.token, signedUrl: signed.signedUrl };
+  });
+
+// Depolanmış personalize PDF'leri temizler (master veya imza değişince kullanışlı).
+export const regenerateAllPersonalized = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: list } = await supabaseAdmin.storage.from("ebooks").list("personalized", {
+      limit: 1000,
+    });
+    const files = (list ?? []).map((f) => `personalized/${f.name}`);
+    if (files.length > 0) {
+      await supabaseAdmin.storage.from("ebooks").remove(files);
+    }
+    // metadata.personalized_pdf_path anahtarını temizle.
+    const { data: ents } = await supabaseAdmin
+      .from("user_entitlements")
+      .select("id, metadata")
+      .eq("type", "ebook");
+    for (const e of ents ?? []) {
+      const meta = { ...((e.metadata as Record<string, unknown>) ?? {}) };
+      if (meta.personalized_pdf_path) {
+        delete meta.personalized_pdf_path;
+        await supabaseAdmin
+          .from("user_entitlements")
+          .update({ metadata: meta as never })
+          .eq("id", e.id);
+      }
+    }
+    return { cleared: files.length };
+  });
+
 export const listEbookProducts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

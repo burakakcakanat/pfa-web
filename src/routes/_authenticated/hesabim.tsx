@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BuyButton } from "@/components/buy-button";
 import { getProDashboard, createProInvite } from "@/lib/pro.functions";
 import { listMyEbooks, getEbookUrl } from "@/lib/ebooks.functions";
+import { listMyGifts } from "@/lib/gifts.functions";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
   head: () => ({
@@ -19,6 +20,16 @@ export const Route = createFileRoute("/_authenticated/hesabim")({
 type Profile = { id: string; full_name: string | null; email: string | null; preferred_language: string };
 type Order = { id: string; status: string; amount_cents: number; currency: string; created_at: string; products: { name_tr: string; slug: string } | null };
 type Entitlement = { id: string; type: string; created_at: string; metadata: Record<string, unknown> };
+type MyGift = {
+  id: string;
+  product_slug: string;
+  recipient_name: string;
+  recipient_email: string;
+  status: "pending" | "claimed";
+  claim_token: string;
+  created_at: string;
+  claimed_at: string | null;
+};
 type AssessmentSessionRow = { id: string; type: "mini" | "full"; status: string; created_at: string; completed_at: string | null };
 type ProInvite = { id: string; client_name: string; token: string; status: string; created_at: string };
 
@@ -41,6 +52,8 @@ function AccountPage() {
   const [preferredLanguage, setPreferredLanguage] = useState("tr");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [gifts, setGifts] = useState<MyGift[]>([]);
+  const fetchGifts = useServerFn(listMyGifts);
 
   useEffect(() => {
     (async () => {
@@ -61,6 +74,10 @@ function AccountPage() {
       setAssessments((a ?? []) as unknown as AssessmentSessionRow[]);
     })();
   }, []);
+
+  useEffect(() => {
+    fetchGifts().then((g) => setGifts((g ?? []) as unknown as MyGift[])).catch(() => setGifts([]));
+  }, [fetchGifts]);
 
   const isPro = roles.includes("pro") || roles.includes("admin");
   const tabs = isPro ? [...TABS, { id: "clients", label: "Danışanlarım" }] : TABS;
@@ -110,7 +127,8 @@ function AccountPage() {
         )}
 
         {tab === "orders" && (
-          <div className="rounded-lg border border-border bg-card">
+          <div className="space-y-6">
+            <div className="rounded-lg border border-border bg-card">
             {orders.length === 0 ? <EmptyState text="Henüz bir satın alımınız yok." /> : (
               <ul className="divide-y divide-border">
                 {orders.map((o) => (
@@ -127,6 +145,8 @@ function AccountPage() {
                 ))}
               </ul>
             )}
+            </div>
+            {gifts.length > 0 && <GiftsList gifts={gifts} />}
           </div>
         )}
 
@@ -200,13 +220,20 @@ function EbookRow({ slug, label, available }: { slug: string; label: string; ava
   const getUrl = useServerFn(getEbookUrl);
   const [busy, setBusy] = useState<null | "view" | "download">(null);
   const [err, setErr] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
 
   async function open(mode: "view" | "download") {
     setErr(null); setBusy(mode);
     try {
       const res = await getUrl({ data: { slug, mode } });
-      if (res?.url) window.open(res.url, "_blank", "noopener,noreferrer");
-      else setErr("Dosya yakında eklenecek.");
+      if (res?.url) {
+        if (res.personalized && mode === "view") {
+          setMsg("İmzalı nüshanız hazırlandı.");
+        }
+        window.open(res.url, "_blank", "noopener,noreferrer");
+      } else {
+        setErr("Nüshanız hazırlanıyor. Yazar imzası ve dosya yüklendiğinde açılacak.");
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Hata");
     } finally { setBusy(null); }
@@ -217,12 +244,15 @@ function EbookRow({ slug, label, available }: { slug: string; label: string; ava
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="font-serif text-xl">{label}</div>
-          <div className="mt-1 text-xs text-muted-foreground">E-Book — kişisel kullanım için lisanslı.</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            İsme imzalı nüsha · kişisel kullanım için lisanslı.
+          </div>
           {!available && (
             <div className="mt-3 text-sm text-muted-foreground">
-              Dosya yakında eklenecek. Yüklendiğinde bu alandan okuyabilir veya indirebilirsiniz.
+              Nüshanız hazırlanıyor. Yazar imzası veya kaynak dosya yüklendiğinde bu alandan okuyabilir veya indirebilirsiniz.
             </div>
           )}
+          {msg && <div className="mt-3 text-xs text-accent">{msg}</div>}
           {err && <div className="mt-3 text-sm text-destructive">{err}</div>}
         </div>
         <div className="flex gap-2">
@@ -245,6 +275,51 @@ function EbookRow({ slug, label, available }: { slug: string; label: string; ava
         </div>
       </div>
     </li>
+  );
+}
+
+function GiftsList({ gifts }: { gifts: MyGift[] }) {
+  return (
+    <div className="rounded-lg border border-border bg-card">
+      <div className="border-b border-border p-4 font-serif text-lg">Hediye Ettikleriniz</div>
+      <ul className="divide-y divide-border">
+        {gifts.map((g) => {
+          const link = typeof window !== "undefined" ? `${window.location.origin}/hediye/${g.claim_token}` : "";
+          return (
+            <li key={g.id} className="p-4 text-sm">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="font-medium">{g.recipient_name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {g.recipient_email} · {new Date(g.created_at).toLocaleDateString("tr-TR")}
+                  </div>
+                </div>
+                <span className={`rounded-full px-2 py-0.5 text-xs ${g.status === "claimed" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                  {g.status === "claimed" ? "Alındı" : "Bekliyor"}
+                </span>
+              </div>
+              {g.status === "pending" && (
+                <div className="mt-3 space-y-1">
+                  <div className="text-xs text-muted-foreground">
+                    Aşağıdaki bağlantıyı alıcıya iletin — otomatik e-posta gönderimi henüz aktif değil.
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input readOnly value={link} className="flex-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs" />
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard?.writeText(link)}
+                      className="btn-outline text-xs"
+                    >
+                      Kopyala
+                    </button>
+                  </div>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
