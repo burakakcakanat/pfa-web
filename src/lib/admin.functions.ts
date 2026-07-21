@@ -483,7 +483,10 @@ export const regenerateAllPersonalized = createServerFn({ method: "POST" })
       const meta = { ...((e.metadata as Record<string, unknown>) ?? {}) };
       if (meta.personalized_pdf_path) {
         delete meta.personalized_pdf_path;
-        await supabaseAdmin.from("user_entitlements").update({ metadata: meta }).eq("id", e.id);
+        await supabaseAdmin
+          .from("user_entitlements")
+          .update({ metadata: meta as never })
+          .eq("id", e.id);
       }
     }
     return { cleared: files.length };
