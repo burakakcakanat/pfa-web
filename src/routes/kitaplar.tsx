@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BuyButton } from "@/components/buy-button";
+import { GiftModal } from "@/components/gift-modal";
+import { useState } from "react";
 import hcdCover from "@/assets/hcd-cover.png.asset.json";
 
 export const Route = createFileRoute("/kitaplar")({
@@ -65,11 +67,39 @@ function BooksPage() {
       <header className="mx-auto max-w-2xl text-center">
         <div className="text-xs uppercase tracking-[0.3em] text-accent">Kitaplar</div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">Haritanın kaynak metinleri</h1>
+        <div className="mx-auto mt-8 max-w-2xl rounded-lg border border-accent/40 bg-accent/5 px-6 py-5 text-left">
+          <div className="flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.25em] text-accent">
+            <span aria-hidden>✒</span> İsme İmzalı Nüsha
+          </div>
+          <p className="mt-2 text-sm leading-relaxed text-foreground/80">
+            Siteden satın alınan her e-kitap, yazarın imzasını taşıyan, adınıza hazırlanmış
+            <em> kişisel bir nüsha</em>dır. Standart baskılar Amazon ve Google Play'de.
+          </p>
+        </div>
       </header>
 
       <div className="mt-16 grid gap-12 md:grid-cols-3">
         {BOOKS.map((b) => (
-          <article key={b.title} className="flex h-full flex-col">
+          <BookCard key={b.title} book={b} />
+        ))}
+      </div>
+      <p className="mx-auto mt-14 max-w-2xl text-center text-xs text-muted-foreground">
+        Tüm e-book'lar kişisel kullanım için lisanslıdır. Satın alma sonrası
+        <span> </span>
+        <a href="/hesabim" className="underline decoration-accent decoration-2 underline-offset-4 hover:text-accent">
+          Hesabım → E-Book'larım
+        </a>
+        <span> </span>alanından okuyabilir veya indirebilirsiniz.
+      </p>
+    </div>
+  );
+}
+
+function BookCard({ book: b }: { book: Book }) {
+  const [giftOpen, setGiftOpen] = useState(false);
+  return (
+    <>
+      <article className="flex h-full flex-col">
             <div className="relative mx-auto aspect-[5/8] w-full max-w-[280px] overflow-hidden rounded-md border border-border bg-card shadow-[0_20px_50px_-30px_rgba(31,78,82,0.4)]">
               {b.cover ? (
                 <>
@@ -92,6 +122,9 @@ function BooksPage() {
                   {b.title}
                 </div>
               )}
+          <span className="absolute left-3 top-3 rounded-full bg-accent px-2.5 py-1 text-[0.65rem] uppercase tracking-[0.15em] text-background shadow">
+            İmzalı Nüsha
+          </span>
             </div>
             <div className="mt-6 flex flex-1 flex-col text-center">
               <div className="text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
@@ -104,8 +137,15 @@ function BooksPage() {
               <div className="mt-6 flex flex-col items-center gap-2">
                 <BuyButton
                   productSlug={b.ebookSlug}
-                  label={`E-Book Al (${b.priceLabel})`}
+                  label={`İmzalı Nüshanı Al (${b.priceLabel})`}
                 />
+            <button
+              type="button"
+              onClick={() => setGiftOpen(true)}
+              className="text-xs text-foreground/70 underline decoration-accent decoration-1 underline-offset-4 hover:text-accent"
+            >
+              Hediye Et →
+            </button>
                 {b.amazonUrl && (
                   <a
                     href={b.amazonUrl}
@@ -118,17 +158,14 @@ function BooksPage() {
                 )}
               </div>
             </div>
-          </article>
-        ))}
-      </div>
-      <p className="mx-auto mt-14 max-w-2xl text-center text-xs text-muted-foreground">
-        Tüm e-book'lar kişisel kullanım için lisanslıdır. Satın alma sonrası
-        <span> </span>
-        <a href="/hesabim" className="underline decoration-accent decoration-2 underline-offset-4 hover:text-accent">
-          Hesabım → E-Book'larım
-        </a>
-        <span> </span>alanından okuyabilir veya indirebilirsiniz.
-      </p>
-    </div>
+      </article>
+      <GiftModal
+        productSlug={b.ebookSlug}
+        productTitle={b.title}
+        priceLabel={b.priceLabel}
+        open={giftOpen}
+        onClose={() => setGiftOpen(false)}
+      />
+    </>
   );
 }

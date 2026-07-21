@@ -208,12 +208,99 @@ export type Database = {
         }
         Relationships: []
       }
+      ebook_dedication_templates: {
+        Row: {
+          author_name: string
+          body_template: string
+          footer_template: string
+          id: string
+          locale: string
+          signature_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_name?: string
+          body_template: string
+          footer_template: string
+          id?: string
+          locale: string
+          signature_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string
+          body_template?: string
+          footer_template?: string
+          id?: string
+          locale?: string
+          signature_path?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ebook_gifts: {
+        Row: {
+          buyer_user_id: string
+          claim_token: string
+          claimed_at: string | null
+          claimed_by_user_id: string | null
+          created_at: string
+          gift_note: string | null
+          id: string
+          order_id: string
+          personalized_pdf_path: string | null
+          product_slug: string
+          recipient_email: string
+          recipient_name: string
+          status: string
+        }
+        Insert: {
+          buyer_user_id: string
+          claim_token: string
+          claimed_at?: string | null
+          claimed_by_user_id?: string | null
+          created_at?: string
+          gift_note?: string | null
+          id?: string
+          order_id: string
+          personalized_pdf_path?: string | null
+          product_slug: string
+          recipient_email: string
+          recipient_name: string
+          status?: string
+        }
+        Update: {
+          buyer_user_id?: string
+          claim_token?: string
+          claimed_at?: string | null
+          claimed_by_user_id?: string | null
+          created_at?: string
+          gift_note?: string | null
+          id?: string
+          order_id?: string
+          personalized_pdf_path?: string | null
+          product_slug?: string
+          recipient_email?: string
+          recipient_name?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ebook_gifts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           amount_cents: number
           created_at: string
           currency: string
           id: string
+          metadata: Json
           product_id: string
           status: Database["public"]["Enums"]["order_status"]
           stripe_session_id: string | null
@@ -225,6 +312,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          metadata?: Json
           product_id: string
           status?: Database["public"]["Enums"]["order_status"]
           stripe_session_id?: string | null
@@ -236,6 +324,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          metadata?: Json
           product_id?: string
           status?: Database["public"]["Enums"]["order_status"]
           stripe_session_id?: string | null
@@ -463,6 +552,7 @@ export type Database = {
         Args: { _entitlement_id: string; _quota: number; _used: number }
         Returns: undefined
       }
+      claim_ebook_gift: { Args: { _token: string }; Returns: string }
       create_pro_invite: {
         Args: { _client_name: string }
         Returns: {

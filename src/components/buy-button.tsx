@@ -8,9 +8,11 @@ type Props = {
   productSlug: string;
   label?: string;
   className?: string;
+  gift?: { recipient_name: string; recipient_email: string; gift_note?: string | null } | null;
+  onSuccess?: () => void;
 };
 
-export function BuyButton({ productSlug, label = "Satın Al", className }: Props) {
+export function BuyButton({ productSlug, label = "Satın Al", className, gift, onSuccess }: Props) {
   const doCheckout = useServerFn(createCheckout);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -26,9 +28,16 @@ export function BuyButton({ productSlug, label = "Satın Al", className }: Props
         return;
       }
       const res = await doCheckout({
-        data: { product_slug: productSlug, origin: window.location.origin },
+        data: {
+          product_slug: productSlug,
+          origin: window.location.origin,
+          ...(gift ? { gift } : {}),
+        },
       });
-      if (res?.url) window.location.href = res.url;
+      if (res?.url) {
+        onSuccess?.();
+        window.location.href = res.url;
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Bir hata oluştu.");
     } finally {

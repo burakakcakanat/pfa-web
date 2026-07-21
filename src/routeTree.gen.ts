@@ -23,6 +23,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as WebinarlarIndexRouteImport } from './routes/webinarlar.index'
 import { Route as WebinarlarPfaProRouteImport } from './routes/webinarlar.pfa-pro'
 import { Route as WebinarlarBilincSeviyeleriRouteImport } from './routes/webinarlar.bilinc-seviyeleri'
+import { Route as HediyeTokenRouteImport } from './routes/hediye.$token'
 import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthenticatedRaporFinalizeRouteImport } from './routes/_authenticated/rapor-finalize'
@@ -105,6 +106,11 @@ const WebinarlarBilincSeviyeleriRoute =
     path: '/webinarlar/bilinc-seviyeleri',
     getParentRoute: () => rootRouteImport,
   } as any)
+const HediyeTokenRoute = HediyeTokenRouteImport.update({
+  id: '/hediye/$token',
+  path: '/hediye/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
   id: '/degerlendirme_/mini',
   path: '/degerlendirme/mini',
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
+  '/hediye/$token': typeof HediyeTokenRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
@@ -211,6 +218,7 @@ export interface FileRoutesByTo {
   '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
+  '/hediye/$token': typeof HediyeTokenRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/webinarlar': typeof WebinarlarIndexRoute
@@ -239,6 +247,7 @@ export interface FileRoutesById {
   '/_authenticated/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
+  '/hediye/$token': typeof HediyeTokenRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
@@ -267,6 +276,7 @@ export interface FileRouteTypes {
     | '/rapor-finalize'
     | '/blog/$slug'
     | '/degerlendirme/mini'
+    | '/hediye/$token'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/webinarlar/'
@@ -293,6 +303,7 @@ export interface FileRouteTypes {
     | '/rapor-finalize'
     | '/blog/$slug'
     | '/degerlendirme/mini'
+    | '/hediye/$token'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/webinarlar'
@@ -320,6 +331,7 @@ export interface FileRouteTypes {
     | '/_authenticated/rapor-finalize'
     | '/blog/$slug'
     | '/degerlendirme_/mini'
+    | '/hediye/$token'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/webinarlar/'
@@ -344,6 +356,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   DegerlendirmeMiniRoute: typeof DegerlendirmeMiniRoute
+  HediyeTokenRoute: typeof HediyeTokenRoute
   WebinarlarBilincSeviyeleriRoute: typeof WebinarlarBilincSeviyeleriRoute
   WebinarlarPfaProRoute: typeof WebinarlarPfaProRoute
   WebinarlarIndexRoute: typeof WebinarlarIndexRoute
@@ -449,6 +462,13 @@ declare module '@tanstack/react-router' {
       path: '/webinarlar/bilinc-seviyeleri'
       fullPath: '/webinarlar/bilinc-seviyeleri'
       preLoaderRoute: typeof WebinarlarBilincSeviyeleriRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hediye/$token': {
+      id: '/hediye/$token'
+      path: '/hediye/$token'
+      fullPath: '/hediye/$token'
+      preLoaderRoute: typeof HediyeTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/degerlendirme_/mini': {
@@ -576,6 +596,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   DegerlendirmeMiniRoute: DegerlendirmeMiniRoute,
+  HediyeTokenRoute: HediyeTokenRoute,
   WebinarlarBilincSeviyeleriRoute: WebinarlarBilincSeviyeleriRoute,
   WebinarlarPfaProRoute: WebinarlarPfaProRoute,
   WebinarlarIndexRoute: WebinarlarIndexRoute,
@@ -585,13 +606,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
