@@ -29,10 +29,18 @@ const TABS: { id: Tab; label: string }[] = [
 
 function BlogPage() {
   const [tab, setTab] = useState<Tab>("yazilar");
+  const [category, setCategory] = useState<string>("Tümü");
   const { data: posts, isLoading } = useQuery({
     queryKey: ["blog", "posts"],
     queryFn: () => listBlogPosts(),
   });
+  const categories = Array.from(
+    new Set((posts ?? []).map((p) => p.category).filter(Boolean) as string[]),
+  );
+  const filteredPosts =
+    category === "Tümü"
+      ? posts
+      : posts?.filter((p) => p.category === category);
   return (
     <div className="container-page py-20">
       <header className="mx-auto max-w-2xl text-center">
@@ -67,13 +75,33 @@ function BlogPage() {
 
       {tab === "yazilar" && (
         <div className="mx-auto mt-10 max-w-3xl divide-y divide-border">
+        {categories.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-2 border-b-0 pb-6">
+            {["Tümü", ...categories].map((c) => {
+              const active = category === c;
+              return (
+                <button
+                  key={c}
+                  onClick={() => setCategory(c)}
+                  className={`rounded-full border px-4 py-1.5 text-xs uppercase tracking-[0.2em] transition-colors ${
+                    active
+                      ? "border-accent bg-accent/10 text-accent"
+                      : "border-border text-foreground/60 hover:text-foreground"
+                  }`}
+                >
+                  {c}
+                </button>
+              );
+            })}
+          </div>
+        )}
         {isLoading && (
           <p className="py-10 text-center text-sm text-muted-foreground">Yükleniyor…</p>
         )}
-        {!isLoading && (posts?.length ?? 0) === 0 && (
+        {!isLoading && (filteredPosts?.length ?? 0) === 0 && (
           <p className="py-10 text-center text-sm text-muted-foreground">Henüz yazı yok.</p>
         )}
-        {posts?.map((p) => (
+        {filteredPosts?.map((p) => (
           <article key={p.slug} className="py-10">
             <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
               {fmt.format(new Date(p.published_at))}
