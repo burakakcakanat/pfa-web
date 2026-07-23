@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BuyButton } from "@/components/buy-button";
+import { getUpcomingWebinarForProduct } from "@/lib/site-settings.functions";
 
 export const Route = createFileRoute("/webinarlar/bilinc-seviyeleri")({
+  loader: () => getUpcomingWebinarForProduct({ data: { slug: "bilinc-seviyeleri-calismalari" } }),
   head: () => ({
     meta: [
       { title: "Bilinç Seviyeleri Çalışmaları — PFA" },
@@ -29,9 +31,17 @@ const KAZANIMLAR = [
 ];
 
 function Page() {
+  const session = Route.useLoaderData() as { id: string; title: string; starts_at: string; banner_url: string | null } | null;
   return (
     <div className="container-page py-20">
       <div className="mx-auto max-w-3xl">
+        {session?.banner_url && (
+          <img
+            src={session.banner_url}
+            alt={session.title}
+            className="mb-10 w-full rounded-lg border border-border shadow-sm"
+          />
+        )}
         <div className="text-xs uppercase tracking-[0.3em] text-accent">
           Kendi Yolculuğunuz İçin
         </div>
