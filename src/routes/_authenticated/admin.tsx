@@ -582,8 +582,14 @@ function EbooksTab() {
       const { path, token } = await createSharedSig({ data: { filename: file.name } });
       const { error } = await supabase.storage.from("ebooks").uploadToSignedUrl(path, token, file, { upsert: true });
       if (error) throw error;
-      setSigMsg("İmza yüklendi ve TR + EN dedication'lara bağlandı.");
+      setSigMsg("İmza yüklendi. Bekleyen kişisel PDF'ler üretiliyor…");
       reloadCfg();
+      try {
+        const r = await runRetry({ data: undefined as unknown as never });
+        setSigMsg(`İmza yüklendi · ${r.generated} kişisel PDF üretildi, ${r.skipped} atlandı.`);
+      } catch (err: any) {
+        setSigMsg(`İmza yüklendi. Retry başarısız: ${err?.message ?? "hata"}`);
+      }
     } catch (e: any) {
       setSigMsg(`Hata: ${e?.message ?? "yüklenemedi"}`);
     } finally {
