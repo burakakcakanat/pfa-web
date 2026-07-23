@@ -815,3 +815,66 @@ export const upsertSiteSetting = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// -------- PODCASTS --------
+function deriveSpotifyEmbed(url: string): string {
+  const m = url.match(/episode\/([A-Za-z0-9]+)/);
+  if (!m) throw new Error("Geçersiz Spotify bölüm URL'i");
+  return `https://open.spotify.com/embed/episode/${m[1]}`;
+}
+
+export const listAdminPodcasts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data, error } = await context.supabase
+      .from("podcast_episodes")
+      .select("*")
+      .order("episode_number", { ascending: true });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const upsertPodcastEpisode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        episode_number: z.number().int().min(1),
+        title: z.string().min(1).max(300),
+        description: z.string().max(5000).default(""),
+        spotify_url: z.string().url(),
+        published: z.boolean().default(true),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const spotify_embed_url = deriveSpotifyEmbed(data.spotify_url);
+    if (data.id) {
+      const { id, ...patch } = data;
+      const { error } = await context.supabase
+        .from("podcast_episodes")
+        .update({ ...patch, spotify_embed_url })
+        .eq("id", id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { id: _i, ...ins } = data;
+      const { error } = await context.supabase
+        .from("podcast_episodes")
+        .insert({ ...ins, spotify_embed_url });
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
+export const deletePodcastEpisode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("podcast_episodes").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
