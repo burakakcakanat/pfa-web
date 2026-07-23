@@ -559,6 +559,7 @@ function EbooksTab() {
   const createSigUpload = useServerFn(createSignatureUploadUrl);
   const createSharedSig = useServerFn(createSharedSignatureUploadUrl);
   const regen = useServerFn(regenerateAllPersonalized);
+  const runRetry = useServerFn(runPendingPersonalizedRetry);
   const [rows, setRows] = useState<any[]>([]);
   const [cfg, setCfg] = useState<any[]>([]);
   const [regenMsg, setRegenMsg] = useState<string | null>(null);
