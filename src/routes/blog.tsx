@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listBlogPosts } from "@/lib/blog.functions";
+import { listPublishedPodcasts, getPublicSiteSetting } from "@/lib/podcasts.functions";
+import { MediaEpisodeCard } from "@/components/media-episode-card";
 
 export const Route = createFileRoute("/blog")({
   head: () => ({
@@ -33,6 +35,16 @@ function BlogPage() {
   const { data: posts, isLoading } = useQuery({
     queryKey: ["blog", "posts"],
     queryFn: () => listBlogPosts(),
+  });
+  const { data: podcasts, isLoading: podcastsLoading } = useQuery({
+    queryKey: ["blog", "podcasts"],
+    queryFn: () => listPublishedPodcasts(),
+    enabled: tab === "podcastler",
+  });
+  const { data: programUrl } = useQuery({
+    queryKey: ["site-setting", "podcast_program_url"],
+    queryFn: () => getPublicSiteSetting({ data: { key: "podcast_program_url" } }),
+    enabled: tab === "podcastler",
   });
   const categories = Array.from(
     new Set((posts ?? []).map((p) => p.category).filter(Boolean) as string[]),
@@ -146,20 +158,44 @@ function BlogPage() {
       )}
 
       {tab === "podcastler" && (
-        <div className="mx-auto mt-14 max-w-5xl">
-          <div className="grid gap-6 md:grid-cols-3">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="flex aspect-square items-center justify-center rounded-lg border border-dashed border-border bg-card text-xs uppercase tracking-[0.25em] text-muted-foreground"
+        <div className="mx-auto mt-12 max-w-3xl">
+          <div className="mb-10 rounded-lg border border-border/70 bg-card/70 p-6 text-center">
+            <p className="text-base leading-relaxed text-foreground/85">
+              Psikofonksiyonel Analiz (PFA) podcast serisi — yedi seviyelik haritayı bölüm bölüm dinleyin.
+            </p>
+            {(programUrl || (podcasts && podcasts[0]?.spotify_url)) && (
+              <a
+                href={programUrl || podcasts![0].spotify_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex items-center gap-2 rounded-full border border-accent bg-accent px-5 py-2 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
               >
-                Yakında
-              </div>
+                Spotify'da programı takip et →
+              </a>
+            )}
+          </div>
+          {podcastsLoading && (
+            <p className="py-10 text-center text-sm text-muted-foreground">Yükleniyor…</p>
+          )}
+          {!podcastsLoading && (podcasts?.length ?? 0) === 0 && (
+            <p className="py-10 text-center text-sm text-muted-foreground">Henüz bölüm yok.</p>
+          )}
+          <div className="space-y-6">
+            {podcasts?.map((p) => (
+              <MediaEpisodeCard
+                key={p.id}
+                ep={{
+                  id: p.id,
+                  episode_number: p.episode_number,
+                  title: p.title,
+                  description: p.description ?? "",
+                  embed_url: p.spotify_embed_url,
+                  external_url: p.spotify_url,
+                  kind: "podcast",
+                }}
+              />
             ))}
           </div>
-          <p className="mt-10 text-center text-sm text-foreground/70">
-            İlk bölümler yakında.
-          </p>
         </div>
       )}
 
