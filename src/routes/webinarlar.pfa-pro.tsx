@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BuyButton } from "@/components/buy-button";
+import { getUpcomingWebinarForProduct } from "@/lib/site-settings.functions";
 
 export const Route = createFileRoute("/webinarlar/pfa-pro")({
+  loader: () => getUpcomingWebinarForProduct({ data: { slug: "pfa-pro-lisans-paketi" } }),
   head: () => ({
     meta: [
       { title: "PFA-Pro Uygulayıcı Lisans Paketi — PFA" },
@@ -24,9 +26,17 @@ const ICERIK = [
 ];
 
 function Page() {
+  const session = Route.useLoaderData() as { id: string; title: string; starts_at: string; banner_url: string | null } | null;
   return (
     <div className="container-page py-20">
       <div className="mx-auto max-w-3xl">
+        {session?.banner_url && (
+          <img
+            src={session.banner_url}
+            alt={session.title}
+            className="mb-10 w-full rounded-lg border border-border shadow-sm"
+          />
+        )}
         <div className="text-xs uppercase tracking-[0.3em] text-accent">
           Profesyonel Uygulama İçin
         </div>

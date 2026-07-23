@@ -446,6 +446,24 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
       user_entitlements: {
         Row: {
           created_at: string
@@ -504,6 +522,7 @@ export type Database = {
       }
       webinar_sessions: {
         Row: {
+          banner_url: string | null
           capacity: number | null
           created_at: string
           id: string
@@ -515,6 +534,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          banner_url?: string | null
           capacity?: number | null
           created_at?: string
           id?: string
@@ -526,6 +546,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          banner_url?: string | null
           capacity?: number | null
           created_at?: string
           id?: string
