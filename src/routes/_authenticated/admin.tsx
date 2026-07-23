@@ -46,6 +46,7 @@ import {
   listEbookConfig,
   updateEbookDedication,
   createSignatureUploadUrl,
+  createSharedSignatureUploadUrl,
   regenerateAllPersonalized,
 } from "@/lib/admin.functions";
 
@@ -540,10 +541,13 @@ function EbooksTab() {
   const fetchCfg = useServerFn(listEbookConfig);
   const saveDed = useServerFn(updateEbookDedication);
   const createSigUpload = useServerFn(createSignatureUploadUrl);
+  const createSharedSig = useServerFn(createSharedSignatureUploadUrl);
   const regen = useServerFn(regenerateAllPersonalized);
   const [rows, setRows] = useState<any[]>([]);
   const [cfg, setCfg] = useState<any[]>([]);
   const [regenMsg, setRegenMsg] = useState<string | null>(null);
+  const [sigMsg, setSigMsg] = useState<string | null>(null);
+  const [sigBusy, setSigBusy] = useState(false);
   const reload = useCallback(() => { fetchList().then(setRows); }, [fetchList]);
   const reloadCfg = useCallback(() => { fetchCfg().then(setCfg); }, [fetchCfg]);
   useEffect(() => { reload(); }, [reload]);
@@ -554,13 +558,24 @@ function EbooksTab() {
     if (error) { alert(error.message); return; }
     reload();
   };
-  const onSignatureUpload = async (locale: "tr" | "en", file: File) => {
+  const onSharedSignatureUpload = async (file: File) => {
     if (!file.name.toLowerCase().endsWith(".png")) { alert("İmza şeffaf PNG olmalı."); return; }
-    const { path, token } = await createSigUpload({ data: { locale, filename: file.name } });
-    const { error } = await supabase.storage.from("ebooks").uploadToSignedUrl(path, token, file, { upsert: true });
-    if (error) { alert(error.message); return; }
-    reloadCfg();
+    setSigBusy(true);
+    setSigMsg(null);
+    try {
+      const { path, token } = await createSharedSig({ data: { filename: file.name } });
+      const { error } = await supabase.storage.from("ebooks").uploadToSignedUrl(path, token, file, { upsert: true });
+      if (error) throw error;
+      setSigMsg("İmza yüklendi ve TR + EN dedication'lara bağlandı.");
+      reloadCfg();
+    } catch (e: any) {
+      setSigMsg(`Hata: ${e?.message ?? "yüklenemedi"}`);
+    } finally {
+      setSigBusy(false);
+    }
   };
+  // Suppress unused var warnings while keeping the per-locale endpoint available.
+  void createSigUpload;
   return (
     <div className="space-y-6">
       <Card title="İmzalı Nüsha — Şablonlar & İmza">
@@ -573,9 +588,30 @@ function EbooksTab() {
               key={c.id}
               cfg={c}
               onSave={async (patch) => { await saveDed({ data: { id: c.id, ...patch } }); reloadCfg(); }}
-              onSignatureUpload={onSignatureUpload}
             />
           ))}
+        </div>
+        <div className="mt-4 rounded-md border border-border/60 bg-muted/30 p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="text-sm font-medium">Yazar İmzası (TR + EN ortak)</div>
+            <div className="text-xs text-muted-foreground">
+              {cfg[0]?.signature_path ? <>Kayıtlı: <code className="text-foreground/70">{cfg[0].signature_path}</code></> : "İmza yüklenmedi"}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Input
+              type="file"
+              accept=".png,image/png"
+              disabled={sigBusy}
+              className="max-w-[320px]"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) onSharedSignatureUpload(f); }}
+            />
+            {sigBusy && <span className="text-xs text-muted-foreground">Yükleniyor…</span>}
+            {sigMsg && <span className="text-xs text-muted-foreground">{sigMsg}</span>}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Şeffaf zeminli PNG. Yüklendiğinde daha önce üretilmiş kişisel PDF'ler otomatik temizlenir ve alıcı ilk açtığında yeniden üretilir.
+          </p>
         </div>
         <div className="mt-4 flex items-center gap-2 border-t border-border pt-4">
           <Button variant="outline" size="sm" onClick={async () => {
@@ -606,10 +642,9 @@ function EbooksTab() {
   );
 }
 
-function DedicationEditor({ cfg, onSave, onSignatureUpload }: {
+function DedicationEditor({ cfg, onSave }: {
   cfg: any;
   onSave: (patch: { body_template: string; footer_template: string; author_name: string }) => void;
-  onSignatureUpload: (locale: "tr" | "en", file: File) => void;
 }) {
   const [body, setBody] = useState<string>(cfg.body_template);
   const [footer, setFooter] = useState<string>(cfg.footer_template);
@@ -618,21 +653,13 @@ function DedicationEditor({ cfg, onSave, onSignatureUpload }: {
     <div className="rounded-md border border-border/60 p-4">
       <div className="mb-3 flex items-center justify-between">
         <div className="text-sm font-medium">{cfg.locale.toUpperCase()} · Dedication Şablonu</div>
-        <div className="text-xs text-muted-foreground">
-          {cfg.signature_path ? <>İmza: <code className="text-foreground/70">{cfg.signature_path}</code></> : "İmza yüklenmedi"}
-        </div>
       </div>
       <div className="space-y-3">
         <div><Label>Yazar adı</Label><Input value={author} onChange={(e) => setAuthor(e.target.value)} /></div>
         <div><Label>Dedication metni</Label><Textarea rows={4} value={body} onChange={(e) => setBody(e.target.value)} /></div>
         <div><Label>Sayfa altı (footer)</Label><Input value={footer} onChange={(e) => setFooter(e.target.value)} /></div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div>
           <Button size="sm" onClick={() => onSave({ body_template: body, footer_template: footer, author_name: author })}>Kaydet</Button>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>İmza Görseli (PNG, şeffaf):</span>
-            <Input type="file" accept=".png,image/png" className="max-w-[220px]"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) onSignatureUpload(cfg.locale, f); }} />
-          </div>
         </div>
       </div>
     </div>
