@@ -1,0 +1,1 @@
+CREATE POLICY "blog-images public read" ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'blog-images');
