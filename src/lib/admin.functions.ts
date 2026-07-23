@@ -285,7 +285,7 @@ export const listWebinarSessions = createServerFn({ method: "GET" })
         .order("starts_at", { ascending: false }),
       supabaseAdmin
         .from("products")
-        .select("id, slug, name_tr")
+        .select("id, slug, name_tr, price_cents")
         .in("slug", ["bilinc-seviyeleri-calismalari", "pfa-pro-lisans-paketi"]),
     ]);
     return { sessions: sessions.data ?? [], products: products.data ?? [] };
