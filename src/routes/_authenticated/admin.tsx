@@ -707,6 +707,94 @@ function BlogForm({ initial, onSave, onCancel }: { initial: any; onSave: (d: any
   );
 }
 
+// ============== PODCASTS ==============
+function PodcastsTab() {
+  const fetchList = useServerFn(listAdminPodcasts);
+  const save = useServerFn(upsertPodcastEpisode);
+  const del = useServerFn(deletePodcastEpisode);
+  const [rows, setRows] = useState<any[]>([]);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const reload = useCallback(() => { fetchList().then(setRows); }, [fetchList]);
+  useEffect(() => { reload(); }, [reload]);
+  const submit = async (d: any) => {
+    setErr(null);
+    try {
+      await save({ data: d });
+      setEditing(null);
+      reload();
+    } catch (e: any) {
+      setErr(e?.message ?? "Kaydedilemedi");
+    }
+  };
+  const remove = async (id: string) => {
+    if (!confirm("Bölüm silinsin mi?")) return;
+    await del({ data: { id } });
+    reload();
+  };
+  const nextNum = (rows.reduce((m, r) => Math.max(m, r.episode_number ?? 0), 0) + 1) || 1;
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button onClick={() => setEditing({ episode_number: nextNum, title: "", description: "", spotify_url: "", published: true })}>Yeni Bölüm</Button>
+      </div>
+      {editing && (
+        <Card title={editing.id ? "Bölümü Düzenle" : "Yeni Bölüm"}>
+          <PodcastForm initial={editing} onCancel={() => { setEditing(null); setErr(null); }} onSave={submit} />
+          {err && <p className="mt-2 text-sm text-destructive">{err}</p>}
+        </Card>
+      )}
+      <Table>
+        <TableHeader><TableRow><TableHead>#</TableHead><TableHead>Başlık</TableHead><TableHead>Spotify</TableHead><TableHead>Yayında</TableHead><TableHead></TableHead></TableRow></TableHeader>
+        <TableBody>
+          {rows.map((p) => (
+            <TableRow key={p.id}>
+              <TableCell>{p.episode_number}</TableCell>
+              <TableCell>{p.title}</TableCell>
+              <TableCell className="text-xs"><a href={p.spotify_url} target="_blank" rel="noopener noreferrer" className="underline">aç</a></TableCell>
+              <TableCell>
+                <Switch checked={p.published} onCheckedChange={async (v) => { await save({ data: { id: p.id, episode_number: p.episode_number, title: p.title, description: p.description ?? "", spotify_url: p.spotify_url, published: v } }); reload(); }} />
+              </TableCell>
+              <TableCell className="space-x-2">
+                <Button size="sm" variant="outline" onClick={() => setEditing(p)}>Düzenle</Button>
+                <Button size="sm" variant="outline" onClick={() => remove(p.id)}>Sil</Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function PodcastForm({ initial, onSave, onCancel }: { initial: any; onSave: (d: any) => void; onCancel: () => void }) {
+  const [d, setD] = useState<any>(initial);
+  const upd = (k: string, v: any) => setD({ ...d, [k]: v });
+  return (
+    <div className="space-y-3">
+      <div className="grid gap-3 md:grid-cols-2">
+        <div><Label>Bölüm No</Label><Input type="number" value={d.episode_number} onChange={(e) => upd("episode_number", parseInt(e.target.value) || 0)} /></div>
+        <label className="flex items-end gap-2"><Switch checked={d.published} onCheckedChange={(v) => upd("published", v)} /> Yayında</label>
+        <div className="md:col-span-2"><Label>Başlık</Label><Input value={d.title} onChange={(e) => upd("title", e.target.value)} /></div>
+        <div className="md:col-span-2"><Label>Spotify Bölüm URL</Label><Input placeholder="https://open.spotify.com/episode/…" value={d.spotify_url} onChange={(e) => upd("spotify_url", e.target.value)} /></div>
+        <div className="md:col-span-2"><Label>Açıklama</Label><Textarea rows={6} value={d.description ?? ""} onChange={(e) => upd("description", e.target.value)} /></div>
+      </div>
+      <p className="text-xs text-muted-foreground">Embed URL, Spotify bağlantısından otomatik türetilir.</p>
+      <div className="flex gap-2">
+        <Button onClick={() => onSave({
+          id: d.id,
+          episode_number: Number(d.episode_number),
+          title: d.title,
+          description: d.description ?? "",
+          spotify_url: d.spotify_url,
+          published: !!d.published,
+        })}>Kaydet</Button>
+        <Button variant="outline" onClick={onCancel}>İptal</Button>
+      </div>
+    </div>
+  );
+}
+
 // ============== EBOOKS ==============
 function EbooksTab() {
   const fetchList = useServerFn(listEbookProducts);
