@@ -461,6 +461,35 @@ export const createSignatureUploadUrl = createServerFn({ method: "POST" })
     return { path, token: signed.token, signedUrl: signed.signedUrl };
   });
 
+// Tek imza — hem TR hem EN dedication'ları için ortak kullanılır.
+export const createSharedSignatureUploadUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ filename: z.string().min(1).max(200) }).parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const ext = data.filename.toLowerCase().endsWith(".png") ? ".png" : ".png";
+    const path = `signatures/author-signature${ext}`;
+    await supabaseAdmin.storage.from("ebooks").remove([path]);
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from("ebooks")
+      .createSignedUploadUrl(path);
+    if (error) throw new Error(error.message);
+    // Her iki locale şablonuna da aynı imza yolunu bağla.
+    await supabaseAdmin
+      .from("ebook_dedication_templates")
+      .update({ signature_path: path })
+      .in("locale", ["tr", "en"]);
+    // Personalize edilmiş PDF'ler artık geçersiz — temizle.
+    const { data: list } = await supabaseAdmin.storage.from("ebooks").list("personalized", { limit: 1000 });
+    if (list && list.length) {
+      await supabaseAdmin.storage.from("ebooks").remove(list.map((f) => `personalized/${f.name}`));
+    }
+    return { path, token: signed.token, signedUrl: signed.signedUrl };
+  });
+
 // Depolanmış personalize PDF'leri temizler (master veya imza değişince kullanışlı).
 export const regenerateAllPersonalized = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
