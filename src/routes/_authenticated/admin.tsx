@@ -53,6 +53,12 @@ import {
   setCertificateStatus,
   runPendingPersonalizedRetry,
 } from "@/lib/admin.functions";
+import {
+  createWebinarBannerUploadUrl,
+  refreshWebinarBannerUrl,
+  listSiteSettings,
+  upsertSiteSetting,
+} from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -96,6 +102,7 @@ function AdminPage() {
             <TabsTrigger value="blog">Blog</TabsTrigger>
             <TabsTrigger value="ebooks">E-Kitaplar</TabsTrigger>
             <TabsTrigger value="orders">Siparişler</TabsTrigger>
+            <TabsTrigger value="settings">Site Ayarları</TabsTrigger>
           </TabsList>
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
@@ -107,6 +114,7 @@ function AdminPage() {
             <TabsContent value="blog"><BlogTab /></TabsContent>
             <TabsContent value="ebooks"><EbooksTab /></TabsContent>
             <TabsContent value="orders"><OrdersTab /></TabsContent>
+            <TabsContent value="settings"><SiteSettingsTab /></TabsContent>
           </div>
         </Tabs>
       </div>
