@@ -110,11 +110,11 @@ function HomePage() {
             İlk üç seviyede genişleme, dördüncü seviyeden itibaren bütünleşme —
             yedi işlevsel seviye tek bir toroidal döngü içinde birleşir.
           </p>
-          <figure className="mt-10 -mx-4 md:-mx-12 lg:-mx-24 xl:-mx-32">
+          <figure className="relative mt-10 left-1/2 -translate-x-1/2 w-[140vw] max-w-[1920px]">
             <img
               src={pfaMapAsset.url}
               alt="PFA Bilinç Döngüsü — Yedi İşlevsel Seviye Haritası"
-              className="mx-auto h-auto w-full max-w-none drop-shadow-[0_20px_60px_rgba(12,28,32,0.25)] contrast-110"
+              className="mx-auto h-auto w-full max-w-none drop-shadow-[0_24px_80px_rgba(12,28,32,0.35)] contrast-110"
               loading="lazy"
             />
           </figure>
