@@ -638,6 +638,10 @@ function EbooksTab() {
         </div>
         <div className="mt-4 flex items-center gap-2 border-t border-border pt-4">
           <Button variant="outline" size="sm" onClick={async () => {
+            const r = await runRetry({ data: undefined as unknown as never });
+            setRegenMsg(`Retry: ${r.generated} üretildi, ${r.skipped} atlandı.`);
+          }}>Bekleyen Kişisel PDF'leri Üret</Button>
+          <Button variant="outline" size="sm" onClick={async () => {
             if (!confirm("Tüm kişisel PDF'ler silinsin ve yeniden üretilsin mi?")) return;
             const r = await regen({ data: undefined as unknown as never });
             setRegenMsg(`${r.cleared} dosya temizlendi.`);
