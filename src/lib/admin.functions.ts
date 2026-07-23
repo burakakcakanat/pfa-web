@@ -68,6 +68,9 @@ export const getAdminOverview = createServerFn({ method: "GET" })
     }
 
     const activePro = (entRes.data ?? []).filter((e) => e.type === "pfa_pro").length;
+    const proEnts = (entRes.data ?? []).filter((e) => e.type === "pfa_pro");
+    const totalClientQuota = proEnts.reduce((s, e) => s + (((e.metadata as any)?.client_quota) ?? 0), 0);
+    const totalClientUsed = proEnts.reduce((s, e) => s + (((e.metadata as any)?.client_used) ?? 0), 0);
 
     const latestOrders = (recentRes.data ?? []).map((o) => ({
       ...o,
@@ -82,6 +85,8 @@ export const getAdminOverview = createServerFn({ method: "GET" })
       fullCount,
       webinarRegs,
       activePro,
+      totalClientQuota,
+      totalClientUsed,
       latestOrders,
     };
   });
