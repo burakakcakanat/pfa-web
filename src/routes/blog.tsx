@@ -113,7 +113,7 @@ function BlogPage() {
                   alt=""
                   aria-hidden="true"
                   loading="lazy"
-                  className="aspect-[4/3] w-full object-cover opacity-90 saturate-[0.85]"
+                  className="aspect-[4/3] w-full object-cover"
                 />
               </div>
             ) : (
