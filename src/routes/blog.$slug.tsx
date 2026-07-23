@@ -52,9 +52,25 @@ function BlogPostPage() {
         <h1 className="mt-3 font-serif text-4xl leading-tight md:text-5xl">
           {post.title}
         </h1>
+        {post.cover_image_url && (
+          <div className="mt-10 overflow-hidden rounded-lg border border-border bg-card">
+            <img
+              src={post.cover_image_url}
+              alt={post.title}
+              className="aspect-[16/9] w-full object-cover"
+            />
+          </div>
+        )}
         <div className="prose-pfa mt-10">
           <ReactMarkdown
             components={{
+              img: (props) => (
+                <img
+                  {...props}
+                  loading="lazy"
+                  className="my-10 w-full rounded-lg border border-border"
+                />
+              ),
               h2: (props) => (
                 <h2
                   className="mt-12 font-serif text-2xl md:text-3xl"
