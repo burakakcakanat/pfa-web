@@ -103,6 +103,20 @@ function BlogPage() {
         )}
         {filteredPosts?.map((p) => (
           <article key={p.slug} className="py-10">
+            {p.cover_image_url && (
+              <Link
+                to="/blog/$slug"
+                params={{ slug: p.slug }}
+                className="mb-6 block overflow-hidden rounded-lg border border-border bg-card"
+              >
+                <img
+                  src={p.cover_image_url}
+                  alt={p.title}
+                  loading="lazy"
+                  className="aspect-[16/9] w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
+                />
+              </Link>
+            )}
             <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
               {fmt.format(new Date(p.published_at))}
             </div>
