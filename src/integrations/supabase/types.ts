@@ -576,6 +576,10 @@ export type Database = {
         Args: { _entitlement_id: string; _quota: number; _used: number }
         Returns: undefined
       }
+      admin_update_blog_post: {
+        Args: { _content: string; _cover: string; _slug: string }
+        Returns: undefined
+      }
       claim_ebook_gift: { Args: { _token: string }; Returns: string }
       create_pro_invite: {
         Args: { _client_name: string }
