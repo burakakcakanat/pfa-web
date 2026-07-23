@@ -344,6 +344,42 @@ export type Database = {
           },
         ]
       }
+      podcast_episodes: {
+        Row: {
+          created_at: string
+          description: string
+          episode_number: number
+          id: string
+          published: boolean
+          spotify_embed_url: string
+          spotify_url: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          episode_number: number
+          id?: string
+          published?: boolean
+          spotify_embed_url: string
+          spotify_url: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          episode_number?: number
+          id?: string
+          published?: boolean
+          spotify_embed_url?: string
+          spotify_url?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pro_client_invites: {
         Row: {
           client_name: string
