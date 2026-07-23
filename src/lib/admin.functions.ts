@@ -757,3 +757,61 @@ export const runPendingPersonalizedRetry = createServerFn({ method: "POST" })
     }
     return { generated, skipped };
   });
+
+// -------- WEBINAR BANNER UPLOAD --------
+export const createWebinarBannerUploadUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ session_id: z.string().uuid(), filename: z.string().min(1).max(200) }).parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const ext = data.filename.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `sessions/${data.session_id}-${Date.now()}.${ext}`;
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from("webinar-banners")
+      .createSignedUploadUrl(path);
+    if (error) throw new Error(error.message);
+    // 10 years — Supabase caps at 1 year (31536000 s). We refresh on read.
+    const { data: urlData, error: urlErr } = await supabaseAdmin.storage
+      .from("webinar-banners")
+      .createSignedUrl(path, 60 * 60 * 24 * 365);
+    if (urlErr) throw new Error(urlErr.message);
+    return { path, token: signed.token, publicUrl: urlData.signedUrl };
+  });
+
+export const refreshWebinarBannerUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ path: z.string() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: urlData, error } = await supabaseAdmin.storage
+      .from("webinar-banners")
+      .createSignedUrl(data.path, 60 * 60 * 24 * 365);
+    if (error) throw new Error(error.message);
+    return { url: urlData.signedUrl };
+  });
+
+// -------- SITE SETTINGS --------
+export const listSiteSettings = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data, error } = await context.supabase.from("site_settings").select("key, value");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const upsertSiteSetting = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ key: z.string().min(1).max(100), value: z.string().max(500) }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase
+      .from("site_settings")
+      .upsert({ key: data.key, value: data.value }, { onConflict: "key" });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
