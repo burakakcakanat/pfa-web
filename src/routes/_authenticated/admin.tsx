@@ -59,6 +59,11 @@ import {
   listSiteSettings,
   upsertSiteSetting,
 } from "@/lib/admin.functions";
+import {
+  listAdminPodcasts,
+  upsertPodcastEpisode,
+  deletePodcastEpisode,
+} from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -100,6 +105,7 @@ function AdminPage() {
             <TabsTrigger value="questions">PFA Ölçeği</TabsTrigger>
             <TabsTrigger value="webinars">Webinarlar</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
+            <TabsTrigger value="podcasts">Podcastler</TabsTrigger>
             <TabsTrigger value="ebooks">E-Kitaplar</TabsTrigger>
             <TabsTrigger value="orders">Siparişler</TabsTrigger>
             <TabsTrigger value="settings">Site Ayarları</TabsTrigger>
@@ -112,6 +118,7 @@ function AdminPage() {
             <TabsContent value="questions"><QuestionsTab /></TabsContent>
             <TabsContent value="webinars"><WebinarsTab /></TabsContent>
             <TabsContent value="blog"><BlogTab /></TabsContent>
+            <TabsContent value="podcasts"><PodcastsTab /></TabsContent>
             <TabsContent value="ebooks"><EbooksTab /></TabsContent>
             <TabsContent value="orders"><OrdersTab /></TabsContent>
             <TabsContent value="settings"><SiteSettingsTab /></TabsContent>
@@ -592,7 +599,7 @@ function SiteSettingsTab() {
   const [msg, setMsg] = useState<string | null>(null);
   useEffect(() => {
     fetchList().then((data) => {
-      const out: Record<string, string> = { social_instagram: "", social_linkedin: "", social_x: "", social_youtube: "" };
+      const out: Record<string, string> = { social_instagram: "", social_linkedin: "", social_x: "", social_youtube: "", podcast_program_url: "" };
       for (const r of data as any[]) out[r.key] = r.value ?? "";
       setRows(out);
     });
@@ -616,6 +623,7 @@ function SiteSettingsTab() {
         <div><Label>LinkedIn URL</Label><Input placeholder="https://linkedin.com/in/…" value={rows.social_linkedin ?? ""} onChange={(e) => upd("social_linkedin", e.target.value)} /></div>
         <div><Label>X (Twitter) URL</Label><Input placeholder="https://x.com/…" value={rows.social_x ?? ""} onChange={(e) => upd("social_x", e.target.value)} /></div>
         <div><Label>YouTube URL</Label><Input placeholder="https://youtube.com/@…" value={rows.social_youtube ?? ""} onChange={(e) => upd("social_youtube", e.target.value)} /></div>
+        <div className="md:col-span-2"><Label>Spotify Podcast Program URL</Label><Input placeholder="https://open.spotify.com/show/…" value={rows.podcast_program_url ?? ""} onChange={(e) => upd("podcast_program_url", e.target.value)} /></div>
       </div>
       <div className="mt-4 flex items-center gap-3">
         <Button onClick={submit} disabled={busy}>{busy ? "Kaydediliyor…" : "Kaydet"}</Button>
