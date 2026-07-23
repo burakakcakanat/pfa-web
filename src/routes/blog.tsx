@@ -102,44 +102,43 @@ function BlogPage() {
           <p className="py-10 text-center text-sm text-muted-foreground">Henüz yazı yok.</p>
         )}
         {filteredPosts?.map((p) => (
-          <article key={p.slug} className="py-10">
-            {p.cover_image_url && (
-              <Link
-                to="/blog/$slug"
-                params={{ slug: p.slug }}
-                className="mb-6 block overflow-hidden rounded-lg border border-border bg-card"
-              >
+          <article
+            key={p.slug}
+            className="grid gap-6 py-10 sm:grid-cols-[minmax(0,180px)_minmax(0,1fr)] sm:gap-8 md:grid-cols-[minmax(0,220px)_minmax(0,1fr)]"
+          >
+            {p.cover_image_url ? (
+              <div className="overflow-hidden rounded-md border border-border/60 bg-card">
                 <img
                   src={p.cover_image_url}
-                  alt={p.title}
+                  alt=""
+                  aria-hidden="true"
                   loading="lazy"
-                  className="aspect-[16/9] w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
+                  className="aspect-[4/3] w-full object-cover opacity-90 saturate-[0.85]"
                 />
-              </Link>
+              </div>
+            ) : (
+              <div aria-hidden="true" className="hidden sm:block" />
             )}
-            <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-              {fmt.format(new Date(p.published_at))}
-            </div>
-            <h2 className="mt-3 font-serif text-2xl md:text-3xl">
-              <Link
-                to="/blog/$slug"
-                params={{ slug: p.slug }}
-                className="hover:text-accent"
-              >
-                {p.title}
-              </Link>
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-foreground/80">
-              {p.seo_description}
-            </p>
-            <div className="mt-5">
-              <Link
-                to="/blog/$slug"
-                params={{ slug: p.slug }}
-                className="text-sm underline decoration-accent decoration-2 underline-offset-8 hover:text-accent"
-              >
-                Yazıyı oku →
-              </Link>
+            <div className="min-w-0">
+              <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                {fmt.format(new Date(p.published_at))}
+                {p.category ? (
+                  <span className="ml-3 text-accent/80">· {p.category}</span>
+                ) : null}
+              </div>
+              <h2 className="mt-3 font-serif text-2xl md:text-3xl">{p.title}</h2>
+              <p className="mt-3 text-base leading-relaxed text-foreground/80">
+                {p.seo_description}
+              </p>
+              <div className="mt-4">
+                <Link
+                  to="/blog/$slug"
+                  params={{ slug: p.slug }}
+                  className="inline-flex items-center gap-1 text-sm underline decoration-accent decoration-2 underline-offset-8 hover:text-accent"
+                >
+                  Yazıyı oku →
+                </Link>
+              </div>
             </div>
           </article>
         ))}
