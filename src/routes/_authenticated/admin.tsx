@@ -90,6 +90,7 @@ function AdminPage() {
             <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
             <TabsTrigger value="products">Ürünler</TabsTrigger>
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
+          <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
             <TabsTrigger value="questions">PFA Ölçeği</TabsTrigger>
             <TabsTrigger value="webinars">Webinarlar</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
@@ -100,6 +101,7 @@ function AdminPage() {
             <TabsContent value="overview"><OverviewTab /></TabsContent>
             <TabsContent value="products"><ProductsTab /></TabsContent>
             <TabsContent value="users"><UsersTab /></TabsContent>
+            <TabsContent value="pro"><ProLicensesTab /></TabsContent>
             <TabsContent value="questions"><QuestionsTab /></TabsContent>
             <TabsContent value="webinars"><WebinarsTab /></TabsContent>
             <TabsContent value="blog"><BlogTab /></TabsContent>
@@ -136,6 +138,16 @@ function OverviewTab() {
         <Card title="Üye Sayısı"><p className="text-2xl font-semibold">{d.memberCount}</p></Card>
         <Card title="Aktif Pro"><p className="text-2xl font-semibold">{d.activePro}</p></Card>
         <Card title="Değerlendirme (30 gün)"><p className="text-2xl font-semibold">{d.miniCount} mini · {d.fullCount} tam</p></Card>
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Card title="Aktif Lisanslar">
+          <p className="text-2xl font-semibold">{d.activePro}</p>
+          <p className="text-xs text-muted-foreground">PFA-Pro sahibi kullanıcı sayısı</p>
+        </Card>
+        <Card title="Danışan Değerlendirmeleri">
+          <p className="text-2xl font-semibold">{d.totalClientUsed ?? 0} / {d.totalClientQuota ?? 0}</p>
+          <p className="text-xs text-muted-foreground">Kullanılan / Toplam kota (tüm Pro lisansları)</p>
+        </Card>
       </div>
       <Card title="Ürün Bazlı Gelir">
         <Table>
