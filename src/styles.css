@@ -205,14 +205,6 @@
 }
 
 @utility blog-image-ink {
-  background-color: var(--card);
-  filter:
-    contrast(260%)
-    saturate(190%)
-    brightness(65%)
-    drop-shadow(0 0 0 var(--foreground))
-    drop-shadow(0.45px 0 0 var(--foreground))
-    drop-shadow(-0.45px 0 0 var(--foreground))
-    drop-shadow(0 0.45px 0 var(--foreground))
-    drop-shadow(0 -0.45px 0 var(--foreground));
+  mix-blend-mode: multiply;
+  filter: contrast(1.35) saturate(1.1);
 }
