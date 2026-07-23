@@ -15,7 +15,7 @@ export const listBlogPosts = createServerFn({ method: "GET" }).handler(async () 
   const sb = publicClient();
   const { data, error } = await sb
     .from("blog_posts")
-    .select("slug, title, seo_description, published_at, sort_order, category")
+    .select("slug, title, seo_description, published_at, sort_order, category, cover_image_url")
     .eq("published", true)
     .order("sort_order", { ascending: true });
   if (error) throw new Error(error.message);
