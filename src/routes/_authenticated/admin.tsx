@@ -48,6 +48,10 @@ import {
   createSignatureUploadUrl,
   createSharedSignatureUploadUrl,
   regenerateAllPersonalized,
+  listProLicenses,
+  revokeProLicense,
+  setCertificateStatus,
+  runPendingPersonalizedRetry,
 } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -62,7 +66,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   },
   head: () => ({
     meta: [
-      { title: "Yönetim Paneli — PFA" },
+      { title: "Admin Paneli — PFA" },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
@@ -80,7 +84,7 @@ function AdminPage() {
   return (
     <div className="min-h-screen bg-background px-4 py-10 md:px-8">
       <div className="mx-auto max-w-7xl">
-        <h1 className="mb-6 font-serif text-3xl text-primary">Yönetim Paneli</h1>
+        <h1 className="mb-6 font-serif text-3xl text-primary">Admin Paneli</h1>
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="flex flex-wrap justify-start gap-1 bg-transparent">
             <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
