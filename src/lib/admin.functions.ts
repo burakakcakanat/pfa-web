@@ -303,6 +303,7 @@ export const upsertWebinarSession = createServerFn({ method: "POST" })
         capacity: z.number().int().nullable().optional(),
         join_url: z.string().url().nullable().optional(),
         notes: z.string().max(2000).nullable().optional(),
+        banner_url: z.string().url().nullable().optional(),
       })
       .parse(d),
   )
