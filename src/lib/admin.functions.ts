@@ -68,6 +68,9 @@ export const getAdminOverview = createServerFn({ method: "GET" })
     }
 
     const activePro = (entRes.data ?? []).filter((e) => e.type === "pfa_pro").length;
+    const proEnts = (entRes.data ?? []).filter((e) => e.type === "pfa_pro");
+    const totalClientQuota = proEnts.reduce((s, e) => s + (((e.metadata as any)?.client_quota) ?? 0), 0);
+    const totalClientUsed = proEnts.reduce((s, e) => s + (((e.metadata as any)?.client_used) ?? 0), 0);
 
     const latestOrders = (recentRes.data ?? []).map((o) => ({
       ...o,
@@ -82,6 +85,8 @@ export const getAdminOverview = createServerFn({ method: "GET" })
       fullCount,
       webinarRegs,
       activePro,
+      totalClientQuota,
+      totalClientUsed,
       latestOrders,
     };
   });
@@ -619,4 +624,135 @@ export const listAdminOrders = createServerFn({ method: "POST" })
       product_name: dm.get(o.product_id)?.name_tr ?? "—",
       product_slug: dm.get(o.product_id)?.slug ?? null,
     }));
+  });
+// -------- PRO LICENSES --------
+export const listProLicenses = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: ents } = await supabaseAdmin
+      .from("user_entitlements")
+      .select("id, user_id, metadata, created_at, source_order_id")
+      .eq("type", "pfa_pro")
+      .order("created_at", { ascending: false });
+    const list = ents ?? [];
+    const ids = Array.from(new Set(list.map((e) => e.user_id)));
+    if (ids.length === 0) return [];
+    const [profRes, invRes, roleRes] = await Promise.all([
+      supabaseAdmin.from("profiles").select("id, email, full_name").in("id", ids),
+      supabaseAdmin
+        .from("pro_client_invites")
+        .select("id, pro_user_id, client_name, status, created_at, token")
+        .in("pro_user_id", ids)
+        .order("created_at", { ascending: false }),
+      supabaseAdmin.from("user_roles").select("user_id, role").in("user_id", ids).eq("role", "pro"),
+    ]);
+    const pm = new Map((profRes.data ?? []).map((p: any) => [p.id, p]));
+    const invByPro = new Map<string, any[]>();
+    for (const i of invRes.data ?? []) {
+      const arr = invByPro.get(i.pro_user_id) ?? [];
+      arr.push(i);
+      invByPro.set(i.pro_user_id, arr);
+    }
+    const roleSet = new Set((roleRes.data ?? []).map((r: any) => r.user_id));
+    return list.map((e) => {
+      const meta = (e.metadata ?? {}) as any;
+      const quota = meta.client_quota ?? 0;
+      const used = meta.client_used ?? 0;
+      return {
+        entitlement_id: e.id,
+        user_id: e.user_id,
+        email: pm.get(e.user_id)?.email ?? null,
+        full_name: pm.get(e.user_id)?.full_name ?? null,
+        purchased_at: e.created_at,
+        quota,
+        used,
+        remaining: Math.max(quota - used, 0),
+        has_pro_role: roleSet.has(e.user_id),
+        certificate_status: meta.certificate_status ?? "pending",
+        invites: invByPro.get(e.user_id) ?? [],
+      };
+    });
+  });
+
+export const revokeProLicense = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ user_id: z.string().uuid(), entitlement_id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("user_entitlements").delete().eq("id", data.entitlement_id);
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id).eq("role", "pro");
+    return { ok: true };
+  });
+
+export const setCertificateStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      entitlement_id: z.string().uuid(),
+      status: z.enum(["pending", "issued", "revoked"]),
+    }).parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: cur } = await supabaseAdmin
+      .from("user_entitlements")
+      .select("metadata")
+      .eq("id", data.entitlement_id)
+      .maybeSingle();
+    const meta = { ...(((cur?.metadata as Record<string, unknown>) ?? {}) as any), certificate_status: data.status };
+    const { error } = await supabaseAdmin
+      .from("user_entitlements")
+      .update({ metadata: meta as never })
+      .eq("id", data.entitlement_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// Iterate all ebook entitlements that don't have a personalized PDF yet and try to
+// generate them now. Called after signature or master upload, and can be manually run.
+export const runPendingPersonalizedRetry = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { ensurePersonalizedPdf } = await import("@/lib/ebooks.functions");
+    const { data: ents } = await supabaseAdmin
+      .from("user_entitlements")
+      .select("id, user_id, metadata")
+      .eq("type", "ebook");
+    let generated = 0;
+    let skipped = 0;
+    for (const e of ents ?? []) {
+      const meta = ((e.metadata as Record<string, unknown>) ?? {}) as any;
+      if (meta.personalized_pdf_path) { skipped++; continue; }
+      const slug = (meta.product_slug as string) ?? "pfa-ebook-tr";
+      const { data: prof } = await supabaseAdmin
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", e.user_id)
+        .maybeSingle();
+      const fullName = (meta.recipient_name as string) || prof?.full_name || prof?.email || "";
+      const email = (meta.recipient_email as string) || prof?.email || "";
+      let buyerName: string | null = null;
+      if (meta.is_gift && meta.gift_from) {
+        const { data: buyer } = await supabaseAdmin
+          .from("profiles").select("full_name").eq("id", meta.gift_from as string).maybeSingle();
+        buyerName = buyer?.full_name ?? null;
+      }
+      const path = await ensurePersonalizedPdf({
+        entitlementId: e.id as string,
+        slug,
+        existingPath: null,
+        fullName,
+        email,
+        giftNote: (meta.gift_note as string | undefined) ?? null,
+        buyerName,
+      });
+      if (path) generated++; else skipped++;
+    }
+    return { generated, skipped };
   });

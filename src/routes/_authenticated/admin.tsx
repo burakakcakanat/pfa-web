@@ -48,6 +48,10 @@ import {
   createSignatureUploadUrl,
   createSharedSignatureUploadUrl,
   regenerateAllPersonalized,
+  listProLicenses,
+  revokeProLicense,
+  setCertificateStatus,
+  runPendingPersonalizedRetry,
 } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -62,7 +66,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   },
   head: () => ({
     meta: [
-      { title: "Yönetim Paneli — PFA" },
+      { title: "Admin Paneli — PFA" },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
@@ -80,12 +84,13 @@ function AdminPage() {
   return (
     <div className="min-h-screen bg-background px-4 py-10 md:px-8">
       <div className="mx-auto max-w-7xl">
-        <h1 className="mb-6 font-serif text-3xl text-primary">Yönetim Paneli</h1>
+        <h1 className="mb-6 font-serif text-3xl text-primary">Admin Paneli</h1>
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="flex flex-wrap justify-start gap-1 bg-transparent">
             <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
             <TabsTrigger value="products">Ürünler</TabsTrigger>
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
+          <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
             <TabsTrigger value="questions">PFA Ölçeği</TabsTrigger>
             <TabsTrigger value="webinars">Webinarlar</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
@@ -96,6 +101,7 @@ function AdminPage() {
             <TabsContent value="overview"><OverviewTab /></TabsContent>
             <TabsContent value="products"><ProductsTab /></TabsContent>
             <TabsContent value="users"><UsersTab /></TabsContent>
+            <TabsContent value="pro"><ProLicensesTab /></TabsContent>
             <TabsContent value="questions"><QuestionsTab /></TabsContent>
             <TabsContent value="webinars"><WebinarsTab /></TabsContent>
             <TabsContent value="blog"><BlogTab /></TabsContent>
@@ -132,6 +138,16 @@ function OverviewTab() {
         <Card title="Üye Sayısı"><p className="text-2xl font-semibold">{d.memberCount}</p></Card>
         <Card title="Aktif Pro"><p className="text-2xl font-semibold">{d.activePro}</p></Card>
         <Card title="Değerlendirme (30 gün)"><p className="text-2xl font-semibold">{d.miniCount} mini · {d.fullCount} tam</p></Card>
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Card title="Aktif Lisanslar">
+          <p className="text-2xl font-semibold">{d.activePro}</p>
+          <p className="text-xs text-muted-foreground">PFA-Pro sahibi kullanıcı sayısı</p>
+        </Card>
+        <Card title="Danışan Değerlendirmeleri">
+          <p className="text-2xl font-semibold">{d.totalClientUsed ?? 0} / {d.totalClientQuota ?? 0}</p>
+          <p className="text-xs text-muted-foreground">Kullanılan / Toplam kota (tüm Pro lisansları)</p>
+        </Card>
       </div>
       <Card title="Ürün Bazlı Gelir">
         <Table>
@@ -543,6 +559,7 @@ function EbooksTab() {
   const createSigUpload = useServerFn(createSignatureUploadUrl);
   const createSharedSig = useServerFn(createSharedSignatureUploadUrl);
   const regen = useServerFn(regenerateAllPersonalized);
+  const runRetry = useServerFn(runPendingPersonalizedRetry);
   const [rows, setRows] = useState<any[]>([]);
   const [cfg, setCfg] = useState<any[]>([]);
   const [regenMsg, setRegenMsg] = useState<string | null>(null);
@@ -566,8 +583,14 @@ function EbooksTab() {
       const { path, token } = await createSharedSig({ data: { filename: file.name } });
       const { error } = await supabase.storage.from("ebooks").uploadToSignedUrl(path, token, file, { upsert: true });
       if (error) throw error;
-      setSigMsg("İmza yüklendi ve TR + EN dedication'lara bağlandı.");
+      setSigMsg("İmza yüklendi. Bekleyen kişisel PDF'ler üretiliyor…");
       reloadCfg();
+      try {
+        const r = await runRetry({ data: undefined as unknown as never });
+        setSigMsg(`İmza yüklendi · ${r.generated} kişisel PDF üretildi, ${r.skipped} atlandı.`);
+      } catch (err: any) {
+        setSigMsg(`İmza yüklendi. Retry başarısız: ${err?.message ?? "hata"}`);
+      }
     } catch (e: any) {
       setSigMsg(`Hata: ${e?.message ?? "yüklenemedi"}`);
     } finally {
@@ -614,6 +637,10 @@ function EbooksTab() {
           </p>
         </div>
         <div className="mt-4 flex items-center gap-2 border-t border-border pt-4">
+          <Button variant="outline" size="sm" onClick={async () => {
+            const r = await runRetry({ data: undefined as unknown as never });
+            setRegenMsg(`Retry: ${r.generated} üretildi, ${r.skipped} atlandı.`);
+          }}>Bekleyen Kişisel PDF'leri Üret</Button>
           <Button variant="outline" size="sm" onClick={async () => {
             if (!confirm("Tüm kişisel PDF'ler silinsin ve yeniden üretilsin mi?")) return;
             const r = await regen({ data: undefined as unknown as never });
@@ -712,6 +739,118 @@ function OrdersTab() {
               <TableCell>{o.status}</TableCell>
               <TableCell className="max-w-[16ch] truncate text-xs">{o.stripe_session_id ?? "—"}</TableCell>
             </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+// ============== PRO LICENSES ==============
+function ProLicensesTab() {
+  const fetchList = useServerFn(listProLicenses);
+  const setQuota = useServerFn(setProQuota);
+  const revoke = useServerFn(revokeProLicense);
+  const setCert = useServerFn(setCertificateStatus);
+  const [rows, setRows] = useState<any[]>([]);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const reload = useCallback(() => { fetchList().then(setRows); }, [fetchList]);
+  useEffect(() => { reload(); }, [reload]);
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-muted-foreground">
+        Toplam {rows.length} aktif lisans · {rows.reduce((s, r) => s + r.used, 0)} /{" "}
+        {rows.reduce((s, r) => s + r.quota, 0)} danışan değerlendirmesi kullanıldı.
+      </p>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead></TableHead>
+            <TableHead>E-posta</TableHead>
+            <TableHead>Ad</TableHead>
+            <TableHead>Satın alma</TableHead>
+            <TableHead>Kota (kullanılan / toplam)</TableHead>
+            <TableHead>Kalan</TableHead>
+            <TableHead>Sertifika</TableHead>
+            <TableHead>İşlem</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((r) => (
+            <>
+              <TableRow key={r.entitlement_id}>
+                <TableCell>
+                  <Button size="sm" variant="ghost" onClick={() => setExpanded((s) => ({ ...s, [r.entitlement_id]: !s[r.entitlement_id] }))}>
+                    {expanded[r.entitlement_id] ? "▾" : "▸"}
+                  </Button>
+                </TableCell>
+                <TableCell className="text-xs">{r.email ?? "—"}</TableCell>
+                <TableCell className="text-xs">{r.full_name ?? "—"}</TableCell>
+                <TableCell className="text-xs">{fmtDate(r.purchased_at)}</TableCell>
+                <TableCell>
+                  <QuotaEdit
+                    entitlementId={r.entitlement_id}
+                    quota={r.quota}
+                    used={r.used}
+                    onSave={async (q, u) => { await setQuota({ data: { entitlement_id: r.entitlement_id, quota: q, used: u } }); reload(); }}
+                  />
+                </TableCell>
+                <TableCell className="text-xs">{r.remaining}</TableCell>
+                <TableCell>
+                  <Select value={r.certificate_status} onValueChange={async (v: any) => { await setCert({ data: { entitlement_id: r.entitlement_id, status: v } }); reload(); }}>
+                    <SelectTrigger className="h-8 w-28"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Beklemede</SelectItem>
+                      <SelectItem value="issued">Verildi</SelectItem>
+                      <SelectItem value="revoked">İptal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  <Button size="sm" variant="destructive" onClick={async () => {
+                    if (!confirm(`${r.email ?? "Kullanıcı"} için Pro lisansını iptal etmek istediğinizden emin misiniz?`)) return;
+                    await revoke({ data: { user_id: r.user_id, entitlement_id: r.entitlement_id } });
+                    reload();
+                  }}>Lisansı İptal Et</Button>
+                </TableCell>
+              </TableRow>
+              {expanded[r.entitlement_id] && (
+                <TableRow key={r.entitlement_id + "-inv"}>
+                  <TableCell colSpan={8} className="bg-muted/30">
+                    <div className="p-3">
+                      <div className="mb-2 text-xs font-medium">Danışan Davetleri ({r.invites.length})</div>
+                      {r.invites.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">Bu Pro henüz danışan daveti oluşturmadı.</p>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Danışan</TableHead>
+                              <TableHead>Durum</TableHead>
+                              <TableHead>Oluşturulma</TableHead>
+                              <TableHead>Rapor</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {r.invites.map((inv: any) => (
+                              <TableRow key={inv.id}>
+                                <TableCell className="text-xs">{inv.client_name}</TableCell>
+                                <TableCell className="text-xs">{inv.status}</TableCell>
+                                <TableCell className="text-xs">{fmtDate(inv.created_at)}</TableCell>
+                                <TableCell className="text-xs">
+                                  {inv.status === "completed" ? (
+                                    <a className="text-accent underline" href={`/rapor/${inv.token}`} target="_blank" rel="noreferrer">Rapora git</a>
+                                  ) : "—"}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </>
           ))}
         </TableBody>
       </Table>

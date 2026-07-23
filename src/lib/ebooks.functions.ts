@@ -21,7 +21,7 @@ async function signedStorageUrl(path: string, mode: "view" | "download", filenam
   return signed?.signedUrl ?? null;
 }
 
-async function ensurePersonalizedPdf(opts: {
+export async function ensurePersonalizedPdf(opts: {
   entitlementId: string;
   slug: string;
   existingPath: string | null;
