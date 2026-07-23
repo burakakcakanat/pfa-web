@@ -57,7 +57,7 @@ function BlogPostPage() {
             <img
               src={post.cover_image_url}
               alt={post.title}
-              className="aspect-[16/9] w-full object-cover"
+              className="aspect-[16/9] w-full object-cover contrast-175 saturate-150 brightness-90"
             />
           </div>
         )}
@@ -68,7 +68,7 @@ function BlogPostPage() {
                 <img
                   {...props}
                   loading="lazy"
-                  className="my-10 w-full rounded-lg border border-border"
+                  className="my-10 w-full rounded-lg border border-border contrast-175 saturate-150 brightness-90"
                 />
               ),
               h2: (props) => (
