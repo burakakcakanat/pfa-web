@@ -116,6 +116,12 @@ export const updateAdminProduct = createServerFn({ method: "POST" })
         description_en: z.string().max(4000).nullable().optional(),
         price_cents: z.number().int().min(0).optional(),
         active: z.boolean().optional(),
+        activate_at: z.string().nullable().optional(),
+        cover_image_url: z.string().url().nullable().optional(),
+        master_pdf_path: z.string().nullable().optional(),
+        master_epub_path: z.string().nullable().optional(),
+        language: z.string().max(10).optional(),
+        book_key: z.string().max(20).nullable().optional(),
       })
       .parse(d),
   )
@@ -123,6 +129,157 @@ export const updateAdminProduct = createServerFn({ method: "POST" })
     await assertAdmin(context.supabase, context.userId);
     const { id, ...patch } = data;
     const { error } = await context.supabase.from("products").update(patch).eq("id", id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// -------- PRODUCT ASSET UPLOADS --------
+// Kapak görseli: blog-images (private) bucket'ta covers/ prefix'i altında saklanır;
+// public bucket engelli olduğu için uzun ömürlü signed URL üretilir.
+export const createProductCoverUploadUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ slug: z.string().min(1).max(100), filename: z.string().min(1).max(200) }).parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const ext = (data.filename.split(".").pop() || "png").toLowerCase();
+    const path = `book-covers/${data.slug}-${Date.now()}.${ext}`;
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from("blog-images")
+      .createSignedUploadUrl(path);
+    if (error) throw new Error(error.message);
+    // ~1 yıl (Supabase üst sınır). Frontend gerekirse yenileyebilir.
+    const { data: urlData, error: urlErr } = await supabaseAdmin.storage
+      .from("blog-images")
+      .createSignedUrl(path, 60 * 60 * 24 * 365);
+    if (urlErr) throw new Error(urlErr.message);
+    return { path, token: signed.token, publicUrl: urlData.signedUrl };
+  });
+
+// Master PDF/EPUB — private book-files bucket'ında ürün slug'ı altında saklanır.
+export const createProductMasterUploadUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        slug: z.string().min(1).max(100),
+        filename: z.string().min(1).max(200),
+        format: z.enum(["pdf", "epub"]),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const ext = data.format === "pdf" ? "pdf" : "epub";
+    const path = `${data.slug}/master-${Date.now()}.${ext}`;
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from("book-files")
+      .createSignedUploadUrl(path);
+    if (error) throw new Error(error.message);
+    return { path, token: signed.token };
+  });
+
+// -------- BUNDLES --------
+export const listAdminBundles = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [bundlesRes, itemsRes, productsRes] = await Promise.all([
+      supabaseAdmin.from("bundles").select("*").order("sort_order"),
+      supabaseAdmin.from("bundle_items").select("bundle_id, product_slug, quantity"),
+      supabaseAdmin.from("products").select("slug, name_tr, price_cents"),
+    ]);
+    const itemsByBundle = new Map<string, Array<{ product_slug: string; quantity: number }>>();
+    for (const it of itemsRes.data ?? []) {
+      const arr = itemsByBundle.get(it.bundle_id) ?? [];
+      arr.push({ product_slug: it.product_slug, quantity: it.quantity ?? 1 });
+      itemsByBundle.set(it.bundle_id, arr);
+    }
+    return {
+      bundles: (bundlesRes.data ?? []).map((b) => ({ ...b, items: itemsByBundle.get(b.id) ?? [] })),
+      products: productsRes.data ?? [],
+    };
+  });
+
+export const upsertAdminBundle = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        active: z.boolean().optional(),
+        activate_at: z.string().nullable().optional(),
+        sort_order: z.number().int().optional(),
+        price_override_cents: z.number().int().min(0).nullable().optional(),
+        discount_percent: z.number().int().min(0).max(100).optional(),
+        name_tr: z.string().min(1).max(200).optional(),
+        description_tr: z.string().max(2000).nullable().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { id, ...patch } = data;
+    const { error } = await context.supabase.from("bundles").update(patch).eq("id", id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// -------- BOOK EDITIONS --------
+export const listAdminEditions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("book_editions")
+      .select("*")
+      .order("book_key")
+      .order("sort_order");
+    return data ?? [];
+  });
+
+export const upsertAdminEdition = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        book_key: z.enum(["pfa", "hcd"]),
+        format: z.enum(["kindle", "paperback", "google_play"]),
+        asin: z.string().nullable().optional(),
+        external_url: z.string().url().nullable().optional(),
+        marketplaces: z.array(z.string()).default([]),
+        overrides: z.record(z.string(), z.string()).default({}),
+        active: z.boolean().default(false),
+        sort_order: z.number().int().default(0),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    if (data.id) {
+      const { id, ...patch } = data;
+      const { error } = await context.supabase.from("book_editions").update(patch).eq("id", id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { id: _i, ...ins } = data;
+      const { error } = await context.supabase.from("book_editions").insert(ins);
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
+export const deleteAdminEdition = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("book_editions").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
