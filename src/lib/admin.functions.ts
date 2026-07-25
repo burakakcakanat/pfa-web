@@ -870,6 +870,241 @@ export const setCertificateStatus = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// -------- PRO ACCOUNTS (Pro Hesaplar) --------
+// PRIVACY: Bu bölüm danışan ölçek içeriğini ASLA seçmez; yalnızca COUNT / sayısal
+// alanlar kullanılır. Ölçek cevap/sonuç tablolarına dokunulmaz.
+
+export const listProAccounts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        q: z.string().max(200).optional(),
+        page: z.number().int().min(0).default(0),
+        pageSize: z.number().int().min(1).max(200).default(50),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Filtre için önce eşleşen profil id'lerini bul.
+    let matchedIds: string[] | null = null;
+    const term = (data.q ?? "").trim();
+    if (term) {
+      const like = `%${term}%`;
+      const { data: profs } = await supabaseAdmin
+        .from("profiles")
+        .select("id")
+        .or(`email.ilike.${like},full_name.ilike.${like}`)
+        .limit(1000);
+      matchedIds = (profs ?? []).map((p: any) => p.id);
+      if (matchedIds.length === 0) return { rows: [], total: 0 };
+    }
+
+    let countQ = supabaseAdmin
+      .from("user_entitlements")
+      .select("id", { count: "exact", head: true })
+      .eq("type", "pfa_pro");
+    if (matchedIds) countQ = countQ.in("user_id", matchedIds);
+    const { count: total } = await countQ;
+
+    let listQ = supabaseAdmin
+      .from("user_entitlements")
+      .select("id, user_id, metadata, created_at, source_order_id")
+      .eq("type", "pfa_pro")
+      .order("created_at", { ascending: false })
+      .range(data.page * data.pageSize, data.page * data.pageSize + data.pageSize - 1);
+    if (matchedIds) listQ = listQ.in("user_id", matchedIds);
+    const { data: ents, error } = await listQ;
+    if (error) throw new Error(error.message);
+
+    const list = ents ?? [];
+    const uids = Array.from(new Set(list.map((e) => e.user_id)));
+    if (uids.length === 0) return { rows: [], total: total ?? 0 };
+
+    // PRIVACY: pro_client_invites'tan yalnızca sayım / durum alanları.
+    const [profRes, invRes] = await Promise.all([
+      supabaseAdmin.from("profiles").select("id, email, full_name").in("id", uids),
+      supabaseAdmin
+        .from("pro_client_invites")
+        .select("pro_user_id, status")
+        .in("pro_user_id", uids),
+    ]);
+    const pm = new Map((profRes.data ?? []).map((p: any) => [p.id, p]));
+    const inviteStats = new Map<string, { pending: number; completed: number; total: number }>();
+    for (const i of invRes.data ?? []) {
+      const s = inviteStats.get(i.pro_user_id) ?? { pending: 0, completed: 0, total: 0 };
+      s.total += 1;
+      if (i.status === "pending") s.pending += 1;
+      if (i.status === "completed") s.completed += 1;
+      inviteStats.set(i.pro_user_id, s);
+    }
+
+    const rows = list.map((e) => {
+      const meta = (e.metadata ?? {}) as any;
+      const quota = Number(meta.client_quota ?? 0);
+      const used = Number(meta.client_used ?? 0);
+      const stats = inviteStats.get(e.user_id) ?? { pending: 0, completed: 0, total: 0 };
+      return {
+        entitlement_id: e.id,
+        user_id: e.user_id,
+        email: pm.get(e.user_id)?.email ?? null,
+        full_name: pm.get(e.user_id)?.full_name ?? null,
+        granted_at: e.created_at,
+        source: e.source_order_id ? "purchase" : (meta.granted_by === "admin" ? "manual" : "manual"),
+        quota,
+        used,
+        remaining: Math.max(quota - used, 0),
+        invites_total: stats.total,
+        invites_pending: stats.pending,
+        invites_completed: stats.completed,
+      };
+    });
+    return { rows, total: total ?? 0 };
+  });
+
+// Seçili Pro kullanıcının davetleri — SALT OKUNUR, token GÖSTERİLMEZ.
+// PRIVACY: yalnızca client_name, status, created_at. Ölçek içeriği yok.
+export const listProInvitesForAdmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ pro_user_id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("pro_client_invites")
+      .select("id, client_name, status, created_at")
+      .eq("pro_user_id", data.pro_user_id)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+// E-posta / ad ile kullanıcı arama (Pro yetkisi verme akışı için).
+export const searchProfilesForPro = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ q: z.string().min(2).max(200) }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const like = `%${data.q.trim()}%`;
+    const { data: profs, error } = await supabaseAdmin
+      .from("profiles")
+      .select("id, email, full_name")
+      .or(`email.ilike.${like},full_name.ilike.${like}`)
+      .limit(25);
+    if (error) throw new Error(error.message);
+    const ids = (profs ?? []).map((p: any) => p.id);
+    if (ids.length === 0) return [];
+    const { data: ents } = await supabaseAdmin
+      .from("user_entitlements")
+      .select("user_id")
+      .eq("type", "pfa_pro")
+      .in("user_id", ids);
+    const proSet = new Set((ents ?? []).map((e: any) => e.user_id));
+    return (profs ?? []).map((p: any) => ({ ...p, is_pro: proSet.has(p.id) }));
+  });
+
+export const grantProAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        user_id: z.string().uuid(),
+        initial_quota: z.number().int().min(0).max(1000).default(20),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: existing } = await supabaseAdmin
+      .from("user_entitlements")
+      .select("id")
+      .eq("user_id", data.user_id)
+      .eq("type", "pfa_pro")
+      .limit(1);
+    if ((existing ?? []).length > 0) {
+      throw new Error("ALREADY_PRO");
+    }
+
+    const { error: e1 } = await supabaseAdmin.from("user_entitlements").insert({
+      user_id: data.user_id,
+      type: "pfa_pro",
+      metadata: {
+        granted_by: "admin",
+        client_quota: data.initial_quota,
+        client_used: 0,
+      },
+    });
+    if (e1) throw new Error(e1.message);
+
+    const { error: e2 } = await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: data.user_id, role: "pro" });
+    if (e2 && !e2.message.includes("duplicate")) throw new Error(e2.message);
+
+    return { ok: true };
+  });
+
+export const revokeProAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ user_id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Davet / danışan kayıtlarını KORU; yalnızca Pro hakkını kapat.
+    await supabaseAdmin
+      .from("user_entitlements")
+      .delete()
+      .eq("user_id", data.user_id)
+      .eq("type", "pfa_pro");
+    await supabaseAdmin
+      .from("user_roles")
+      .delete()
+      .eq("user_id", data.user_id)
+      .eq("role", "pro");
+    return { ok: true };
+  });
+
+export const addProCredits = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        user_id: z.string().uuid(),
+        amount: z.number().int().min(1).max(1000),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: ent, error } = await supabaseAdmin
+      .from("user_entitlements")
+      .select("id, metadata")
+      .eq("user_id", data.user_id)
+      .eq("type", "pfa_pro")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!ent) throw new Error("NO_PRO_ENTITLEMENT");
+    const meta = (ent.metadata ?? {}) as any;
+    const currentQuota = Number(meta.client_quota ?? 0);
+    const currentUsed = Number(meta.client_used ?? 0);
+    const { error: e2 } = await (context.supabase as any).rpc("admin_set_client_quota", {
+      _entitlement_id: ent.id,
+      _quota: currentQuota + data.amount,
+      _used: currentUsed,
+    });
+    if (e2) throw new Error(e2.message);
+    return { ok: true, new_quota: currentQuota + data.amount };
+  });
+
 // Iterate all ebook entitlements that don't have a personalized PDF yet and try to
 // generate them now. Called after signature or master upload, and can be manually run.
 export const runPendingPersonalizedRetry = createServerFn({ method: "POST" })
