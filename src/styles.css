@@ -205,6 +205,6 @@
 }
 
 @utility blog-image-ink {
-  mix-blend-mode: multiply;
-  filter: contrast(1.35) saturate(1.1);
+  mix-blend-mode: normal;
+  filter: none;
 }
