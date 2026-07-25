@@ -392,6 +392,7 @@ function StickySaveBar({ dirty, count, busy, msg, onSave, onReset }: { dirty: bo
 function BundlesTab() {
   const fetchList = useServerFn(listAdminBundles);
   const upsert = useServerFn(upsertAdminBundle);
+  const queryClient = useQueryClient();
   const [data, setData] = useState<{ bundles: any[]; products: any[] }>({ bundles: [], products: [] });
   const [drafts, setDrafts] = useState<Record<string, any>>({});
   const [busy, setBusy] = useState(false);
@@ -438,8 +439,14 @@ function BundlesTab() {
         await upsert({ data: changed });
       }
       await reload();
+      await queryClient.invalidateQueries({ queryKey: ["books-data"] });
       setMsg("Kaydedildi.");
-    } catch (e: any) { setMsg("Hata: " + (e?.message ?? "bilinmiyor")); } finally { setBusy(false); }
+      toast.success("Paketler kaydedildi");
+    } catch (e: any) {
+      const m = e?.message ?? "bilinmiyor";
+      setMsg("Hata: " + m);
+      toast.error("Kaydetme hatası: " + m);
+    } finally { setBusy(false); }
   };
 
   const cv = (b: any, k: string) => (drafts[b.id] ? drafts[b.id][k] : b[k]);
@@ -474,17 +481,11 @@ function BundlesTab() {
               </div>
               <div>
                 <Label>Fiyat (override) — boşsa otomatik</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={override != null ? (override / 100).toFixed(2) : ""}
-                  placeholder="—"
-                  onChange={(e) => {
-                    const v = e.target.value.trim();
-                    if (!v) { patch(b.id, "price_override_cents", null); return; }
-                    const cents = Math.round(parseFloat(v) * 100);
-                    patch(b.id, "price_override_cents", isNaN(cents) ? null : cents);
-                  }}
+                <PriceInput
+                  cents={override}
+                  nullable
+                  placeholder="Otomatik"
+                  onCommit={(cents) => patch(b.id, "price_override_cents", cents)}
                 />
               </div>
               <div>
