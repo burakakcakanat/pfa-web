@@ -119,15 +119,14 @@ function BlogPage() {
             className="grid gap-6 py-10 sm:grid-cols-[minmax(0,180px)_minmax(0,1fr)] sm:gap-8 md:grid-cols-[minmax(0,220px)_minmax(0,1fr)]"
           >
             {p.cover_image_url ? (
-              <div className="overflow-hidden rounded-md border border-border/60 bg-card">
-                <img
-                  src={p.cover_image_url}
-                  alt=""
-                  aria-hidden="true"
-                  loading="lazy"
-                  className="blog-image-ink aspect-[4/3] w-full object-cover"
-                />
-              </div>
+              <img
+                src={p.cover_image_url}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                className="block h-auto w-full rounded-md object-contain"
+                style={{ filter: "none", mixBlendMode: "normal", backgroundBlendMode: "normal", opacity: 1 }}
+              />
             ) : (
               <div aria-hidden="true" className="hidden sm:block" />
             )}
