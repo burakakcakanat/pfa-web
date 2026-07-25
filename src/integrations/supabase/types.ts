@@ -431,11 +431,12 @@ export type Database = {
       orders: {
         Row: {
           amount_cents: number
+          bundle_slug: string | null
           created_at: string
           currency: string
           id: string
           metadata: Json
-          product_id: string
+          product_id: string | null
           status: Database["public"]["Enums"]["order_status"]
           stripe_session_id: string | null
           updated_at: string
@@ -443,11 +444,12 @@ export type Database = {
         }
         Insert: {
           amount_cents: number
+          bundle_slug?: string | null
           created_at?: string
           currency?: string
           id?: string
           metadata?: Json
-          product_id: string
+          product_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_session_id?: string | null
           updated_at?: string
@@ -455,11 +457,12 @@ export type Database = {
         }
         Update: {
           amount_cents?: number
+          bundle_slug?: string | null
           created_at?: string
           currency?: string
           id?: string
           metadata?: Json
-          product_id?: string
+          product_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_session_id?: string | null
           updated_at?: string
