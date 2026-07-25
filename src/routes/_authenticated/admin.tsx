@@ -56,6 +56,24 @@ import {
   runPendingPersonalizedRetry,
 } from "@/lib/admin.functions";
 import {
+  listProAccounts,
+  listProInvitesForAdmin,
+  searchProfilesForPro,
+  grantProAccount,
+  revokeProAccount,
+  addProCredits,
+} from "@/lib/admin.functions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   createProductCoverUploadUrl,
   createProductMasterUploadUrl,
   listAdminBundles,
@@ -116,6 +134,7 @@ function AdminPage() {
             <TabsTrigger value="editions">Kitap Baskıları</TabsTrigger>
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
           <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
+            <TabsTrigger value="pro-accounts">Pro Hesaplar</TabsTrigger>
             <TabsTrigger value="questions">PFA Ölçeği</TabsTrigger>
             <TabsTrigger value="webinars">Webinarlar</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
@@ -131,6 +150,7 @@ function AdminPage() {
             <TabsContent value="editions"><EditionsTab /></TabsContent>
             <TabsContent value="users"><UsersTab /></TabsContent>
             <TabsContent value="pro"><ProLicensesTab /></TabsContent>
+            <TabsContent value="pro-accounts"><ProAccountsTab /></TabsContent>
             <TabsContent value="questions"><QuestionsTab /></TabsContent>
             <TabsContent value="webinars"><WebinarsTab /></TabsContent>
             <TabsContent value="blog"><BlogTab /></TabsContent>
