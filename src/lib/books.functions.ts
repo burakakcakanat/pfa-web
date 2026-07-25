@@ -81,11 +81,13 @@ export const getBooksData = createServerFn({ method: "GET" }).handler(async (): 
     products: (prodRes.data ?? []).map((p) => ({ ...p, activate_at: p.activate_at ?? null })),
     editions: (edRes.data ?? []).map((e) => ({
       ...e,
+      format: e.format as "kindle" | "paperback" | "google_play",
       overrides: (e.overrides ?? {}) as Record<string, string>,
       marketplaces: e.marketplaces ?? [],
     })),
     bundles: (bundleRes.data ?? []).map((b) => ({
       ...b,
+      pricing_mode: b.pricing_mode as "locked_to_product" | "sum_minus_percent",
       items: itemsByBundle.get(b.id) ?? [],
     })),
   };
