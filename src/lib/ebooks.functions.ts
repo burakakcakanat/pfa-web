@@ -13,12 +13,31 @@ function localeFor(slug: string): "tr" | "en" {
   return slug.endsWith("-tr") ? "tr" : "en";
 }
 
-async function signedStorageUrl(path: string, mode: "view" | "download", filename: string) {
+async function signedStorageUrl(
+  path: string,
+  mode: "view" | "download",
+  filename: string,
+  bucket: "ebooks" | "book-files" = "ebooks",
+) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: signed } = await supabaseAdmin.storage
-    .from("ebooks")
+    .from(bucket)
     .createSignedUrl(path, 60 * 10, mode === "download" ? { download: filename } : undefined);
   return signed?.signedUrl ?? null;
+}
+
+// Ürün master dosya yollarını (varsa) döner. Öncelik: products.master_*_path.
+async function getMasterPaths(slug: string): Promise<{ pdfPath: string | null; epubPath: string | null }> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin
+    .from("products")
+    .select("master_pdf_path, master_epub_path")
+    .eq("slug", slug)
+    .maybeSingle();
+  return {
+    pdfPath: data?.master_pdf_path ?? null,
+    epubPath: data?.master_epub_path ?? null,
+  };
 }
 
 export async function ensurePersonalizedPdf(opts: {
@@ -42,12 +61,26 @@ export async function ensurePersonalizedPdf(opts: {
     if ((chk ?? []).some((f) => f.name === name)) return opts.existingPath;
   }
 
-  // Master PDF ve imza + dedication şablonu var mı?
-  const { data: masterList } = await supabaseAdmin.storage.from("ebooks").list(opts.slug, {
-    limit: 20,
-  });
-  const masterPdf = (masterList ?? []).find((f) => f.name.toLowerCase().endsWith(".pdf"));
-  if (!masterPdf) return null;
+  // Master PDF önceliği: products.master_pdf_path (book-files bucket) → ebooks/<slug>/ listeleme fallback.
+  const masterPaths = await getMasterPaths(opts.slug);
+  let masterBytes: Uint8Array | null = null;
+  if (masterPaths.pdfPath) {
+    const { data: mb } = await supabaseAdmin.storage.from("book-files").download(masterPaths.pdfPath);
+    if (mb) masterBytes = new Uint8Array(await mb.arrayBuffer());
+  }
+  if (!masterBytes) {
+    const { data: masterList } = await supabaseAdmin.storage.from("ebooks").list(opts.slug, {
+      limit: 20,
+    });
+    const masterPdf = (masterList ?? []).find((f) => f.name.toLowerCase().endsWith(".pdf"));
+    if (masterPdf) {
+      const { data: mb } = await supabaseAdmin.storage
+        .from("ebooks")
+        .download(`${opts.slug}/${masterPdf.name}`);
+      if (mb) masterBytes = new Uint8Array(await mb.arrayBuffer());
+    }
+  }
+  if (!masterBytes) return null;
 
   const locale = localeFor(opts.slug);
   const { data: tpl } = await supabaseAdmin
@@ -56,13 +89,6 @@ export async function ensurePersonalizedPdf(opts: {
     .eq("locale", locale)
     .maybeSingle();
   if (!tpl) return null;
-
-  // Master PDF indir.
-  const { data: masterBlob } = await supabaseAdmin.storage
-    .from("ebooks")
-    .download(`${opts.slug}/${masterPdf.name}`);
-  if (!masterBlob) return null;
-  const masterBytes = new Uint8Array(await masterBlob.arrayBuffer());
 
   // İmza görseli (varsa).
   let signatureBytes: Uint8Array | null = null;
@@ -140,8 +166,12 @@ export const listMyEbooks = createServerFn({ method: "GET" })
       const slug = (meta.product_slug as string | undefined) ?? "pfa-ebook-tr";
       if (seen.has(slug)) continue;
       seen.add(slug);
-      const { data: list } = await supabaseAdmin.storage.from("ebooks").list(slug, { limit: 20 });
-      const hasMaster = (list ?? []).some((f) => /\.(pdf|epub)$/i.test(f.name));
+      const masterPaths = await getMasterPaths(slug);
+      let hasMaster = Boolean(masterPaths.pdfPath || masterPaths.epubPath);
+      if (!hasMaster) {
+        const { data: list } = await supabaseAdmin.storage.from("ebooks").list(slug, { limit: 20 });
+        hasMaster = (list ?? []).some((f) => /\.(pdf|epub)$/i.test(f.name));
+      }
       const locale = localeFor(slug);
       const { data: tpl } = await supabaseAdmin
         .from("ebook_dedication_templates")
@@ -185,8 +215,15 @@ export const getEbookUrl = createServerFn({ method: "POST" })
     const meta = (ent.metadata ?? {}) as Record<string, unknown>;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    const masterPaths = await getMasterPaths(data.slug);
+
     // İndir modunda EPUB varsa onu ver (standart, kişiselleştirilmemiş).
     if (data.mode === "download") {
+      if (masterPaths.epubPath) {
+        const filename = `${data.slug}.epub`;
+        const url = await signedStorageUrl(masterPaths.epubPath, "download", filename, "book-files");
+        if (url) return { url, filename, personalized: false };
+      }
       const { data: list } = await supabaseAdmin.storage.from("ebooks").list(data.slug, {
         limit: 20,
       });
@@ -239,7 +276,12 @@ export const getEbookUrl = createServerFn({ method: "POST" })
     }
 
     // Kişiselleştirme henüz mümkün değil (imza veya master eksik) →
-    // standart PDF varsa onu ver.
+    // standart PDF varsa onu ver. Öncelik: products.master_pdf_path.
+    if (masterPaths.pdfPath) {
+      const filename = `${data.slug}.pdf`;
+      const url = await signedStorageUrl(masterPaths.pdfPath, data.mode, filename, "book-files");
+      if (url) return { url, filename, personalized: false };
+    }
     const { data: list } = await supabaseAdmin.storage.from("ebooks").list(data.slug, {
       limit: 20,
     });
