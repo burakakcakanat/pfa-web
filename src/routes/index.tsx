@@ -98,19 +98,19 @@ function HomePage() {
       </section>
 
       {/* Bilinç Döngüsü */}
-      <section className="container-page pt-6 pb-24">
+      <section className="container-page pt-2 pb-16">
         <div className="mx-auto max-w-6xl text-center">
           <div className="text-xs uppercase tracking-[0.3em] text-accent">
             Bilinç Döngüsü
           </div>
-          <h2 className="mt-4 font-serif text-3xl md:text-4xl">
-            Bekadan birliğe uzanan tek bir döngü
+          <h2 className="mt-3 font-serif text-3xl md:text-4xl">
+            Bekadan Aydınlanmaya uzanan tek bir döngü
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-foreground/80">
+          <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-foreground/80">
             İlk üç seviyede genişleme, dördüncü seviyeden itibaren bütünleşme —
             yedi işlevsel seviye tek bir toroidal döngü içinde birleşir.
           </p>
-          <figure className="relative mt-10 left-1/2 -translate-x-1/2 w-[140vw] max-w-[1920px]">
+          <figure className="relative mt-5 left-1/2 -translate-x-1/2 w-[140vw] max-w-[1920px]">
             <img
               src={pfaMapAsset.url}
               alt="PFA Bilinç Döngüsü — Yedi İşlevsel Seviye Haritası"
