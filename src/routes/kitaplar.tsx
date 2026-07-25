@@ -115,12 +115,8 @@ function BookCard({ book: b }: { book: Book }) {
                   </div>
                 )}
               </div>
-              <div className="pointer-events-none absolute -left-0.5 -top-0.5 z-10 h-9 w-9 overflow-hidden">
-                <span className="absolute left-[-16px] top-[4px] w-[56px] rotate-[-45deg] bg-accent py-[1px] text-center text-[0.45rem] font-semibold uppercase tracking-[0.1em] text-background shadow">
-                  İmzalı Nüsha
-                </span>
-              </div>
             </div>
+
             <div className="mt-6 flex flex-1 flex-col text-center">
               <div className="text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
                 {b.lang}
