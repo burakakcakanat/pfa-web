@@ -54,6 +54,16 @@ import {
   runPendingPersonalizedRetry,
 } from "@/lib/admin.functions";
 import {
+  createProductCoverUploadUrl,
+  createProductMasterUploadUrl,
+  listAdminBundles,
+  upsertAdminBundle,
+  listAdminEditions,
+  upsertAdminEdition,
+  deleteAdminEdition,
+} from "@/lib/admin.functions";
+import { resolveBundlePrice, fmtUsd, MARKETPLACE_NAMES, AMAZON_DOMAINS } from "@/lib/bundles";
+import {
   createWebinarBannerUploadUrl,
   refreshWebinarBannerUrl,
   listSiteSettings,
@@ -100,6 +110,8 @@ function AdminPage() {
           <TabsList className="flex flex-wrap justify-start gap-1 bg-transparent">
             <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
             <TabsTrigger value="products">Ürünler</TabsTrigger>
+            <TabsTrigger value="bundles">Paketler</TabsTrigger>
+            <TabsTrigger value="editions">Kitap Baskıları</TabsTrigger>
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
           <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
             <TabsTrigger value="questions">PFA Ölçeği</TabsTrigger>
@@ -113,6 +125,8 @@ function AdminPage() {
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
             <TabsContent value="products"><ProductsTab /></TabsContent>
+            <TabsContent value="bundles"><BundlesTab /></TabsContent>
+            <TabsContent value="editions"><EditionsTab /></TabsContent>
             <TabsContent value="users"><UsersTab /></TabsContent>
             <TabsContent value="pro"><ProLicensesTab /></TabsContent>
             <TabsContent value="questions"><QuestionsTab /></TabsContent>
