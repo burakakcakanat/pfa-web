@@ -115,7 +115,7 @@ function BookCard({ book: b }: { book: Book }) {
                   {b.title}
                 </div>
               )}
-          <span className="absolute left-3 top-3 rounded-full bg-accent px-2.5 py-1 text-[0.65rem] uppercase tracking-[0.15em] text-background shadow">
+          <span className="absolute left-1.5 top-1.5 rounded-full bg-accent px-2 py-0.5 text-[0.6rem] uppercase tracking-[0.12em] text-background shadow">
             İmzalı Nüsha
           </span>
             </div>

@@ -57,12 +57,6 @@ function SessionsPage() {
               <li>• Online (Zoom bağlantısı)</li>
               <li>• Europe/Istanbul saati</li>
             </ul>
-            <div className="mt-8 border-t border-border pt-6">
-              <div className="font-serif text-3xl">$150 USD</div>
-              <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                Oturum başına
-              </div>
-            </div>
           </aside>
 
           <div className="bg-background p-8">
@@ -156,7 +150,7 @@ function SessionsPage() {
                   disabled={!date || !slot}
                   className="btn-primary hover:btn-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Rezervasyon & Ödemeye Geç ($150)
+                  Rezervasyon & Ödemeye Geç
                 </button>
               </form>
             )}
