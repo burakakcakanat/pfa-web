@@ -53,13 +53,12 @@ function BlogPostPage() {
           {post.title}
         </h1>
         {post.cover_image_url && (
-          <div className="mt-10 overflow-hidden rounded-lg border border-border bg-card">
-            <img
-              src={post.cover_image_url}
-              alt={post.title}
-              className="blog-image-ink aspect-[16/9] w-full object-cover"
-            />
-          </div>
+          <img
+            src={post.cover_image_url}
+            alt={post.title}
+            className="mt-10 block h-auto w-full rounded-lg object-contain"
+            style={{ filter: "none", mixBlendMode: "normal", backgroundBlendMode: "normal", opacity: 1 }}
+          />
         )}
         <div className="prose-pfa mt-10">
           <ReactMarkdown
@@ -68,7 +67,8 @@ function BlogPostPage() {
                 <img
                   {...props}
                   loading="lazy"
-                  className="blog-image-ink my-10 w-full rounded-lg border border-border"
+                  className="my-10 block h-auto w-full rounded-lg object-contain"
+                  style={{ filter: "none", mixBlendMode: "normal", backgroundBlendMode: "normal", opacity: 1 }}
                 />
               ),
               h2: (props) => (
