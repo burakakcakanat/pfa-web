@@ -218,21 +218,31 @@ function EbookTab({ hasAny }: { hasAny: boolean }) {
 
 function EbookRow({ slug, label, available }: { slug: string; label: string; available: boolean }) {
   const getUrl = useServerFn(getEbookUrl);
-  const [busy, setBusy] = useState<null | "view" | "download">(null);
+  const [busy, setBusy] = useState<null | "view" | "pdf" | "epub">(null);
   const [err, setErr] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
-  async function open(mode: "view" | "download") {
-    setErr(null); setBusy(mode);
+  async function open(action: "view" | "pdf" | "epub") {
+    setErr(null); setBusy(action);
     try {
-      const res = await getUrl({ data: { slug, mode } });
+      const args =
+        action === "view"
+          ? { slug, mode: "view" as const }
+          : action === "pdf"
+            ? { slug, mode: "download" as const, format: "pdf" as const }
+            : { slug, mode: "download" as const, format: "epub" as const };
+      const res = await getUrl({ data: args });
       if (res?.url) {
-        if (res.personalized && mode === "view") {
+        if (res.personalized && action === "view") {
           setMsg("İmzalı nüshanız hazırlandı.");
         }
         window.open(res.url, "_blank", "noopener,noreferrer");
       } else {
-        setErr("Nüshanız hazırlanıyor. Yazar imzası ve dosya yüklendiğinde açılacak.");
+        setErr(
+          action === "epub"
+            ? "EPUB dosyası henüz yüklenmedi."
+            : "Nüshanız hazırlanıyor. Yazar imzası ve dosya yüklendiğinde açılacak.",
+        );
       }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Hata");
@@ -245,7 +255,7 @@ function EbookRow({ slug, label, available }: { slug: string; label: string; ava
         <div>
           <div className="font-serif text-xl">{label}</div>
           <div className="mt-1 text-xs text-muted-foreground">
-            İsme imzalı nüsha · kişisel kullanım için lisanslı.
+            İsme imzalı PDF + standart EPUB · kişisel kullanım için lisanslı.
           </div>
           {!available && (
             <div className="mt-3 text-sm text-muted-foreground">
@@ -255,7 +265,7 @@ function EbookRow({ slug, label, available }: { slug: string; label: string; ava
           {msg && <div className="mt-3 text-xs text-accent">{msg}</div>}
           {err && <div className="mt-3 text-sm text-destructive">{err}</div>}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => open("view")}
@@ -266,11 +276,19 @@ function EbookRow({ slug, label, available }: { slug: string; label: string; ava
           </button>
           <button
             type="button"
-            onClick={() => open("download")}
+            onClick={() => open("pdf")}
             disabled={!available || busy !== null}
             className="btn-primary disabled:opacity-50"
           >
-            {busy === "download" ? "..." : "İndir"}
+            {busy === "pdf" ? "..." : "PDF İndir"}
+          </button>
+          <button
+            type="button"
+            onClick={() => open("epub")}
+            disabled={!available || busy !== null}
+            className="btn-primary disabled:opacity-50"
+          >
+            {busy === "epub" ? "..." : "EPUB İndir"}
           </button>
         </div>
       </div>
