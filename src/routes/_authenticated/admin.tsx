@@ -388,6 +388,62 @@ function StickySaveBar({ dirty, count, busy, msg, onSave, onReset }: { dirty: bo
   );
 }
 
+// Dolar cinsinden fiyat girişi. Kullanıcı yazarken serbestçe yazsın diye
+// yerel string state tutar; yalnızca blur / Enter'da cents'e commit edilir.
+// Bu yaklaşım, her keystroke'ta .toFixed(2) reformatının cursor'ı kilitleyerek
+// alanı salt-okunur gibi göstermesini engeller.
+function PriceInput({
+  cents,
+  onCommit,
+  nullable = false,
+  placeholder,
+}: {
+  cents: number | null | undefined;
+  onCommit: (cents: number | null) => void;
+  nullable?: boolean;
+  placeholder?: string;
+}) {
+  const format = (c: number | null | undefined) =>
+    c == null || Number.isNaN(c) ? "" : (c / 100).toFixed(2);
+  const [text, setText] = useState<string>(() => format(cents));
+  const [focused, setFocused] = useState(false);
+  useEffect(() => {
+    if (!focused) setText(format(cents));
+  }, [cents, focused]);
+
+  const commit = () => {
+    const v = text.trim();
+    if (!v) {
+      onCommit(nullable ? null : 0);
+      setText(nullable ? "" : "0.00");
+      return;
+    }
+    const n = parseFloat(v.replace(",", "."));
+    if (Number.isNaN(n) || n < 0) {
+      setText(format(cents));
+      return;
+    }
+    const c = Math.round(n * 100);
+    onCommit(c);
+    setText((c / 100).toFixed(2));
+  };
+
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      value={text}
+      placeholder={placeholder ?? "0.00"}
+      onFocus={() => setFocused(true)}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={() => { setFocused(false); commit(); }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") { (e.currentTarget as HTMLInputElement).blur(); }
+      }}
+    />
+  );
+}
+
 // ============== BUNDLES ==============
 function BundlesTab() {
   const fetchList = useServerFn(listAdminBundles);
