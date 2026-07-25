@@ -44,7 +44,7 @@ export const getAdminOverview = createServerFn({ method: "GET" })
     const totalRevenueCents = paid.reduce((s, o) => s + (o.amount_cents ?? 0), 0);
     const revenueByProduct: Record<string, { name: string; cents: number; count: number }> = {};
     for (const o of paid) {
-      const p = productMap.get(o.product_id);
+      const p = o.product_id ? productMap.get(o.product_id) : undefined;
       const key = p?.slug ?? "unknown";
       revenueByProduct[key] ??= { name: p?.name_tr ?? key, cents: 0, count: 0 };
       revenueByProduct[key].cents += o.amount_cents ?? 0;
@@ -74,7 +74,7 @@ export const getAdminOverview = createServerFn({ method: "GET" })
 
     const latestOrders = (recentRes.data ?? []).map((o) => ({
       ...o,
-      product_name: productMap.get(o.product_id)?.name_tr ?? "—",
+      product_name: o.product_id ? productMap.get(o.product_id)?.name_tr ?? "—" : "—",
     }));
 
     return {
@@ -607,7 +607,7 @@ export const listAdminOrders = createServerFn({ method: "POST" })
     if (data.product_id) q = q.eq("product_id", data.product_id);
     const { data: orders } = await q;
     const uids = Array.from(new Set((orders ?? []).map((o) => o.user_id)));
-    const pids = Array.from(new Set((orders ?? []).map((o) => o.product_id)));
+    const pids = Array.from(new Set((orders ?? []).map((o) => o.product_id).filter((x): x is string => !!x)));
     const [profRes, prodRes] = await Promise.all([
       uids.length
         ? supabaseAdmin.from("profiles").select("id, email, full_name").in("id", uids)
@@ -622,7 +622,7 @@ export const listAdminOrders = createServerFn({ method: "POST" })
       ...o,
       email: pm.get(o.user_id)?.email ?? null,
       full_name: pm.get(o.user_id)?.full_name ?? null,
-      product_name: dm.get(o.product_id)?.name_tr ?? "—",
+      product_name: o.product_id ? dm.get(o.product_id)?.name_tr ?? "—" : "—",
       product_slug: dm.get(o.product_id)?.slug ?? null,
     }));
   });
