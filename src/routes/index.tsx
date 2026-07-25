@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Psİko-Fonksİyonel Analİz, insan bilincini yedi işlevsel seviyeye ayırır — bekadan birliğe uzanan bir harita.",
+          "Psİko-Fonksİyonel Analİz, insan bilincini yedi işlevsel seviyeye ayırır — Bekadan Aydınlanmaya uzanan bir harita.",
       },
     ],
   }),
