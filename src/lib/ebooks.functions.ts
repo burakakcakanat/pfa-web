@@ -199,7 +199,13 @@ export const listMyEbooks = createServerFn({ method: "GET" })
 export const getEbookUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({ slug: z.string(), mode: z.enum(["view", "download"]).default("view") }).parse(d),
+    z
+      .object({
+        slug: z.string(),
+        mode: z.enum(["view", "download"]).default("view"),
+        format: z.enum(["pdf", "epub"]).optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
@@ -217,8 +223,9 @@ export const getEbookUrl = createServerFn({ method: "POST" })
 
     const masterPaths = await getMasterPaths(data.slug);
 
-    // İndir modunda EPUB varsa onu ver (standart, kişiselleştirilmemiş).
-    if (data.mode === "download") {
+    // EPUB açıkça istendiyse (veya format belirtilmemiş + indir modu eski davranış) EPUB'u ver.
+    const wantEpub = data.format === "epub";
+    if (wantEpub) {
       if (masterPaths.epubPath) {
         const filename = `${data.slug}.epub`;
         const url = await signedStorageUrl(masterPaths.epubPath, "download", filename, "book-files");
@@ -232,6 +239,7 @@ export const getEbookUrl = createServerFn({ method: "POST" })
         const url = await signedStorageUrl(`${data.slug}/${epub.name}`, "download", epub.name);
         if (url) return { url, filename: epub.name, personalized: false };
       }
+      return { url: null, filename: null, personalized: false };
     }
 
     // View veya EPUB yoksa → kişiselleştirilmiş PDF (yoksa üret).
