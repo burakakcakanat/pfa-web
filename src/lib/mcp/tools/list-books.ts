@@ -12,7 +12,7 @@ const BOOKS = [
     title: "PFA: Bilinç Çözümleme",
     language: "TR",
     description:
-      "Bir bilinç haritası — bekadan birliğe. Terapistler, koçlar, eğitimciler ve kendini anlamaya yola çıkmış herkes için bir yol bulma aracı.",
+      "Bir Bilinç Haritası — Bekadan Aydınlanmaya. Terapistler, koçlar, eğitimciler ve kendini anlamaya yola çıkmış herkes için bir yol bulma aracı.",
     purchaseUrl: null,
     available: false,
     note: "Google Play'de yakında",

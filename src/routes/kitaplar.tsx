@@ -36,7 +36,7 @@ export const Route = createFileRoute("/kitaplar")({
 const PFA_META = {
   key: "pfa",
   title: "Psycho-Functional Analysis",
-  subtitle: "Bir bilinç haritası — bekadan birliğe.",
+  subtitle: "Bir Bilinç Haritası — Bekadan Aydınlanmaya",
   desc: "Yedi işlevsel seviye, yedi zekâ türü. Terapistler, koçlar, eğitimciler ve kendini anlamaya yola çıkmış herkes için bir yol bulma aracı.",
   covers: {
     tr: "https://static.wixstatic.com/media/db0c25_1409f60fe7f04746beef167966abdd57~mv2.png",
@@ -109,7 +109,7 @@ function BookBlock({
   const paperback = editions.find((e) => e.format === "paperback" && e.active && e.asin);
   const googlePlay = meta.key === "pfa" ? editions.find((e) => e.format === "google_play") : null;
 
-  const cover = meta.covers[lang] ?? meta.covers.en ?? "";
+  const cover = product?.cover_image_url || meta.covers[lang] || meta.covers.en || "";
 
   return (
     <section className="grid gap-12 md:grid-cols-[minmax(240px,320px)_1fr] md:items-start">

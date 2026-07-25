@@ -54,6 +54,16 @@ import {
   runPendingPersonalizedRetry,
 } from "@/lib/admin.functions";
 import {
+  createProductCoverUploadUrl,
+  createProductMasterUploadUrl,
+  listAdminBundles,
+  upsertAdminBundle,
+  listAdminEditions,
+  upsertAdminEdition,
+  deleteAdminEdition,
+} from "@/lib/admin.functions";
+import { resolveBundlePrice, fmtUsd, MARKETPLACE_NAMES, AMAZON_DOMAINS } from "@/lib/bundles";
+import {
   createWebinarBannerUploadUrl,
   refreshWebinarBannerUrl,
   listSiteSettings,
@@ -100,6 +110,8 @@ function AdminPage() {
           <TabsList className="flex flex-wrap justify-start gap-1 bg-transparent">
             <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
             <TabsTrigger value="products">Ürünler</TabsTrigger>
+            <TabsTrigger value="bundles">Paketler</TabsTrigger>
+            <TabsTrigger value="editions">Kitap Baskıları</TabsTrigger>
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
           <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
             <TabsTrigger value="questions">PFA Ölçeği</TabsTrigger>
@@ -113,6 +125,8 @@ function AdminPage() {
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
             <TabsContent value="products"><ProductsTab /></TabsContent>
+            <TabsContent value="bundles"><BundlesTab /></TabsContent>
+            <TabsContent value="editions"><EditionsTab /></TabsContent>
             <TabsContent value="users"><UsersTab /></TabsContent>
             <TabsContent value="pro"><ProLicensesTab /></TabsContent>
             <TabsContent value="questions"><QuestionsTab /></TabsContent>
@@ -202,48 +216,406 @@ function OverviewTab() {
 function ProductsTab() {
   const fetchList = useServerFn(listAdminProducts);
   const update = useServerFn(updateAdminProduct);
+  const createCoverUpload = useServerFn(createProductCoverUploadUrl);
+  const createMasterUpload = useServerFn(createProductMasterUploadUrl);
   const [rows, setRows] = useState<any[]>([]);
+  const [drafts, setDrafts] = useState<Record<string, any>>({});
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const reload = useCallback(async () => {
+    const list = await fetchList();
+    setRows(list);
+    setDrafts({});
+  }, [fetchList]);
+  useEffect(() => { reload(); }, [reload]);
+
+  const dirtyIds = useMemo(() => Object.keys(drafts).filter((id) => {
+    const d = drafts[id]; const orig = rows.find((r) => r.id === id);
+    if (!orig || !d) return false;
+    return Object.keys(d).some((k) => (d[k] ?? null) !== (orig[k] ?? null));
+  }), [drafts, rows]);
+  const dirty = dirtyIds.length > 0;
+
+  const patch = (id: string, k: string, v: any) => {
+    setDrafts((prev) => {
+      const orig = rows.find((r) => r.id === id);
+      const base = prev[id] ?? { ...orig };
+      return { ...prev, [id]: { ...base, [k]: v } };
+    });
+    setMsg(null);
+  };
+
+  const saveAll = async () => {
+    setBusy(true); setMsg(null);
+    try {
+      for (const id of dirtyIds) {
+        const d = drafts[id]; const orig = rows.find((r) => r.id === id);
+        const changed: any = { id };
+        for (const k of ["name_tr","name_en","description_tr","description_en","price_cents","active","activate_at","cover_image_url","master_pdf_path","master_epub_path","language","book_key"]) {
+          if ((d[k] ?? null) !== (orig?.[k] ?? null)) changed[k] = d[k];
+        }
+        await update({ data: changed });
+      }
+      await reload();
+      setMsg("Kaydedildi.");
+    } catch (e: any) {
+      setMsg("Hata: " + (e?.message ?? "bilinmiyor"));
+    } finally { setBusy(false); }
+  };
+
+  const currentValue = (p: any, k: string) => (drafts[p.id] ? drafts[p.id][k] : p[k]);
+
+  const uploadCover = async (p: any, file: File) => {
+    if (file.size > 35 * 1024 * 1024) { alert("Kapak 35 MB'ı aşamaz."); return; }
+    const { path, token, publicUrl } = await createCoverUpload({ data: { slug: p.slug, filename: file.name } });
+    const { error } = await supabase.storage.from("blog-images").uploadToSignedUrl(path, token, file, { upsert: true });
+    if (error) { alert("Yükleme hatası: " + error.message); return; }
+    patch(p.id, "cover_image_url", publicUrl);
+  };
+  const uploadMaster = async (p: any, file: File, format: "pdf" | "epub") => {
+    if (file.size > 35 * 1024 * 1024) { alert("Dosya 35 MB'ı aşamaz."); return; }
+    const { path, token } = await createMasterUpload({ data: { slug: p.slug, filename: file.name, format } });
+    const { error } = await supabase.storage.from("book-files").uploadToSignedUrl(path, token, file, { upsert: true });
+    if (error) { alert("Yükleme hatası: " + error.message); return; }
+    patch(p.id, format === "pdf" ? "master_pdf_path" : "master_epub_path", path);
+  };
+
+  return (
+    <div className="space-y-3 pb-24">
+      {rows.map((p) => {
+        const isBook = p.type === "ebook";
+        return (
+          <Card key={p.id} title={`${p.name_tr} — ${p.slug}`}>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div>
+                <Label>Ad (TR)</Label>
+                <Input value={currentValue(p, "name_tr") ?? ""} onChange={(e) => patch(p.id, "name_tr", e.target.value)} />
+              </div>
+              <div>
+                <Label>Ad (EN)</Label>
+                <Input value={currentValue(p, "name_en") ?? ""} onChange={(e) => patch(p.id, "name_en", e.target.value)} />
+              </div>
+              <div className="md:col-span-2">
+                <Label>Açıklama (TR)</Label>
+                <Textarea value={currentValue(p, "description_tr") ?? ""} onChange={(e) => patch(p.id, "description_tr", e.target.value)} />
+              </div>
+              <div>
+                <Label>Fiyat ($)</Label>
+                <Input type="number" step="0.01" value={((currentValue(p, "price_cents") ?? 0) / 100).toFixed(2)} onChange={(e) => {
+                  const cents = Math.round(parseFloat(e.target.value || "0") * 100);
+                  patch(p.id, "price_cents", isNaN(cents) ? 0 : cents);
+                }} />
+              </div>
+              <div>
+                <Label>Yayına giriş (activate_at)</Label>
+                <Input type="datetime-local" value={currentValue(p, "activate_at") ? new Date(currentValue(p, "activate_at")).toISOString().slice(0,16) : ""}
+                  onChange={(e) => patch(p.id, "activate_at", e.target.value ? new Date(e.target.value).toISOString() : null)} />
+              </div>
+              <div className="flex items-end gap-2">
+                <Switch checked={!!currentValue(p, "active")} onCheckedChange={(v) => patch(p.id, "active", v)} />
+                <span className="text-sm">{currentValue(p, "active") ? "Aktif" : "Pasif"}</span>
+              </div>
+              {isBook && (
+                <>
+                  <div className="md:col-span-2 mt-2 border-t border-border pt-3">
+                    <div className="text-xs uppercase tracking-widest text-muted-foreground">Kitap Dosyaları</div>
+                  </div>
+                  <div>
+                    <Label>Kapak görseli</Label>
+                    <div className="mt-1 flex items-center gap-3">
+                      {currentValue(p, "cover_image_url") && <img src={currentValue(p, "cover_image_url")} alt="kapak" className="h-20 w-auto rounded border border-border" />}
+                      <input type="file" accept="image/*" className="text-xs" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadCover(p, f); }} />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Master PDF</Label>
+                    <div className="mt-1 flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground">{currentValue(p, "master_pdf_path") || "—"}</span>
+                      <input type="file" accept="application/pdf,.pdf" className="text-xs" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadMaster(p, f, "pdf"); }} />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Master EPUB</Label>
+                    <div className="mt-1 flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground">{currentValue(p, "master_epub_path") || "—"}</span>
+                      <input type="file" accept=".epub,application/epub+zip" className="text-xs" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadMaster(p, f, "epub"); }} />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Dil</Label>
+                    <Select value={currentValue(p, "language") ?? "tr"} onValueChange={(v) => patch(p.id, "language", v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="tr">Türkçe</SelectItem>
+                        <SelectItem value="en">English</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+            </div>
+          </Card>
+        );
+      })}
+      <StickySaveBar dirty={dirty} count={dirtyIds.length} busy={busy} msg={msg} onSave={saveAll} onReset={() => { setDrafts({}); setMsg(null); }} />
+    </div>
+  );
+}
+
+function StickySaveBar({ dirty, count, busy, msg, onSave, onReset }: { dirty: boolean; count: number; busy: boolean; msg: string | null; onSave: () => void; onReset: () => void }) {
+  return (
+    <div className={`fixed bottom-4 left-1/2 z-40 -translate-x-1/2 rounded-full border ${dirty ? "border-accent bg-accent/10" : "border-border bg-card"} px-5 py-2 shadow-lg backdrop-blur transition`}>
+      <div className="flex items-center gap-3 text-sm">
+        {dirty ? (
+          <span className="text-accent">Kaydedilmemiş değişiklikler ({count})</span>
+        ) : msg ? (
+          <span className="text-muted-foreground">{msg}</span>
+        ) : (
+          <span className="text-muted-foreground">Değişiklik yok</span>
+        )}
+        {dirty && <Button size="sm" variant="outline" onClick={onReset} disabled={busy}>Vazgeç</Button>}
+        <Button size="sm" onClick={onSave} disabled={!dirty || busy}>{busy ? "Kaydediliyor…" : "Kaydet"}</Button>
+      </div>
+    </div>
+  );
+}
+
+// ============== BUNDLES ==============
+function BundlesTab() {
+  const fetchList = useServerFn(listAdminBundles);
+  const upsert = useServerFn(upsertAdminBundle);
+  const [data, setData] = useState<{ bundles: any[]; products: any[] }>({ bundles: [], products: [] });
+  const [drafts, setDrafts] = useState<Record<string, any>>({});
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const reload = useCallback(async () => {
+    const d = await fetchList();
+    setData(d);
+    setDrafts({});
+  }, [fetchList]);
+  useEffect(() => { reload(); }, [reload]);
+
+  const priceMap = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const p of data.products) m[p.slug] = p.price_cents;
+    return m;
+  }, [data.products]);
+
+  const dirtyIds = useMemo(() => Object.keys(drafts).filter((id) => {
+    const d = drafts[id]; const orig = data.bundles.find((r) => r.id === id);
+    if (!orig || !d) return false;
+    return Object.keys(d).some((k) => (d[k] ?? null) !== (orig[k] ?? null));
+  }), [drafts, data.bundles]);
+  const dirty = dirtyIds.length > 0;
+
+  const patch = (id: string, k: string, v: any) => {
+    setDrafts((prev) => {
+      const orig = data.bundles.find((r) => r.id === id);
+      const base = prev[id] ?? { ...orig };
+      return { ...prev, [id]: { ...base, [k]: v } };
+    });
+    setMsg(null);
+  };
+
+  const saveAll = async () => {
+    setBusy(true); setMsg(null);
+    try {
+      for (const id of dirtyIds) {
+        const d = drafts[id]; const orig = data.bundles.find((r) => r.id === id);
+        const changed: any = { id };
+        for (const k of ["active","activate_at","sort_order","price_override_cents","discount_percent","name_tr","description_tr"]) {
+          if ((d[k] ?? null) !== (orig?.[k] ?? null)) changed[k] = d[k];
+        }
+        await upsert({ data: changed });
+      }
+      await reload();
+      setMsg("Kaydedildi.");
+    } catch (e: any) { setMsg("Hata: " + (e?.message ?? "bilinmiyor")); } finally { setBusy(false); }
+  };
+
+  const cv = (b: any, k: string) => (drafts[b.id] ? drafts[b.id][k] : b[k]);
+
+  return (
+    <div className="space-y-3 pb-24">
+      {data.bundles.map((b) => {
+        const auto = resolveBundlePrice(
+          { ...b, price_override_cents: null },
+          priceMap,
+          b.book_key === "hcd" ? "en" : "tr",
+        );
+        const override = cv(b, "price_override_cents");
+        return (
+          <Card key={b.id} title={b.name_tr}>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div>
+                <Label>Ad (TR)</Label>
+                <Input value={cv(b, "name_tr") ?? ""} onChange={(e) => patch(b.id, "name_tr", e.target.value)} />
+              </div>
+              <div>
+                <Label>Sıralama</Label>
+                <Input type="number" value={cv(b, "sort_order") ?? 0} onChange={(e) => patch(b.id, "sort_order", parseInt(e.target.value) || 0)} />
+              </div>
+              <div className="md:col-span-2">
+                <Label>Açıklama (TR)</Label>
+                <Textarea value={cv(b, "description_tr") ?? ""} onChange={(e) => patch(b.id, "description_tr", e.target.value)} />
+              </div>
+              <div>
+                <Label>Otomatik hesaplanan fiyat</Label>
+                <div className="mt-2 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">{fmtUsd(auto)}</div>
+              </div>
+              <div>
+                <Label>Fiyat (override) — boşsa otomatik</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={override != null ? (override / 100).toFixed(2) : ""}
+                  placeholder="—"
+                  onChange={(e) => {
+                    const v = e.target.value.trim();
+                    if (!v) { patch(b.id, "price_override_cents", null); return; }
+                    const cents = Math.round(parseFloat(v) * 100);
+                    patch(b.id, "price_override_cents", isNaN(cents) ? null : cents);
+                  }}
+                />
+              </div>
+              <div>
+                <Label>İndirim (%)</Label>
+                <Input type="number" value={cv(b, "discount_percent") ?? 0} onChange={(e) => patch(b.id, "discount_percent", parseInt(e.target.value) || 0)} />
+              </div>
+              <div>
+                <Label>Yayına giriş</Label>
+                <Input type="datetime-local" value={cv(b, "activate_at") ? new Date(cv(b, "activate_at")).toISOString().slice(0,16) : ""}
+                  onChange={(e) => patch(b.id, "activate_at", e.target.value ? new Date(e.target.value).toISOString() : null)} />
+              </div>
+              <div className="flex items-end gap-2">
+                <Switch checked={!!cv(b, "active")} onCheckedChange={(v) => patch(b.id, "active", v)} />
+                <span className="text-sm">{cv(b, "active") ? "Aktif" : "Pasif"} — {b.slug}</span>
+              </div>
+              <div className="md:col-span-2 text-xs text-muted-foreground">
+                Bileşenler: {b.items.map((i: any) => `${i.product_slug}×${i.quantity}`).join(", ") || "—"}
+                {b.includes_book && ` + kitap (${b.book_key})`}
+              </div>
+            </div>
+          </Card>
+        );
+      })}
+      <StickySaveBar dirty={dirty} count={dirtyIds.length} busy={busy} msg={msg} onSave={saveAll} onReset={() => { setDrafts({}); setMsg(null); }} />
+    </div>
+  );
+}
+
+// ============== BOOK EDITIONS ==============
+function EditionsTab() {
+  const fetchList = useServerFn(listAdminEditions);
+  const save = useServerFn(upsertAdminEdition);
+  const del = useServerFn(deleteAdminEdition);
+  const [rows, setRows] = useState<any[]>([]);
+  const [editing, setEditing] = useState<any | null>(null);
   const reload = useCallback(() => { fetchList().then(setRows); }, [fetchList]);
   useEffect(() => { reload(); }, [reload]);
-  const save = async (id: string, patch: any) => {
-    await update({ data: { id, ...patch } });
-    reload();
-  };
+  const marketOptions = Object.keys(AMAZON_DOMAINS);
   return (
     <div className="space-y-3">
-      {rows.map((p) => (
-        <Card key={p.id}>
-          <div className="grid gap-3 md:grid-cols-2">
-            <div>
-              <Label>Ad (TR)</Label>
-              <Input defaultValue={p.name_tr} onBlur={(e) => e.target.value !== p.name_tr && save(p.id, { name_tr: e.target.value })} />
-            </div>
-            <div>
-              <Label>Ad (EN)</Label>
-              <Input defaultValue={p.name_en} onBlur={(e) => e.target.value !== p.name_en && save(p.id, { name_en: e.target.value })} />
-            </div>
-            <div>
-              <Label>Açıklama (TR)</Label>
-              <Textarea defaultValue={p.description_tr ?? ""} onBlur={(e) => e.target.value !== (p.description_tr ?? "") && save(p.id, { description_tr: e.target.value })} />
-            </div>
-            <div>
-              <Label>Açıklama (EN)</Label>
-              <Textarea defaultValue={p.description_en ?? ""} onBlur={(e) => e.target.value !== (p.description_en ?? "") && save(p.id, { description_en: e.target.value })} />
-            </div>
-            <div>
-              <Label>Fiyat ($)</Label>
-              <Input type="number" step="0.01" defaultValue={(p.price_cents / 100).toFixed(2)} onBlur={(e) => {
-                const cents = Math.round(parseFloat(e.target.value) * 100);
-                if (!isNaN(cents) && cents !== p.price_cents) save(p.id, { price_cents: cents });
-              }} />
-            </div>
-            <div className="flex items-end gap-2">
-              <Switch checked={p.active} onCheckedChange={(v) => save(p.id, { active: v })} />
-              <span className="text-sm">{p.active ? "Aktif" : "Pasif"} — {p.slug}</span>
-            </div>
-          </div>
+      <div className="flex justify-end">
+        <Button onClick={() => setEditing({ book_key: "pfa", format: "kindle", asin: "", external_url: "", marketplaces: [], overrides: {}, active: false, sort_order: (rows.length + 1) })}>Yeni Baskı</Button>
+      </div>
+      {editing && (
+        <Card title={editing.id ? "Baskıyı Düzenle" : "Yeni Baskı"}>
+          <EditionForm
+            initial={editing}
+            marketOptions={marketOptions}
+            onCancel={() => setEditing(null)}
+            onSave={async (d) => { await save({ data: d }); setEditing(null); reload(); }}
+          />
         </Card>
-      ))}
+      )}
+      <Table>
+        <TableHeader><TableRow><TableHead>Kitap</TableHead><TableHead>Format</TableHead><TableHead>ASIN</TableHead><TableHead>Marketler</TableHead><TableHead>Aktif</TableHead><TableHead></TableHead></TableRow></TableHeader>
+        <TableBody>
+          {rows.map((r) => (
+            <TableRow key={r.id}>
+              <TableCell>{r.book_key.toUpperCase()}</TableCell>
+              <TableCell>{r.format}</TableCell>
+              <TableCell className="text-xs">{r.asin ?? "—"}</TableCell>
+              <TableCell className="text-xs">{(r.marketplaces ?? []).join(", ") || "—"}</TableCell>
+              <TableCell>{r.active ? "✓" : "—"}</TableCell>
+              <TableCell className="flex gap-1">
+                <Button size="sm" variant="outline" onClick={() => setEditing(r)}>Düzenle</Button>
+                <Button size="sm" variant="destructive" onClick={async () => { if (confirm("Silinsin mi?")) { await del({ data: { id: r.id } }); reload(); } }}>Sil</Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function EditionForm({ initial, marketOptions, onSave, onCancel }: { initial: any; marketOptions: string[]; onSave: (d: any) => void; onCancel: () => void }) {
+  const [d, setD] = useState<any>({ ...initial, overrides: initial.overrides ?? {}, marketplaces: initial.marketplaces ?? [] });
+  const upd = (k: string, v: any) => setD({ ...d, [k]: v });
+  const toggleMk = (mk: string) => {
+    const set = new Set<string>(d.marketplaces ?? []);
+    if (set.has(mk)) set.delete(mk); else set.add(mk);
+    upd("marketplaces", Array.from(set));
+  };
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      <div><Label>Kitap</Label>
+        <Select value={d.book_key} onValueChange={(v) => upd("book_key", v)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent><SelectItem value="pfa">PFA</SelectItem><SelectItem value="hcd">HCD</SelectItem></SelectContent>
+        </Select>
+      </div>
+      <div><Label>Format</Label>
+        <Select value={d.format} onValueChange={(v) => upd("format", v)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="kindle">Kindle</SelectItem>
+            <SelectItem value="paperback">Karton Kapak</SelectItem>
+            <SelectItem value="google_play">Google Play</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div><Label>ASIN</Label><Input value={d.asin ?? ""} onChange={(e) => upd("asin", e.target.value || null)} /></div>
+      <div><Label>Harici URL (Google Play vs.)</Label><Input value={d.external_url ?? ""} onChange={(e) => upd("external_url", e.target.value || null)} /></div>
+      <div className="md:col-span-2">
+        <Label>Ülkeler</Label>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {marketOptions.map((mk) => {
+            const on = (d.marketplaces ?? []).includes(mk);
+            return (
+              <button key={mk} type="button" onClick={() => toggleMk(mk)}
+                className={`rounded-full border px-3 py-1 text-xs ${on ? "border-accent bg-accent/10 text-accent" : "border-border text-foreground/60"}`}>
+                {MARKETPLACE_NAMES[mk] ?? mk}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div className="md:col-span-2">
+        <Label>Override URL'ler (marketplace kodu = URL, satır başına bir tane)</Label>
+        <Textarea
+          value={Object.entries(d.overrides ?? {}).map(([k, v]) => `${k}=${v}`).join("\n")}
+          onChange={(e) => {
+            const obj: Record<string, string> = {};
+            for (const line of e.target.value.split(/\r?\n/)) {
+              const idx = line.indexOf("=");
+              if (idx > 0) obj[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+            }
+            upd("overrides", obj);
+          }}
+          placeholder={"us=https://amazon.com/…\nde=https://amazon.de/…"}
+        />
+      </div>
+      <div><Label>Sıralama</Label><Input type="number" value={d.sort_order ?? 0} onChange={(e) => upd("sort_order", parseInt(e.target.value) || 0)} /></div>
+      <label className="flex items-end gap-2"><Switch checked={!!d.active} onCheckedChange={(v) => upd("active", v)} /> Aktif</label>
+      <div className="flex gap-2 md:col-span-2">
+        <Button onClick={() => onSave(d)}>Kaydet</Button>
+        <Button variant="outline" onClick={onCancel}>İptal</Button>
+      </div>
     </div>
   );
 }
