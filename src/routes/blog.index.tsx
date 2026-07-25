@@ -5,7 +5,7 @@ import { listBlogPosts } from "@/lib/blog.functions";
 import { listPublishedPodcasts, getPublicSiteSetting } from "@/lib/podcasts.functions";
 import { MediaEpisodeCard } from "@/components/media-episode-card";
 
-export const Route = createFileRoute("/blog")({
+export const Route = createFileRoute("/blog/")({
   head: () => ({
     meta: [
       { title: "Blog — Yazılar, Podcastler ve Videolar | PFA" },

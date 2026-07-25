@@ -16,11 +16,11 @@ import { Route as IletisimRouteImport } from './routes/iletisim'
 import { Route as HakkindaRouteImport } from './routes/hakkinda'
 import { Route as EgitimRouteImport } from './routes/egitim'
 import { Route as DegerlendirmeRouteImport } from './routes/degerlendirme'
-import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WebinarlarIndexRouteImport } from './routes/webinarlar.index'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as WebinarlarPfaProRouteImport } from './routes/webinarlar.pfa-pro'
 import { Route as WebinarlarBilincSeviyeleriRouteImport } from './routes/webinarlar.bilinc-seviyeleri'
 import { Route as HediyeTokenRouteImport } from './routes/hediye.$token'
@@ -71,11 +71,6 @@ const DegerlendirmeRoute = DegerlendirmeRouteImport.update({
   path: '/degerlendirme',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogRoute = BlogRouteImport.update({
-  id: '/blog',
-  path: '/blog',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -93,6 +88,11 @@ const IndexRoute = IndexRouteImport.update({
 const WebinarlarIndexRoute = WebinarlarIndexRouteImport.update({
   id: '/webinarlar/',
   path: '/webinarlar/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WebinarlarPfaProRoute = WebinarlarPfaProRouteImport.update({
@@ -117,9 +117,9 @@ const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => BlogRoute,
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRaporFinalizeRoute =
   AuthenticatedRaporFinalizeRouteImport.update({
@@ -176,7 +176,6 @@ const Char91DotmcpChar93InvokeToolToolRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRouteWithChildren
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
   '/hakkinda': typeof HakkindaRoute
@@ -194,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/hediye/$token': typeof HediyeTokenRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
+  '/blog/': typeof BlogIndexRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -203,7 +203,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRouteWithChildren
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
   '/hakkinda': typeof HakkindaRoute
@@ -221,6 +220,7 @@ export interface FileRoutesByTo {
   '/hediye/$token': typeof HediyeTokenRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
+  '/blog': typeof BlogIndexRoute
   '/webinarlar': typeof WebinarlarIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -232,7 +232,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRouteWithChildren
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
   '/hakkinda': typeof HakkindaRoute
@@ -250,6 +249,7 @@ export interface FileRoutesById {
   '/hediye/$token': typeof HediyeTokenRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
+  '/blog/': typeof BlogIndexRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -261,7 +261,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
-    | '/blog'
     | '/degerlendirme'
     | '/egitim'
     | '/hakkinda'
@@ -279,6 +278,7 @@ export interface FileRouteTypes {
     | '/hediye/$token'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
+    | '/blog/'
     | '/webinarlar/'
     | '/.mcp/invoke-tool/$tool'
     | '/degerlendirme/tam'
@@ -288,7 +288,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/blog'
     | '/degerlendirme'
     | '/egitim'
     | '/hakkinda'
@@ -306,6 +305,7 @@ export interface FileRouteTypes {
     | '/hediye/$token'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
+    | '/blog'
     | '/webinarlar'
     | '/.mcp/invoke-tool/$tool'
     | '/degerlendirme/tam'
@@ -316,7 +316,6 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
-    | '/blog'
     | '/degerlendirme'
     | '/egitim'
     | '/hakkinda'
@@ -334,6 +333,7 @@ export interface FileRouteTypes {
     | '/hediye/$token'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
+    | '/blog/'
     | '/webinarlar/'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/degerlendirme/tam'
@@ -345,7 +345,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  BlogRoute: typeof BlogRouteWithChildren
   DegerlendirmeRoute: typeof DegerlendirmeRoute
   EgitimRoute: typeof EgitimRoute
   HakkindaRoute: typeof HakkindaRoute
@@ -355,10 +354,12 @@ export interface RootRouteChildren {
   SeanslarRoute: typeof SeanslarRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  BlogSlugRoute: typeof BlogSlugRoute
   DegerlendirmeMiniRoute: typeof DegerlendirmeMiniRoute
   HediyeTokenRoute: typeof HediyeTokenRoute
   WebinarlarBilincSeviyeleriRoute: typeof WebinarlarBilincSeviyeleriRoute
   WebinarlarPfaProRoute: typeof WebinarlarPfaProRoute
+  BlogIndexRoute: typeof BlogIndexRoute
   WebinarlarIndexRoute: typeof WebinarlarIndexRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
@@ -415,13 +416,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DegerlendirmeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog': {
-      id: '/blog'
-      path: '/blog'
-      fullPath: '/blog'
-      preLoaderRoute: typeof BlogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -448,6 +442,13 @@ declare module '@tanstack/react-router' {
       path: '/webinarlar'
       fullPath: '/webinarlar/'
       preLoaderRoute: typeof WebinarlarIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/webinarlar/pfa-pro': {
@@ -480,10 +481,10 @@ declare module '@tanstack/react-router' {
     }
     '/blog/$slug': {
       id: '/blog/$slug'
-      path: '/$slug'
+      path: '/blog/$slug'
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
-      parentRoute: typeof BlogRoute
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/rapor-finalize': {
       id: '/_authenticated/rapor-finalize'
@@ -570,21 +571,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-interface BlogRouteChildren {
-  BlogSlugRoute: typeof BlogSlugRoute
-}
-
-const BlogRouteChildren: BlogRouteChildren = {
-  BlogSlugRoute: BlogSlugRoute,
-}
-
-const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  BlogRoute: BlogRouteWithChildren,
   DegerlendirmeRoute: DegerlendirmeRoute,
   EgitimRoute: EgitimRoute,
   HakkindaRoute: HakkindaRoute,
@@ -595,10 +585,12 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  BlogSlugRoute: BlogSlugRoute,
   DegerlendirmeMiniRoute: DegerlendirmeMiniRoute,
   HediyeTokenRoute: HediyeTokenRoute,
   WebinarlarBilincSeviyeleriRoute: WebinarlarBilincSeviyeleriRoute,
   WebinarlarPfaProRoute: WebinarlarPfaProRoute,
+  BlogIndexRoute: BlogIndexRoute,
   WebinarlarIndexRoute: WebinarlarIndexRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
