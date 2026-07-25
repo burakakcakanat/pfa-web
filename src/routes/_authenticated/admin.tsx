@@ -56,6 +56,24 @@ import {
   runPendingPersonalizedRetry,
 } from "@/lib/admin.functions";
 import {
+  listProAccounts,
+  listProInvitesForAdmin,
+  searchProfilesForPro,
+  grantProAccount,
+  revokeProAccount,
+  addProCredits,
+} from "@/lib/admin.functions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   createProductCoverUploadUrl,
   createProductMasterUploadUrl,
   listAdminBundles,
@@ -116,6 +134,7 @@ function AdminPage() {
             <TabsTrigger value="editions">Kitap Baskıları</TabsTrigger>
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
           <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
+            <TabsTrigger value="pro-accounts">Pro Hesaplar</TabsTrigger>
             <TabsTrigger value="questions">PFA Ölçeği</TabsTrigger>
             <TabsTrigger value="webinars">Webinarlar</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
@@ -131,6 +150,7 @@ function AdminPage() {
             <TabsContent value="editions"><EditionsTab /></TabsContent>
             <TabsContent value="users"><UsersTab /></TabsContent>
             <TabsContent value="pro"><ProLicensesTab /></TabsContent>
+            <TabsContent value="pro-accounts"><ProAccountsTab /></TabsContent>
             <TabsContent value="questions"><QuestionsTab /></TabsContent>
             <TabsContent value="webinars"><WebinarsTab /></TabsContent>
             <TabsContent value="blog"><BlogTab /></TabsContent>
@@ -1536,6 +1556,359 @@ function ProLicensesTab() {
           ))}
         </TableBody>
       </Table>
+    </div>
+  );
+}
+
+// -------- PRO HESAPLAR --------
+// MAHREMİYET: Ölçek cevap/sonuç içeriği bu ekranda ASLA gösterilmez;
+// yalnızca sayısal alanlar (davet sayıları, kredi kotası) gösterilir.
+function ProAccountsTab() {
+  const fetchList = useServerFn(listProAccounts);
+  const fetchInvites = useServerFn(listProInvitesForAdmin);
+  const searchProfiles = useServerFn(searchProfilesForPro);
+  const doGrant = useServerFn(grantProAccount);
+  const doRevoke = useServerFn(revokeProAccount);
+  const doAddCredits = useServerFn(addProCredits);
+
+  const [q, setQ] = useState("");
+  const [term, setTerm] = useState("");
+  const [page, setPage] = useState(0);
+  const pageSize = 50;
+  const [rows, setRows] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [invites, setInvites] = useState<Record<string, any[]>>({});
+
+  const [grantOpen, setGrantOpen] = useState(false);
+  const [grantQ, setGrantQ] = useState("");
+  const [grantResults, setGrantResults] = useState<any[]>([]);
+  const [grantSelected, setGrantSelected] = useState<any | null>(null);
+  const [grantConfirm, setGrantConfirm] = useState(false);
+
+  const [revokeTarget, setRevokeTarget] = useState<any | null>(null);
+  const [creditsTarget, setCreditsTarget] = useState<any | null>(null);
+  const [creditsAmount, setCreditsAmount] = useState<string>("10");
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetchList({ data: { q: term || undefined, page, pageSize } });
+      setRows(res.rows);
+      setTotal(res.total);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Yüklenemedi");
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchList, term, page]);
+
+  useEffect(() => { reload(); }, [reload]);
+
+  const toggleExpand = async (uid: string) => {
+    if (expanded === uid) { setExpanded(null); return; }
+    setExpanded(uid);
+    if (!invites[uid]) {
+      try {
+        const inv = await fetchInvites({ data: { pro_user_id: uid } });
+        setInvites((s) => ({ ...s, [uid]: inv }));
+      } catch (e: any) {
+        toast.error(e?.message ?? "Davetler yüklenemedi");
+      }
+    }
+  };
+
+  const runSearch = async () => {
+    const v = grantQ.trim();
+    if (v.length < 2) { setGrantResults([]); return; }
+    try {
+      const r = await searchProfiles({ data: { q: v } });
+      setGrantResults(r as any[]);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Arama başarısız");
+    }
+  };
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const totalCredits = rows.reduce((s, r) => s + r.quota, 0);
+  const totalUsed = rows.reduce((s, r) => s + r.used, 0);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          className="max-w-sm"
+          placeholder="Ad veya e-posta ara…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { setPage(0); setTerm(q); } }}
+        />
+        <Button variant="secondary" onClick={() => { setPage(0); setTerm(q); }}>Ara</Button>
+        {term && (
+          <Button variant="ghost" onClick={() => { setQ(""); setTerm(""); setPage(0); }}>
+            Temizle
+          </Button>
+        )}
+        <div className="ml-auto flex items-center gap-2">
+          <Button onClick={() => { setGrantOpen(true); setGrantQ(""); setGrantResults([]); setGrantSelected(null); }}>
+            Pro Yetkisi Ver
+          </Button>
+        </div>
+      </div>
+
+      <p className="text-sm text-muted-foreground">
+        Toplam {total} Pro hesap · Bu sayfada {totalUsed}/{totalCredits} kredi kullanıldı.
+      </p>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead></TableHead>
+            <TableHead>Ad Soyad</TableHead>
+            <TableHead>E-posta</TableHead>
+            <TableHead>Verilme</TableHead>
+            <TableHead>Kaynak</TableHead>
+            <TableHead>Davet (Beklyn/Tmml)</TableHead>
+            <TableHead>Tmml. Ölçek</TableHead>
+            <TableHead>Kalan Kredi</TableHead>
+            <TableHead className="text-right">İşlem</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading && rows.length === 0 ? (
+            <TableRow><TableCell colSpan={9} className="text-center text-xs text-muted-foreground">Yükleniyor…</TableCell></TableRow>
+          ) : rows.length === 0 ? (
+            <TableRow><TableCell colSpan={9} className="text-center text-xs text-muted-foreground">Kayıt yok.</TableCell></TableRow>
+          ) : rows.map((r) => (
+            <>
+              <TableRow key={r.entitlement_id}>
+                <TableCell>
+                  <Button size="sm" variant="ghost" onClick={() => toggleExpand(r.user_id)}>
+                    {expanded === r.user_id ? "▾" : "▸"}
+                  </Button>
+                </TableCell>
+                <TableCell className="text-xs">{r.full_name ?? "—"}</TableCell>
+                <TableCell className="text-xs">{r.email ?? "—"}</TableCell>
+                <TableCell className="text-xs">{fmtDate(r.granted_at)}</TableCell>
+                <TableCell className="text-xs">
+                  {r.source === "purchase" ? "Satın alma" : "Manuel"}
+                </TableCell>
+                <TableCell className="text-xs">{r.invites_pending} / {r.invites_completed}</TableCell>
+                <TableCell className="text-xs">{r.invites_completed}</TableCell>
+                <TableCell className="text-xs">
+                  {r.remaining} <span className="text-muted-foreground">/ {r.quota}</span>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button size="sm" variant="secondary" onClick={() => { setCreditsTarget(r); setCreditsAmount("10"); }}>
+                      Kredi Ekle
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => setRevokeTarget(r)}>
+                      Kaldır
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+              {expanded === r.user_id && (
+                <TableRow key={r.entitlement_id + "-exp"}>
+                  <TableCell colSpan={9} className="bg-muted/30">
+                    <div className="p-3">
+                      <div className="mb-2 text-xs font-medium">
+                        Davetler ({(invites[r.user_id] ?? []).length}) — salt okunur
+                      </div>
+                      {(invites[r.user_id] ?? []).length === 0 ? (
+                        <p className="text-xs text-muted-foreground">
+                          {invites[r.user_id] ? "Bu Pro henüz davet oluşturmadı." : "Yükleniyor…"}
+                        </p>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Danışan</TableHead>
+                              <TableHead>Durum</TableHead>
+                              <TableHead>Oluşturulma</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {(invites[r.user_id] ?? []).map((inv: any) => (
+                              <TableRow key={inv.id}>
+                                <TableCell className="text-xs">{inv.client_name}</TableCell>
+                                <TableCell className="text-xs">{inv.status}</TableCell>
+                                <TableCell className="text-xs">{fmtDate(inv.created_at)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </>
+          ))}
+        </TableBody>
+      </Table>
+
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-muted-foreground">Sayfa {page + 1} / {totalPages}</span>
+        <div className="flex gap-2">
+          <Button size="sm" variant="secondary" disabled={page <= 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+            Önceki
+          </Button>
+          <Button size="sm" variant="secondary" disabled={page + 1 >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            Sonraki
+          </Button>
+        </div>
+      </div>
+
+      {/* --- GRANT PRO --- */}
+      <AlertDialog open={grantOpen} onOpenChange={setGrantOpen}>
+        <AlertDialogContent className="max-w-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Pro Yetkisi Ver</AlertDialogTitle>
+            <AlertDialogDescription>
+              E-posta veya ad ile kullanıcı arayın, ardından seçip onaylayın.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input
+                autoFocus
+                placeholder="ornek@mail.com veya ad soyad"
+                value={grantQ}
+                onChange={(e) => setGrantQ(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") runSearch(); }}
+              />
+              <Button variant="secondary" onClick={runSearch}>Ara</Button>
+            </div>
+            <div className="max-h-56 space-y-1 overflow-auto rounded border">
+              {grantResults.length === 0 ? (
+                <p className="p-3 text-xs text-muted-foreground">Sonuç yok.</p>
+              ) : grantResults.map((p) => (
+                <button
+                  key={p.id}
+                  disabled={p.is_pro}
+                  onClick={() => { setGrantSelected(p); setGrantConfirm(true); }}
+                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs hover:bg-muted disabled:opacity-50 ${grantSelected?.id === p.id ? "bg-muted" : ""}`}
+                >
+                  <div>
+                    <div className="font-medium">{p.full_name || "—"}</div>
+                    <div className="text-muted-foreground">{p.email}</div>
+                  </div>
+                  {p.is_pro && <span className="text-accent">Zaten Pro</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Kapat</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* --- GRANT CONFIRM --- */}
+      <AlertDialog open={grantConfirm} onOpenChange={setGrantConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Pro yetkisi verilsin mi?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {grantSelected?.email} kullanıcısına PFA-Pro lisansı ve 20 danışan kredisi verilecek.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!grantSelected) return;
+                try {
+                  await doGrant({ data: { user_id: grantSelected.id, initial_quota: 20 } });
+                  toast.success("Pro yetkisi verildi");
+                  setGrantConfirm(false);
+                  setGrantOpen(false);
+                  setGrantSelected(null);
+                  reload();
+                } catch (e: any) {
+                  if (e?.message === "ALREADY_PRO") {
+                    toast.error("Bu kullanıcı zaten Pro");
+                  } else {
+                    toast.error(e?.message ?? "İşlem başarısız");
+                  }
+                }
+              }}
+            >Onayla</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* --- REVOKE --- */}
+      <AlertDialog open={!!revokeTarget} onOpenChange={(o) => !o && setRevokeTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Pro yetkisini kaldır</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu kullanıcının Pro erişimi kapanacak. {revokeTarget?.email}
+              <br />Mevcut davet ve danışan kayıtları silinmez.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!revokeTarget) return;
+                try {
+                  await doRevoke({ data: { user_id: revokeTarget.user_id } });
+                  toast.success("Pro yetkisi kaldırıldı");
+                  setRevokeTarget(null);
+                  reload();
+                } catch (e: any) {
+                  toast.error(e?.message ?? "İşlem başarısız");
+                }
+              }}
+            >Onayla</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* --- ADD CREDITS --- */}
+      <AlertDialog open={!!creditsTarget} onOpenChange={(o) => !o && setCreditsTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Kredi Ekle</AlertDialogTitle>
+            <AlertDialogDescription>
+              {creditsTarget?.email} kullanıcısının danışan kredisine eklenecek adet.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div>
+            <Label>Adet</Label>
+            <Input
+              type="number"
+              min={1}
+              value={creditsAmount}
+              onChange={(e) => setCreditsAmount(e.target.value)}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!creditsTarget) return;
+                const n = parseInt(creditsAmount, 10);
+                if (!Number.isFinite(n) || n < 1) { toast.error("Geçersiz adet"); return; }
+                try {
+                  const r = await doAddCredits({ data: { user_id: creditsTarget.user_id, amount: n } });
+                  toast.success(`${n} kredi eklendi. Yeni kota: ${(r as any).new_quota}`);
+                  setCreditsTarget(null);
+                  reload();
+                } catch (e: any) {
+                  toast.error(e?.message ?? "İşlem başarısız");
+                }
+              }}
+            >Onayla</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
