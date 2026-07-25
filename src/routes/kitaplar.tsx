@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense, useMemo, useState } from "react";
+import { ClipboardList, MessagesSquare, Plus } from "lucide-react";
 import { BuyButton } from "@/components/buy-button";
 import { GiftModal } from "@/components/gift-modal";
 import { getBooksData, type BooksPayload } from "@/lib/books.functions";
@@ -16,7 +17,7 @@ import {
 import hcdCover from "@/assets/hcd-cover.png.asset.json";
 
 const booksQuery = () =>
-  queryOptions({ queryKey: ["books-data"], queryFn: () => getBooksData(), staleTime: 60_000 });
+  queryOptions({ queryKey: ["books-data"], queryFn: () => getBooksData(), staleTime: 0 });
 
 export const Route = createFileRoute("/kitaplar")({
   head: () => ({
@@ -257,6 +258,8 @@ function BundlesSection({
   data: BooksPayload;
   productBySlug: Map<string, BooksPayload["products"][number]>;
 }) {
+  // NOT: HCD paketleri (hcd-seans-kitap vb.) activate_at = 2026-10-23 nedeniyle
+  // burada görünmez. Bu bilinçli bir zamanlama; değiştirmeyin.
   const liveBundles = data.bundles.filter((b) => isLive(b));
   if (liveBundles.length === 0) return null;
 
@@ -272,20 +275,20 @@ function BundlesSection({
         <div className="text-xs uppercase tracking-[0.3em] text-accent">Paketler</div>
         <h2 className="mt-4 font-serif text-3xl md:text-4xl">İmzalı kitapla birlikte</h2>
         <p className="mt-4 text-sm text-foreground/75">
-          Seansa katılan danışanlara imzalı nüsha eşlik eder.
+          Kitap, PA Ölçeği ve birebir seans — tek pakette.
         </p>
       </div>
 
-      <div className="mt-10 grid gap-6 md:grid-cols-3">
+      <div className="mt-12 space-y-8">
         {liveBundles.map((b) => (
-          <BundleCard key={b.id} bundle={b} priceMap={priceMap} productBySlug={productBySlug} />
+          <BundleRow key={b.id} bundle={b} priceMap={priceMap} productBySlug={productBySlug} />
         ))}
       </div>
     </section>
   );
 }
 
-function BundleCard({
+function BundleRow({
   bundle,
   priceMap,
   productBySlug,
@@ -310,50 +313,121 @@ function BundleCard({
   );
 
   const hasSession = bundle.items.some((i) => i.product_slug === "danismanlik-oturumu");
-  const componentNames = bundle.items.map((i) => productBySlug.get(i.product_slug)?.name_tr ?? i.product_slug);
-  if (bundle.includes_book) {
-    const bs = bookSlugFor(bundle.book_key, lang);
-    const b = productBySlug.get(bs);
-    if (b) componentNames.push(`${b.name_tr} — İmzalı Nüsha`);
-  }
+  const hasAssessment = bundle.items.some((i) => i.product_slug === "tam-assessment-rapor");
+
+  // Görsel sırası: kitap → PA Ölçeği → Seans (varsa)
+  const bookProduct = bundle.includes_book
+    ? productBySlug.get(bookSlugFor(bundle.book_key, lang))
+    : null;
+  const coverUrl =
+    bookProduct?.cover_image_url ||
+    (bundle.book_key === "hcd"
+      ? HCD_META.covers.en
+      : PFA_META.covers[lang] || PFA_META.covers.en);
+
+  type Piece =
+    | { kind: "book"; label: string }
+    | { kind: "assessment"; label: string }
+    | { kind: "session"; label: string };
+  const pieces: Piece[] = [];
+  if (bundle.includes_book) pieces.push({ kind: "book", label: "Kitap" });
+  if (hasAssessment) pieces.push({ kind: "assessment", label: "PA Ölçeği" });
+  if (hasSession) pieces.push({ kind: "session", label: "Seans" });
 
   return (
-    <article className="flex flex-col rounded-lg border border-border bg-card p-6 shadow-[0_20px_50px_-40px_rgba(31,78,82,0.4)]">
-      <h3 className="font-serif text-xl text-primary">{bundle.name_tr}</h3>
-      {bundle.description_tr && (
-        <p className="mt-2 text-sm text-foreground/75">{bundle.description_tr}</p>
-      )}
-      <ul className="mt-4 space-y-1 text-sm text-foreground/80">
-        {componentNames.map((n, i) => (
-          <li key={i} className="flex items-start gap-2">
-            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-accent/70" aria-hidden />
-            <span>{n}</span>
-          </li>
-        ))}
-      </ul>
-
-      {bundle.book_key === "pfa" && bundle.includes_book && (
-        <div className="mt-4 flex items-center gap-2 text-xs">
-          <span className="text-muted-foreground">Kitap dili:</span>
-          <LangPill active={lang === "tr"} onClick={() => setLang("tr")}>Türkçe</LangPill>
-          <LangPill active={lang === "en"} onClick={() => setLang("en")}>English</LangPill>
+    <article className="rounded-lg border border-border bg-card p-6 shadow-[0_20px_50px_-40px_rgba(31,78,82,0.4)] md:p-8">
+      <div className="grid gap-8 md:grid-cols-[minmax(0,auto)_1fr] md:items-center">
+        {/* Sol: bileşen görselleri dizisi */}
+        <div className="flex items-end justify-center gap-3 md:justify-start">
+          {pieces.map((piece, i) => (
+            <div key={i} className="flex items-end gap-3">
+              {piece.kind === "book" ? (
+                <BookThumb src={coverUrl} alt={bookProduct?.name_tr ?? "Kitap"} label={piece.label} />
+              ) : (
+                <IconBadge
+                  icon={piece.kind === "assessment" ? ClipboardList : MessagesSquare}
+                  label={piece.label}
+                />
+              )}
+              {i < pieces.length - 1 && (
+                <Plus className="mb-6 h-4 w-4 shrink-0 text-accent/70" aria-hidden />
+              )}
+            </div>
+          ))}
         </div>
-      )}
 
-      <div className="mt-6 flex items-baseline gap-3">
-        <div className="font-serif text-2xl text-primary">{fmtUsd(price)}</div>
-      </div>
-      {hasSession && (
-        <p className="mt-2 text-xs text-muted-foreground">Seansa katılan danışanlara imzalı nüsha eşlik eder.</p>
-      )}
+        {/* Sağ: içerik */}
+        <div className="flex min-w-0 flex-col">
+          <div className="text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
+            {bundle.book_key === "pfa" ? "PFA · Paket" : "HCD · Paket"}
+          </div>
+          <h3 className="mt-2 font-serif text-2xl text-primary md:text-3xl">{bundle.name_tr}</h3>
+          {bundle.description_tr && (
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-foreground/80">
+              {bundle.description_tr}
+            </p>
+          )}
 
-      <div className="mt-5">
-        <BuyButton
-          bundleSlug={bundle.slug}
-          bookLang={bundle.includes_book && bundle.book_key === "pfa" ? lang : undefined}
-          label="Satın Al"
-        />
+          {bundle.book_key === "pfa" && bundle.includes_book && (
+            <div className="mt-5 flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground">Kitap dili:</span>
+              <LangPill active={lang === "tr"} onClick={() => setLang("tr")}>Türkçe</LangPill>
+              <LangPill active={lang === "en"} onClick={() => setLang("en")}>English</LangPill>
+            </div>
+          )}
+
+          <div className="mt-6 flex flex-wrap items-baseline gap-4">
+            <div className="font-serif text-3xl text-primary">{fmtUsd(price)}</div>
+          </div>
+          {hasSession && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Seansa katılan danışanlara imzalı nüsha eşlik eder.
+            </p>
+          )}
+
+          <div className="mt-5">
+            <BuyButton
+              bundleSlug={bundle.slug}
+              bookLang={bundle.includes_book && bundle.book_key === "pfa" ? lang : undefined}
+              label="Satın Al"
+            />
+          </div>
+        </div>
       </div>
     </article>
+  );
+}
+
+function BookThumb({ src, alt, label }: { src: string; alt: string; label: string }) {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="h-[88px] w-[58px] overflow-hidden rounded-sm border border-border bg-card shadow-[0_10px_24px_-14px_rgba(31,78,82,0.55)]">
+        {src ? (
+          <img src={src} alt={alt} className="h-full w-full object-cover" loading="lazy" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center font-serif text-[0.55rem] text-foreground/40">
+            {alt}
+          </div>
+        )}
+      </div>
+      <span className="text-[0.65rem] uppercase tracking-[0.15em] text-muted-foreground">{label}</span>
+    </div>
+  );
+}
+
+function IconBadge({
+  icon: Icon,
+  label,
+}: {
+  icon: typeof ClipboardList;
+  label: string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="grid h-[72px] w-[72px] place-items-center rounded-full border border-accent/50 bg-accent/5 text-accent shadow-[0_10px_24px_-16px_rgba(31,78,82,0.5)]">
+        <Icon className="h-7 w-7" strokeWidth={1.4} aria-hidden />
+      </div>
+      <span className="text-[0.65rem] uppercase tracking-[0.15em] text-muted-foreground">{label}</span>
+    </div>
   );
 }
