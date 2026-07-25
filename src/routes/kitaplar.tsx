@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense, useMemo, useState } from "react";
+import { ClipboardList, MessagesSquare, Plus } from "lucide-react";
 import { BuyButton } from "@/components/buy-button";
 import { GiftModal } from "@/components/gift-modal";
 import { getBooksData, type BooksPayload } from "@/lib/books.functions";
@@ -16,7 +17,7 @@ import {
 import hcdCover from "@/assets/hcd-cover.png.asset.json";
 
 const booksQuery = () =>
-  queryOptions({ queryKey: ["books-data"], queryFn: () => getBooksData(), staleTime: 60_000 });
+  queryOptions({ queryKey: ["books-data"], queryFn: () => getBooksData(), staleTime: 0 });
 
 export const Route = createFileRoute("/kitaplar")({
   head: () => ({
