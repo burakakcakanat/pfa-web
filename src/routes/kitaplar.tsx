@@ -100,24 +100,26 @@ function BookCard({ book: b }: { book: Book }) {
   return (
     <>
       <article className="flex h-full flex-col">
-            <div className="relative mx-auto aspect-[5/8] w-full max-w-[280px] overflow-hidden rounded-md border border-border bg-card shadow-[0_20px_50px_-30px_rgba(31,78,82,0.4)]">
-              {b.cover ? (
-                <>
+            <div className="relative mx-auto aspect-[5/8] w-full max-w-[280px]">
+              <div className="h-full w-full overflow-hidden rounded-md border border-border bg-card shadow-[0_20px_50px_-30px_rgba(31,78,82,0.4)]">
+                {b.cover ? (
                   <img
                     src={b.cover}
                     alt={`${b.title} kapağı`}
                     className="h-full w-full object-cover"
                     loading="lazy"
                   />
-                </>
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-muted p-6 text-center font-serif text-lg text-foreground/60">
-                  {b.title}
-                </div>
-              )}
-          <span className="absolute left-0 top-0 rounded-full bg-accent px-2 py-0.5 text-[0.6rem] uppercase tracking-[0.12em] text-background shadow">
-            İmzalı Nüsha
-          </span>
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-muted p-6 text-center font-serif text-lg text-foreground/60">
+                    {b.title}
+                  </div>
+                )}
+              </div>
+              <div className="pointer-events-none absolute -left-0.5 -top-0.5 z-10 h-9 w-9 overflow-hidden">
+                <span className="absolute left-[-16px] top-[4px] w-[56px] rotate-[-45deg] bg-accent py-[1px] text-center text-[0.45rem] font-semibold uppercase tracking-[0.1em] text-background shadow">
+                  İmzalı Nüsha
+                </span>
+              </div>
             </div>
             <div className="mt-6 flex flex-1 flex-col text-center">
               <div className="text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
