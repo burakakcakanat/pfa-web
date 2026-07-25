@@ -1,6 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -218,6 +220,7 @@ function ProductsTab() {
   const update = useServerFn(updateAdminProduct);
   const createCoverUpload = useServerFn(createProductCoverUploadUrl);
   const createMasterUpload = useServerFn(createProductMasterUploadUrl);
+  const queryClient = useQueryClient();
   const [rows, setRows] = useState<any[]>([]);
   const [drafts, setDrafts] = useState<Record<string, any>>({});
   const [busy, setBusy] = useState(false);
@@ -258,9 +261,13 @@ function ProductsTab() {
         await update({ data: changed });
       }
       await reload();
+      await queryClient.invalidateQueries({ queryKey: ["books-data"] });
       setMsg("Kaydedildi.");
+      toast.success("Ürünler kaydedildi");
     } catch (e: any) {
-      setMsg("Hata: " + (e?.message ?? "bilinmiyor"));
+      const m = e?.message ?? "bilinmiyor";
+      setMsg("Hata: " + m);
+      toast.error("Kaydetme hatası: " + m);
     } finally { setBusy(false); }
   };
 
@@ -302,10 +309,10 @@ function ProductsTab() {
               </div>
               <div>
                 <Label>Fiyat ($)</Label>
-                <Input type="number" step="0.01" value={((currentValue(p, "price_cents") ?? 0) / 100).toFixed(2)} onChange={(e) => {
-                  const cents = Math.round(parseFloat(e.target.value || "0") * 100);
-                  patch(p.id, "price_cents", isNaN(cents) ? 0 : cents);
-                }} />
+                <PriceInput
+                  cents={currentValue(p, "price_cents") ?? 0}
+                  onCommit={(cents) => patch(p.id, "price_cents", cents)}
+                />
               </div>
               <div>
                 <Label>Yayına giriş (activate_at)</Label>
