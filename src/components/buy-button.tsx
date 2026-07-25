@@ -5,14 +5,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { createCheckout } from "@/lib/checkout.functions";
 
 type Props = {
-  productSlug: string;
+  productSlug?: string;
+  bundleSlug?: string;
+  bookLang?: "tr" | "en";
   label?: string;
   className?: string;
   gift?: { recipient_name: string; recipient_email: string; gift_note?: string | null } | null;
   onSuccess?: () => void;
 };
 
-export function BuyButton({ productSlug, label = "Satın Al", className, gift, onSuccess }: Props) {
+export function BuyButton({ productSlug, bundleSlug, bookLang, label = "Satın Al", className, gift, onSuccess }: Props) {
   const doCheckout = useServerFn(createCheckout);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -29,7 +31,9 @@ export function BuyButton({ productSlug, label = "Satın Al", className, gift, o
       }
       const res = await doCheckout({
         data: {
-          product_slug: productSlug,
+          ...(productSlug ? { product_slug: productSlug } : {}),
+          ...(bundleSlug ? { bundle_slug: bundleSlug } : {}),
+          ...(bookLang ? { book_lang: bookLang } : {}),
           origin: window.location.origin,
           ...(gift ? { gift } : {}),
         },
