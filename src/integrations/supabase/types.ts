@@ -211,6 +211,137 @@ export type Database = {
         }
         Relationships: []
       }
+      book_editions: {
+        Row: {
+          active: boolean
+          asin: string | null
+          book_key: string
+          created_at: string
+          external_url: string | null
+          format: string
+          id: string
+          marketplaces: string[]
+          overrides: Json
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          asin?: string | null
+          book_key: string
+          created_at?: string
+          external_url?: string | null
+          format: string
+          id?: string
+          marketplaces?: string[]
+          overrides?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          asin?: string | null
+          book_key?: string
+          created_at?: string
+          external_url?: string | null
+          format?: string
+          id?: string
+          marketplaces?: string[]
+          overrides?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bundle_items: {
+        Row: {
+          bundle_id: string
+          id: string
+          product_slug: string
+          quantity: number
+        }
+        Insert: {
+          bundle_id: string
+          id?: string
+          product_slug: string
+          quantity?: number
+        }
+        Update: {
+          bundle_id?: string
+          id?: string
+          product_slug?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bundle_items_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bundles: {
+        Row: {
+          activate_at: string | null
+          active: boolean
+          book_key: string
+          created_at: string
+          description_en: string | null
+          description_tr: string | null
+          discount_percent: number
+          id: string
+          includes_book: boolean
+          locked_to_product_slug: string | null
+          name_en: string | null
+          name_tr: string
+          price_override_cents: number | null
+          pricing_mode: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          activate_at?: string | null
+          active?: boolean
+          book_key: string
+          created_at?: string
+          description_en?: string | null
+          description_tr?: string | null
+          discount_percent?: number
+          id?: string
+          includes_book?: boolean
+          locked_to_product_slug?: string | null
+          name_en?: string | null
+          name_tr: string
+          price_override_cents?: number | null
+          pricing_mode: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          activate_at?: string | null
+          active?: boolean
+          book_key?: string
+          created_at?: string
+          description_en?: string | null
+          description_tr?: string | null
+          discount_percent?: number
+          id?: string
+          includes_book?: boolean
+          locked_to_product_slug?: string | null
+          name_en?: string | null
+          name_tr?: string
+          price_override_cents?: number | null
+          pricing_mode?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ebook_dedication_templates: {
         Row: {
           author_name: string
@@ -300,11 +431,12 @@ export type Database = {
       orders: {
         Row: {
           amount_cents: number
+          bundle_slug: string | null
           created_at: string
           currency: string
           id: string
           metadata: Json
-          product_id: string
+          product_id: string | null
           status: Database["public"]["Enums"]["order_status"]
           stripe_session_id: string | null
           updated_at: string
@@ -312,11 +444,12 @@ export type Database = {
         }
         Insert: {
           amount_cents: number
+          bundle_slug?: string | null
           created_at?: string
           currency?: string
           id?: string
           metadata?: Json
-          product_id: string
+          product_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_session_id?: string | null
           updated_at?: string
@@ -324,11 +457,12 @@ export type Database = {
         }
         Update: {
           amount_cents?: number
+          bundle_slug?: string | null
           created_at?: string
           currency?: string
           id?: string
           metadata?: Json
-          product_id?: string
+          product_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_session_id?: string | null
           updated_at?: string
@@ -412,12 +546,18 @@ export type Database = {
       }
       products: {
         Row: {
+          activate_at: string | null
           active: boolean
+          book_key: string | null
+          cover_image_url: string | null
           created_at: string
           currency: string
           description_en: string | null
           description_tr: string | null
           id: string
+          language: string
+          master_epub_path: string | null
+          master_pdf_path: string | null
           name_en: string
           name_tr: string
           price_cents: number
@@ -426,12 +566,18 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          activate_at?: string | null
           active?: boolean
+          book_key?: string | null
+          cover_image_url?: string | null
           created_at?: string
           currency?: string
           description_en?: string | null
           description_tr?: string | null
           id?: string
+          language?: string
+          master_epub_path?: string | null
+          master_pdf_path?: string | null
           name_en: string
           name_tr: string
           price_cents: number
@@ -440,12 +586,18 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          activate_at?: string | null
           active?: boolean
+          book_key?: string | null
+          cover_image_url?: string | null
           created_at?: string
           currency?: string
           description_en?: string | null
           description_tr?: string | null
           id?: string
+          language?: string
+          master_epub_path?: string | null
+          master_pdf_path?: string | null
           name_en?: string
           name_tr?: string
           price_cents?: number
