@@ -1,6 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -218,6 +220,7 @@ function ProductsTab() {
   const update = useServerFn(updateAdminProduct);
   const createCoverUpload = useServerFn(createProductCoverUploadUrl);
   const createMasterUpload = useServerFn(createProductMasterUploadUrl);
+  const queryClient = useQueryClient();
   const [rows, setRows] = useState<any[]>([]);
   const [drafts, setDrafts] = useState<Record<string, any>>({});
   const [busy, setBusy] = useState(false);
@@ -258,9 +261,13 @@ function ProductsTab() {
         await update({ data: changed });
       }
       await reload();
+      await queryClient.invalidateQueries({ queryKey: ["books-data"] });
       setMsg("Kaydedildi.");
+      toast.success("Ürünler kaydedildi");
     } catch (e: any) {
-      setMsg("Hata: " + (e?.message ?? "bilinmiyor"));
+      const m = e?.message ?? "bilinmiyor";
+      setMsg("Hata: " + m);
+      toast.error("Kaydetme hatası: " + m);
     } finally { setBusy(false); }
   };
 
@@ -302,10 +309,10 @@ function ProductsTab() {
               </div>
               <div>
                 <Label>Fiyat ($)</Label>
-                <Input type="number" step="0.01" value={((currentValue(p, "price_cents") ?? 0) / 100).toFixed(2)} onChange={(e) => {
-                  const cents = Math.round(parseFloat(e.target.value || "0") * 100);
-                  patch(p.id, "price_cents", isNaN(cents) ? 0 : cents);
-                }} />
+                <PriceInput
+                  cents={currentValue(p, "price_cents") ?? 0}
+                  onCommit={(cents) => patch(p.id, "price_cents", cents)}
+                />
               </div>
               <div>
                 <Label>Yayına giriş (activate_at)</Label>
@@ -381,10 +388,67 @@ function StickySaveBar({ dirty, count, busy, msg, onSave, onReset }: { dirty: bo
   );
 }
 
+// Dolar cinsinden fiyat girişi. Kullanıcı yazarken serbestçe yazsın diye
+// yerel string state tutar; yalnızca blur / Enter'da cents'e commit edilir.
+// Bu yaklaşım, her keystroke'ta .toFixed(2) reformatının cursor'ı kilitleyerek
+// alanı salt-okunur gibi göstermesini engeller.
+function PriceInput({
+  cents,
+  onCommit,
+  nullable = false,
+  placeholder,
+}: {
+  cents: number | null | undefined;
+  onCommit: (cents: number | null) => void;
+  nullable?: boolean;
+  placeholder?: string;
+}) {
+  const format = (c: number | null | undefined) =>
+    c == null || Number.isNaN(c) ? "" : (c / 100).toFixed(2);
+  const [text, setText] = useState<string>(() => format(cents));
+  const [focused, setFocused] = useState(false);
+  useEffect(() => {
+    if (!focused) setText(format(cents));
+  }, [cents, focused]);
+
+  const commit = () => {
+    const v = text.trim();
+    if (!v) {
+      onCommit(nullable ? null : 0);
+      setText(nullable ? "" : "0.00");
+      return;
+    }
+    const n = parseFloat(v.replace(",", "."));
+    if (Number.isNaN(n) || n < 0) {
+      setText(format(cents));
+      return;
+    }
+    const c = Math.round(n * 100);
+    onCommit(c);
+    setText((c / 100).toFixed(2));
+  };
+
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      value={text}
+      placeholder={placeholder ?? "0.00"}
+      onFocus={() => setFocused(true)}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={() => { setFocused(false); commit(); }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") { (e.currentTarget as HTMLInputElement).blur(); }
+      }}
+    />
+  );
+}
+
 // ============== BUNDLES ==============
 function BundlesTab() {
   const fetchList = useServerFn(listAdminBundles);
   const upsert = useServerFn(upsertAdminBundle);
+  const queryClient = useQueryClient();
   const [data, setData] = useState<{ bundles: any[]; products: any[] }>({ bundles: [], products: [] });
   const [drafts, setDrafts] = useState<Record<string, any>>({});
   const [busy, setBusy] = useState(false);
@@ -431,8 +495,14 @@ function BundlesTab() {
         await upsert({ data: changed });
       }
       await reload();
+      await queryClient.invalidateQueries({ queryKey: ["books-data"] });
       setMsg("Kaydedildi.");
-    } catch (e: any) { setMsg("Hata: " + (e?.message ?? "bilinmiyor")); } finally { setBusy(false); }
+      toast.success("Paketler kaydedildi");
+    } catch (e: any) {
+      const m = e?.message ?? "bilinmiyor";
+      setMsg("Hata: " + m);
+      toast.error("Kaydetme hatası: " + m);
+    } finally { setBusy(false); }
   };
 
   const cv = (b: any, k: string) => (drafts[b.id] ? drafts[b.id][k] : b[k]);
@@ -467,17 +537,11 @@ function BundlesTab() {
               </div>
               <div>
                 <Label>Fiyat (override) — boşsa otomatik</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={override != null ? (override / 100).toFixed(2) : ""}
-                  placeholder="—"
-                  onChange={(e) => {
-                    const v = e.target.value.trim();
-                    if (!v) { patch(b.id, "price_override_cents", null); return; }
-                    const cents = Math.round(parseFloat(v) * 100);
-                    patch(b.id, "price_override_cents", isNaN(cents) ? null : cents);
-                  }}
+                <PriceInput
+                  cents={override}
+                  nullable
+                  placeholder="Otomatik"
+                  onCommit={(cents) => patch(b.id, "price_override_cents", cents)}
                 />
               </div>
               <div>
