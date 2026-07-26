@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import pfaLogoAsset from "@/assets/pfa-logo-canva.png.asset.json";
 import { NewsletterForm } from "@/components/newsletter-form";
+import { Instagram, Linkedin, Youtube, Twitter } from "lucide-react";
 const pfaLogo = pfaLogoAsset.url;
 
 function FooterNewsletter() {
@@ -263,10 +264,10 @@ function SiteFooter() {
     return () => { alive = false; };
   }, []);
   const socialItems = [
-    { key: "social_instagram", label: "Instagram", icon: "instagram" },
-    { key: "social_linkedin", label: "LinkedIn", icon: "linkedin" },
-    { key: "social_x", label: "X", icon: "x" },
-    { key: "social_youtube", label: "YouTube", icon: "youtube" },
+    { key: "social_instagram", label: "Instagram", Icon: Instagram },
+    { key: "social_linkedin", label: "LinkedIn", Icon: Linkedin },
+    { key: "social_x", label: "X", Icon: Twitter },
+    { key: "social_youtube", label: "YouTube", Icon: Youtube },
   ].filter((s) => socials[s.key]);
   return (
     <footer className="mt-24 border-t border-border/60 bg-background">
@@ -291,7 +292,7 @@ function SiteFooter() {
                   aria-label={s.label}
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:border-accent hover:bg-accent hover:text-accent-foreground"
                 >
-                  <SocialIcon name={s.icon} />
+                  <s.Icon className="h-4 w-4" strokeWidth={1.6} />
                 </a>
               ))}
             </div>
