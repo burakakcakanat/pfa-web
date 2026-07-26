@@ -514,6 +514,66 @@ export type Database = {
         }
         Relationships: []
       }
+      practitioner_applications: {
+        Row: {
+          admin_note: string | null
+          category: Database["public"]["Enums"]["practitioner_category"]
+          city: string | null
+          created_at: string
+          cv_path: string | null
+          diploma_path: string | null
+          email: string
+          experience_years: number | null
+          full_name: string
+          id: string
+          ip_hash: string | null
+          kvkk_accepted: boolean
+          motivation: string
+          phone: string | null
+          profession_title: string | null
+          status: Database["public"]["Enums"]["application_status"]
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          category: Database["public"]["Enums"]["practitioner_category"]
+          city?: string | null
+          created_at?: string
+          cv_path?: string | null
+          diploma_path?: string | null
+          email: string
+          experience_years?: number | null
+          full_name: string
+          id?: string
+          ip_hash?: string | null
+          kvkk_accepted?: boolean
+          motivation: string
+          phone?: string | null
+          profession_title?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          category?: Database["public"]["Enums"]["practitioner_category"]
+          city?: string | null
+          created_at?: string
+          cv_path?: string | null
+          diploma_path?: string | null
+          email?: string
+          experience_years?: number | null
+          full_name?: string
+          id?: string
+          ip_hash?: string | null
+          kvkk_accepted?: boolean
+          motivation?: string
+          phone?: string | null
+          profession_title?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       practitioner_inquiries: {
         Row: {
           created_at: string
@@ -954,6 +1014,7 @@ export type Database = {
     }
     Enums: {
       app_role: "user" | "pro" | "admin"
+      application_status: "yeni" | "incelemede" | "gorusme" | "kabul" | "red"
       assessment_status: "in_progress" | "completed"
       assessment_type: "mini" | "full"
       entitlement_type:
@@ -1096,6 +1157,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["user", "pro", "admin"],
+      application_status: ["yeni", "incelemede", "gorusme", "kabul", "red"],
       assessment_status: ["in_progress", "completed"],
       assessment_type: ["mini", "full"],
       entitlement_type: [

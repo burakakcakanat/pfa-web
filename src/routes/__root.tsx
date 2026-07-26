@@ -145,6 +145,7 @@ const NAV_LINKS = [
   { to: "/seanslar", label: "Seanslar" },
   { to: "/webinarlar", label: "Webinarlar" },
   { to: "/blog", label: "Blog" },
+  { to: "/uygulayici-olun", label: "Uygulayıcı Olun" },
   { to: "/hakkinda", label: "Hakkında" },
   { to: "/iletisim", label: "İletişim" },
 ] as const;
