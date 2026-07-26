@@ -109,6 +109,16 @@ import {
   type AdminApplicationRow,
   type ApplicationStatus,
 } from "@/lib/practitioner-applications.functions";
+import {
+  listNewsletterSubscribers,
+  deleteNewsletterSubscriber,
+  listNewsletterIssues,
+  upsertNewsletterIssue,
+  deleteNewsletterIssue,
+  sendNewsletterIssue,
+  sendNewsletterTest,
+  getNewsletterConfigStatus,
+} from "@/lib/newsletter.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -158,6 +168,7 @@ function AdminPage() {
             <TabsTrigger value="orders">Siparişler</TabsTrigger>
             <TabsTrigger value="settings">Site Ayarları</TabsTrigger>
             <TabsTrigger value="practitioners">Uygulayıcılar</TabsTrigger>
+            <TabsTrigger value="newsletter">Bülten</TabsTrigger>
           </TabsList>
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
@@ -175,6 +186,7 @@ function AdminPage() {
             <TabsContent value="orders"><OrdersTab /></TabsContent>
             <TabsContent value="settings"><SiteSettingsTab /></TabsContent>
             <TabsContent value="practitioners"><PractitionersTab /></TabsContent>
+            <TabsContent value="newsletter"><NewsletterTab /></TabsContent>
           </div>
         </Tabs>
       </div>
