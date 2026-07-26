@@ -2029,7 +2029,13 @@ function PractitionersTab() {
   );
 }
 
-function PractitionerList() {
+function PractitionerList({
+  seed,
+  onSeedConsumed,
+}: {
+  seed?: (Omit<PractitionerRow, "id" | "created_at"> & { id?: string }) | null;
+  onSeedConsumed?: () => void;
+}) {
   const list = useServerFn(listAdminPractitioners);
   const upsert = useServerFn(upsertAdminPractitioner);
   const del = useServerFn(deleteAdminPractitioner);
@@ -2049,6 +2055,15 @@ function PractitionerList() {
   useEffect(() => {
     reload();
   }, [reload]);
+
+  // Başvurudan ön doldurulmuş yeni kayıt formunu aç
+  useEffect(() => {
+    if (seed) {
+      setEditing(seed);
+      onSeedConsumed?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seed]);
 
   async function togglePublished(row: PractitionerRow, next: boolean) {
     try {
