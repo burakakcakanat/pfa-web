@@ -102,6 +102,13 @@ import {
   listAdminPractitionerInquiries,
   updatePractitionerInquiryStatus,
 } from "@/lib/admin.functions";
+import {
+  listAdminApplications,
+  getAdminApplicationFileUrl,
+  updateAdminApplication,
+  type AdminApplicationRow,
+  type ApplicationStatus,
+} from "@/lib/practitioner-applications.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
