@@ -123,7 +123,7 @@ function HomePage() {
 
       {/* Neden Bir Harita */}
       <section className="container-page pb-20">
-        <div className="mx-auto mt-[2cm] max-w-3xl border-t border-border pt-6 text-center">
+        <div className="mx-auto mt-[2cm] max-w-3xl border-t border-border pt-2 text-center">
           <div className="text-xs uppercase tracking-[0.3em] text-accent">
             Neden Bir Harita?
           </div>
