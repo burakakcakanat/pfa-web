@@ -13,6 +13,7 @@ export const Route = createFileRoute("/blog/$slug")({
   head: ({ loaderData }) => {
     const p = loaderData?.post;
     if (!p) return {};
+    const url = `https://psychofunctionalanalysis.com/blog/${p.slug}`;
     return {
       meta: [
         { title: `${p.title} | PFA Blog` },
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/blog/$slug")({
         { property: "og:title", content: p.title },
         { property: "og:description", content: p.seo_description },
         { property: "og:type", content: "article" },
+        { property: "og:url", content: url },
         { name: "twitter:card", content: "summary_large_image" },
         ...(p.cover_image_url
           ? [
@@ -27,6 +29,23 @@ export const Route = createFileRoute("/blog/$slug")({
               { name: "twitter:image", content: p.cover_image_url },
             ]
           : []),
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            headline: p.title,
+            description: p.seo_description,
+            datePublished: p.published_at,
+            dateModified: p.published_at,
+            author: { "@type": "Person", name: "Burak Akçakanat" },
+            mainEntityOfPage: url,
+            ...(p.cover_image_url ? { image: p.cover_image_url } : {}),
+          }),
+        },
       ],
     };
   },
