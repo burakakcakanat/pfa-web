@@ -13,7 +13,12 @@ export const Route = createFileRoute("/degerlendirme")({
         content:
           "PFA Ölçeği: her bilinç seviyesi için 30 soru; farkındalığı işlevsel farkındalığa taşıyan değerlendirme aracı.",
       },
+      { property: "og:title", content: "PFA Ölçeği" },
+      { property: "og:description", content: "PFA Ölçeği: bilinç seviyeleri için işlevsel değerlendirme aracı." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://psychofunctionalanalysis.com/degerlendirme" },
     ],
+    links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/degerlendirme" }],
   }),
   component: AssessmentPage,
 });

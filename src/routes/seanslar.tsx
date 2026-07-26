@@ -10,7 +10,12 @@ export const Route = createFileRoute("/seanslar")({
         content:
           "60 dakikalık online birebir PFA danışmanlık oturumları. Europe/Istanbul saati; hafta içi 10:00–18:00.",
       },
+      { property: "og:title", content: "Seanslar — PFA" },
+      { property: "og:description", content: "Birebir online PFA danışmanlık seansları." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://psychofunctionalanalysis.com/seanslar" },
     ],
+    links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/seanslar" }],
   }),
   component: SessionsPage,
 });

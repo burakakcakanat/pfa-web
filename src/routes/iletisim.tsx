@@ -6,7 +6,12 @@ export const Route = createFileRoute("/iletisim")({
     meta: [
       { title: "İletişim — PFA" },
       { name: "description", content: "PFA ile iletişime geçin." },
+      { property: "og:title", content: "İletişim — PFA" },
+      { property: "og:description", content: "PFA ile iletişime geçin." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://psychofunctionalanalysis.com/iletisim" },
     ],
+    links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/iletisim" }],
   }),
   component: ContactPage,
 });
