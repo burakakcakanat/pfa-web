@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import pfaMapAsset from "@/assets/pfa-map-hero.png.asset.json";
+import { INTELLIGENCE_LABEL, LEVEL_LABEL_TR, LEVEL_TO_INTELLIGENCE } from "@/lib/assessment-scoring";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -64,12 +65,18 @@ const PATHS = [
 ] as const;
 
 function HomePage() {
+  const scrollToMap = (e: React.MouseEvent) => {
+    e.preventDefault();
+    document
+      .getElementById("bilinc-haritasi")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   return (
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden">
         <Ornament />
-        <div className="container-page relative py-24 md:py-36">
+        <div className="container-page relative py-20 md:py-28">
           <div className="mx-auto max-w-3xl text-center">
             <div className="text-sm font-medium uppercase tracking-[0.35em] text-accent md:text-base">
               Psİko-Fonksİyonel Analİz
@@ -86,9 +93,9 @@ function HomePage() {
               bir gelişim aşamasıyla eşler.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-3">
-              <Link to="/degerlendirme" className="btn-primary hover:btn-primary-hover">
+              <a href="#bilinc-haritasi" onClick={scrollToMap} className="btn-primary hover:btn-primary-hover">
                 Haritayı Keşfet
-              </Link>
+              </a>
               <Link to="/kitaplar" className="btn-outline hover:bg-foreground/5">
                 Kitapları İncele
               </Link>
@@ -104,8 +111,11 @@ function HomePage() {
         </div>
       </section>
 
+      {/* Kime Hitap Eder */}
+      <AudienceSection />
+
       {/* Three paths */}
-      <section className="container-page py-20">
+      <section className="container-page py-14 md:py-16">
         <div className="grid gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-3">
           {PATHS.map((p) => (
             <div key={p.tag} className="flex flex-col gap-5 bg-background p-8">
@@ -125,21 +135,21 @@ function HomePage() {
       </section>
 
       {/* Bilinç Döngüsü */}
-      <section className="container-page pt-2 pb-0">
+      <section id="bilinc-haritasi" className="container-page pt-8 pb-0 scroll-mt-24">
         <div className="mx-auto max-w-6xl text-center">
           <div className="text-xs uppercase tracking-[0.3em] text-accent">
             Bilinç Döngüsü
           </div>
-          <h2 className="mt-3 font-serif text-3xl md:text-4xl">
+          <h2 className="mt-2 font-serif text-3xl md:text-4xl">
             Bekadan Aydınlanmaya uzanan tek bir döngü
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-foreground/80">
-            İlk üç seviyede genişleme, dördüncü seviyeden itibaren bütünleşme —
-            yedi işlevsel seviye tek bir toroidal döngü içinde birleşir.
+            Yedi seviye, tek harita — her seviye bir beyin bölgesi, bir zekâ
+            türü ve bir gelişim aşamasıyla eşleşir.
           </p>
           <figure
             data-map-figure
-            className="relative mt-5 mb-0 left-1/2 -translate-x-1/2 w-[140vw] max-w-[1920px]"
+            className="relative mt-4 mb-0 left-1/2 -translate-x-1/2 w-[140vw] max-w-[1920px]"
           >
             <img
               src={pfaMapAsset.url}
@@ -151,11 +161,14 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Spacer — tam olarak 2 cm (her breakpoint'te doğrulanır) */}
+      {/* Spacer — 2 cm */}
       <div data-map-gap aria-hidden="true" className="h-[2cm] w-full" />
 
+      {/* Yedi Seviye, Yedi Zekâ */}
+      <IntelligencesStrip />
+
       {/* Neden Bir Harita */}
-      <section className="container-page pt-0 pb-20">
+      <section className="container-page pt-0 pb-16">
         <div className="mx-auto max-w-3xl border-t border-border pt-6 text-center">
           <div data-neden-heading className="text-xs uppercase tracking-[0.3em] text-accent">
             Neden Bir Harita?
@@ -173,6 +186,192 @@ function HomePage() {
         </div>
       </section>
     </div>
+  );
+}
+
+const AUDIENCES = [
+  {
+    tag: "Profesyoneller",
+    sub: "Psikolog · Koç · Terapist · Eğitimci",
+    body: "Danışan ve öğrencilerinizle yapılandırılmış bir bilinç haritası üzerinden çalışın.",
+    cta: "Uygulayıcı Olun",
+    to: "/uygulayici-olun",
+  },
+  {
+    tag: "Meraklı Okurlar",
+    sub: "Kendini anlamak isteyen herkes",
+    body: "Kendi haritanızı kitapla keşfedin.",
+    cta: "Kitaplarla Derinleşin",
+    to: "/kitaplar",
+  },
+  {
+    tag: "Kurumsal",
+    sub: "İK · Liderlik · Ekip gelişimi",
+    body: "Ekiplerin işlevsel gelişimini ölçülebilir hale getirin.",
+    cta: "PFA Ölçeği'ni Uygulayın",
+    to: "/degerlendirme",
+  },
+] as const;
+
+function AudienceSection() {
+  return (
+    <section className="container-page py-14 md:py-16">
+      <div className="mx-auto max-w-6xl">
+        <div className="text-center">
+          <div className="text-xs uppercase tracking-[0.3em] text-accent">
+            PFA Kime Hitap Eder
+          </div>
+          <h2 className="mt-2 font-serif text-3xl md:text-4xl">
+            Üç yol, tek harita
+          </h2>
+        </div>
+        <div className="mt-10 grid items-center gap-10 md:grid-cols-2">
+          <div className="order-1 md:order-none">
+            <LadderArt />
+          </div>
+          <div className="flex flex-col gap-4">
+            {AUDIENCES.map((a) => (
+              <div
+                key={a.tag}
+                className="rounded-lg border border-border bg-card p-6 transition-colors hover:border-accent/60"
+              >
+                <div className="flex items-baseline justify-between gap-3">
+                  <div className="font-serif text-xl text-foreground">{a.tag}</div>
+                  <div className="text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
+                    {a.sub}
+                  </div>
+                </div>
+                <p className="mt-3 text-[0.95rem] leading-relaxed text-foreground/80">
+                  {a.body}
+                </p>
+                <Link
+                  to={a.to}
+                  className="mt-4 inline-block text-sm font-medium text-foreground underline decoration-accent decoration-2 underline-offset-8 hover:text-accent"
+                >
+                  {a.cta} →
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LadderArt() {
+  // Petrol/teal foreground token as stroke via currentColor; gold via --accent.
+  return (
+    <svg
+      viewBox="0 0 400 460"
+      className="mx-auto block h-auto w-full max-w-md text-foreground"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {/* dotted orbit */}
+      <ellipse cx="200" cy="240" rx="170" ry="180" strokeDasharray="2 6" opacity="0.35" />
+      <ellipse cx="200" cy="240" rx="110" ry="130" strokeDasharray="2 6" opacity="0.2" />
+
+      {/* ladder rails */}
+      <line x1="130" y1="430" x2="210" y2="60" />
+      <line x1="230" y1="430" x2="310" y2="60" />
+
+      {/* 7 rungs, ascending */}
+      {Array.from({ length: 7 }).map((_, i) => {
+        const t = i / 6;
+        const y1 = 430 - t * 370;
+        const x1 = 130 + t * 80;
+        const x2 = 230 + t * 80;
+        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y1} />;
+      })}
+
+      {/* climbing figure — stepping on rung 5 (t≈0.66) */}
+      {(() => {
+        const t = 0.72;
+        const rx1 = 130 + t * 80;
+        const rx2 = 230 + t * 80;
+        const ry = 430 - t * 370;
+        const cx = (rx1 + rx2) / 2 + 4;
+        const footY = ry;
+        return (
+          <g strokeWidth="1.6">
+            {/* head */}
+            <circle cx={cx} cy={footY - 92} r="10" />
+            {/* torso */}
+            <line x1={cx} y1={footY - 82} x2={cx + 2} y2={footY - 40} />
+            {/* front arm reaching up */}
+            <path d={`M${cx + 2} ${footY - 74} Q ${cx + 22} ${footY - 92} ${cx + 34} ${footY - 118}`} />
+            {/* back arm */}
+            <path d={`M${cx + 2} ${footY - 72} Q ${cx - 14} ${footY - 60} ${cx - 20} ${footY - 44}`} />
+            {/* front leg (stepping up) */}
+            <path d={`M${cx + 2} ${footY - 40} Q ${cx + 14} ${footY - 22} ${cx + 20} ${footY - 8}`} />
+            {/* back leg */}
+            <path d={`M${cx + 2} ${footY - 40} Q ${cx - 10} ${footY - 18} ${cx - 16} ${footY - 2}`} />
+          </g>
+        );
+      })()}
+
+      {/* top rung gold glow */}
+      <g style={{ color: "var(--accent)" }}>
+        <circle cx="270" cy="60" r="14" stroke="currentColor" strokeWidth="1" opacity="0.5" />
+        <circle cx="270" cy="60" r="6" fill="currentColor" stroke="none" />
+        <circle cx="270" cy="60" r="22" stroke="currentColor" strokeWidth="0.6" opacity="0.35" />
+      </g>
+
+      {/* scattered orbit dots */}
+      <g fill="currentColor" stroke="none" opacity="0.55">
+        <circle cx="42" cy="180" r="1.6" />
+        <circle cx="368" cy="300" r="1.6" />
+        <circle cx="90" cy="90" r="1.4" />
+        <circle cx="340" cy="140" r="1.4" />
+        <circle cx="60" cy="360" r="1.4" />
+      </g>
+    </svg>
+  );
+}
+
+function IntelligencesStrip() {
+  const items = [1, 2, 3, 4, 5, 6, 7].map((lvl) => ({
+    lvl,
+    level: LEVEL_LABEL_TR[lvl],
+    intel: INTELLIGENCE_LABEL[LEVEL_TO_INTELLIGENCE[lvl]],
+  }));
+  return (
+    <section className="container-page py-12 md:py-14">
+      <div className="mx-auto max-w-6xl text-center">
+        <div className="text-xs uppercase tracking-[0.3em] text-accent">
+          Yedi Seviye, Yedi Zekâ
+        </div>
+        <ol className="mt-8 flex flex-wrap items-stretch justify-center gap-2 md:gap-3">
+          {items.map((it, i) => (
+            <li key={it.lvl} className="flex items-center gap-2 md:gap-3">
+              <div className="flex min-w-[9.5rem] flex-col items-center gap-1 rounded-full border border-border bg-card/60 px-4 py-2">
+                <div className="text-[0.68rem] uppercase tracking-[0.25em] text-accent">
+                  L{it.lvl}
+                </div>
+                <div className="text-[0.78rem] font-medium text-foreground/85">
+                  {it.intel}
+                </div>
+              </div>
+              {i < items.length - 1 && (
+                <span aria-hidden className="hidden h-px w-3 bg-border md:block" />
+              )}
+            </li>
+          ))}
+        </ol>
+        <p className="mx-auto mt-8 max-w-2xl font-serif text-lg leading-relaxed text-foreground/85 md:text-xl">
+          Her seviyenin kendi zekâsı vardır; gelişim, bu zekâların birlikte
+          akort edilmesidir.
+        </p>
+        <p className="mt-3 text-xs tracking-wide text-muted-foreground">
+          Zekâ profili ölçümü üzerinde çalışıyoruz.
+        </p>
+      </div>
+    </section>
   );
 }
 
