@@ -94,6 +94,14 @@ import {
   upsertPodcastEpisode,
   deletePodcastEpisode,
 } from "@/lib/admin.functions";
+import {
+  listAdminPractitioners,
+  upsertAdminPractitioner,
+  deleteAdminPractitioner,
+  createPractitionerPhotoUploadUrl,
+  listAdminPractitionerInquiries,
+  updatePractitionerInquiryStatus,
+} from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -142,6 +150,7 @@ function AdminPage() {
             <TabsTrigger value="ebooks">E-Kitaplar</TabsTrigger>
             <TabsTrigger value="orders">Siparişler</TabsTrigger>
             <TabsTrigger value="settings">Site Ayarları</TabsTrigger>
+            <TabsTrigger value="practitioners">Uygulayıcılar</TabsTrigger>
           </TabsList>
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
@@ -158,6 +167,7 @@ function AdminPage() {
             <TabsContent value="ebooks"><EbooksTab /></TabsContent>
             <TabsContent value="orders"><OrdersTab /></TabsContent>
             <TabsContent value="settings"><SiteSettingsTab /></TabsContent>
+            <TabsContent value="practitioners"><PractitionersTab /></TabsContent>
           </div>
         </Tabs>
       </div>
@@ -1910,5 +1920,578 @@ function ProAccountsTab() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+// ============== PRACTITIONERS ==============
+type PractitionerRow = {
+  id: string;
+  full_name: string;
+  category: "terapotik" | "kocluk" | "pedagojik" | "kurumsal";
+  title: string | null;
+  photo_url: string | null;
+  short_bio: string | null;
+  long_bio: string | null;
+  specializations: string[];
+  languages: string[];
+  city: string | null;
+  country: string;
+  mode: "online" | "yuz_yuze" | "her_ikisi";
+  email: string | null;
+  website: string | null;
+  published: boolean;
+  sort_order: number;
+  created_at: string;
+};
+
+const P_CATEGORY_LABEL: Record<PractitionerRow["category"], string> = {
+  terapotik: "Terapötik",
+  kocluk: "Koçluk",
+  pedagojik: "Pedagojik",
+  kurumsal: "Kurumsal",
+};
+const P_MODE_LABEL: Record<PractitionerRow["mode"], string> = {
+  online: "Online",
+  yuz_yuze: "Yüz Yüze",
+  her_ikisi: "Online / Yüz Yüze",
+};
+
+function emptyPractitioner(): Omit<PractitionerRow, "id" | "created_at"> & { id?: string } {
+  return {
+    full_name: "",
+    category: "terapotik",
+    title: "",
+    photo_url: "",
+    short_bio: "",
+    long_bio: "",
+    specializations: [],
+    languages: [],
+    city: "",
+    country: "Türkiye",
+    mode: "online",
+    email: "",
+    website: "",
+    published: false,
+    sort_order: 0,
+  };
+}
+
+function PractitionersTab() {
+  const [view, setView] = useState<"list" | "inquiries">("list");
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2">
+        <Button
+          variant={view === "list" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setView("list")}
+        >
+          Uygulayıcılar
+        </Button>
+        <Button
+          variant={view === "inquiries" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setView("inquiries")}
+        >
+          Gelen Talepler
+        </Button>
+      </div>
+      {view === "list" ? <PractitionerList /> : <PractitionerInquiries />}
+    </div>
+  );
+}
+
+function PractitionerList() {
+  const list = useServerFn(listAdminPractitioners);
+  const upsert = useServerFn(upsertAdminPractitioner);
+  const del = useServerFn(deleteAdminPractitioner);
+  const uploadUrl = useServerFn(createPractitionerPhotoUploadUrl);
+  const [rows, setRows] = useState<PractitionerRow[]>([]);
+  const [editing, setEditing] = useState<
+    (Omit<PractitionerRow, "id" | "created_at"> & { id?: string }) | null
+  >(null);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const reload = useCallback(async () => {
+    const r = await list();
+    setRows((r ?? []) as PractitionerRow[]);
+  }, [list]);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  async function togglePublished(row: PractitionerRow, next: boolean) {
+    try {
+      await upsert({
+        data: {
+          id: row.id,
+          full_name: row.full_name,
+          category: row.category,
+          title: row.title,
+          photo_url: row.photo_url,
+          short_bio: row.short_bio,
+          long_bio: row.long_bio,
+          specializations: row.specializations ?? [],
+          languages: row.languages ?? [],
+          city: row.city,
+          country: row.country ?? "Türkiye",
+          mode: row.mode,
+          email: row.email,
+          website: row.website,
+          published: next,
+          sort_order: row.sort_order,
+        },
+      });
+      toast.success(next ? "Yayına alındı" : "Gizlendi");
+      reload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Güncellenemedi");
+    }
+  }
+
+  async function updateOrder(row: PractitionerRow, next: number) {
+    try {
+      await upsert({
+        data: {
+          id: row.id,
+          full_name: row.full_name,
+          category: row.category,
+          title: row.title,
+          photo_url: row.photo_url,
+          short_bio: row.short_bio,
+          long_bio: row.long_bio,
+          specializations: row.specializations ?? [],
+          languages: row.languages ?? [],
+          city: row.city,
+          country: row.country ?? "Türkiye",
+          mode: row.mode,
+          email: row.email,
+          website: row.website,
+          published: row.published,
+          sort_order: next,
+        },
+      });
+      reload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Güncellenemedi");
+    }
+  }
+
+  async function handleSave() {
+    if (!editing) return;
+    if (!editing.full_name.trim()) {
+      toast.error("Ad zorunlu");
+      return;
+    }
+    if ((editing.short_bio?.length ?? 0) > 300) {
+      toast.error("Kısa bio en fazla 300 karakter olabilir");
+      return;
+    }
+    setSaving(true);
+    try {
+      const cleanNullable = (s: string | null | undefined) =>
+        s && s.trim().length > 0 ? s.trim() : null;
+      await upsert({
+        data: {
+          id: editing.id,
+          full_name: editing.full_name.trim(),
+          category: editing.category,
+          title: cleanNullable(editing.title),
+          photo_url: cleanNullable(editing.photo_url),
+          short_bio: cleanNullable(editing.short_bio),
+          long_bio: cleanNullable(editing.long_bio),
+          specializations: (editing.specializations ?? []).filter((s) => s.trim().length > 0),
+          languages: (editing.languages ?? []).filter((s) => s.trim().length > 0),
+          city: cleanNullable(editing.city),
+          country: editing.country?.trim() || "Türkiye",
+          mode: editing.mode,
+          email: cleanNullable(editing.email),
+          website: cleanNullable(editing.website),
+          published: !!editing.published,
+          sort_order: Number.isFinite(editing.sort_order) ? editing.sort_order : 0,
+        },
+      });
+      toast.success("Kaydedildi");
+      setEditing(null);
+      reload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Kaydedilemedi");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete(row: PractitionerRow) {
+    if (!confirm(`${row.full_name} silinsin mi? Bu işlem geri alınamaz.`)) return;
+    try {
+      await del({ data: { id: row.id } });
+      toast.success("Silindi");
+      reload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Silinemedi");
+    }
+  }
+
+  async function handlePhotoFile(file: File) {
+    if (!editing) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Fotoğraf 5MB'dan büyük olamaz");
+      return;
+    }
+    setUploading(true);
+    try {
+      const { path, token, publicUrl } = (await uploadUrl({
+        data: { filename: file.name },
+      })) as { path: string; token: string; publicUrl: string };
+      const { error } = await supabase.storage
+        .from("practitioner-photos")
+        .uploadToSignedUrl(path, token, file, { contentType: file.type });
+      if (error) throw error;
+      setEditing({ ...editing, photo_url: publicUrl });
+      toast.success("Fotoğraf yüklendi");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Yükleme başarısız");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {rows.length} uygulayıcı — sıra numarası küçük olan üstte görünür.
+        </p>
+        <Button size="sm" onClick={() => setEditing(emptyPractitioner())}>
+          + Yeni Uygulayıcı
+        </Button>
+      </div>
+
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Sıra</TableHead>
+              <TableHead>Ad</TableHead>
+              <TableHead>Kategori</TableHead>
+              <TableHead>Şehir</TableHead>
+              <TableHead>Görüşme</TableHead>
+              <TableHead>Yayında</TableHead>
+              <TableHead className="text-right">İşlem</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((r) => (
+              <TableRow key={r.id}>
+                <TableCell>
+                  <Input
+                    type="number"
+                    className="w-20"
+                    defaultValue={r.sort_order}
+                    onBlur={(e) => {
+                      const n = parseInt(e.target.value, 10);
+                      if (!isNaN(n) && n !== r.sort_order) updateOrder(r, n);
+                    }}
+                  />
+                </TableCell>
+                <TableCell className="font-medium">{r.full_name}</TableCell>
+                <TableCell>{P_CATEGORY_LABEL[r.category]}</TableCell>
+                <TableCell>{r.city ?? "—"}</TableCell>
+                <TableCell>{P_MODE_LABEL[r.mode]}</TableCell>
+                <TableCell>
+                  <Switch
+                    checked={r.published}
+                    onCheckedChange={(v) => togglePublished(r, v)}
+                  />
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button size="sm" variant="outline" onClick={() => setEditing(r)}>
+                    Düzenle
+                  </Button>{" "}
+                  <Button size="sm" variant="outline" onClick={() => handleDelete(r)}>
+                    Sil
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+            {rows.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                  Henüz uygulayıcı yok. "Yeni Uygulayıcı" ile ekleyin.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </Card>
+
+      {editing && (
+        <Card title={editing.id ? "Uygulayıcı Düzenle" : "Yeni Uygulayıcı"}>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <Label>Ad Soyad *</Label>
+              <Input
+                value={editing.full_name}
+                onChange={(e) => setEditing({ ...editing, full_name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Ünvan</Label>
+              <Input
+                value={editing.title ?? ""}
+                onChange={(e) => setEditing({ ...editing, title: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Kategori</Label>
+              <Select
+                value={editing.category}
+                onValueChange={(v) => setEditing({ ...editing, category: v as any })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(P_CATEGORY_LABEL) as Array<keyof typeof P_CATEGORY_LABEL>).map(
+                    (k) => (
+                      <SelectItem key={k} value={k}>{P_CATEGORY_LABEL[k]}</SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Görüşme Şekli</Label>
+              <Select
+                value={editing.mode}
+                onValueChange={(v) => setEditing({ ...editing, mode: v as any })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(P_MODE_LABEL) as Array<keyof typeof P_MODE_LABEL>).map((k) => (
+                    <SelectItem key={k} value={k}>{P_MODE_LABEL[k]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Şehir</Label>
+              <Input
+                value={editing.city ?? ""}
+                onChange={(e) => setEditing({ ...editing, city: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Ülke</Label>
+              <Input
+                value={editing.country ?? ""}
+                onChange={(e) => setEditing({ ...editing, country: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>E-posta (gizli — ziyaretçilere gösterilmez)</Label>
+              <Input
+                type="email"
+                value={editing.email ?? ""}
+                onChange={(e) => setEditing({ ...editing, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Web sitesi</Label>
+              <Input
+                value={editing.website ?? ""}
+                onChange={(e) => setEditing({ ...editing, website: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Diller (virgülle)</Label>
+              <Input
+                value={(editing.languages ?? []).join(", ")}
+                onChange={(e) =>
+                  setEditing({
+                    ...editing,
+                    languages: e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  })
+                }
+              />
+            </div>
+            <div>
+              <Label>Uzmanlıklar (virgülle)</Label>
+              <Input
+                value={(editing.specializations ?? []).join(", ")}
+                onChange={(e) =>
+                  setEditing({
+                    ...editing,
+                    specializations: e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  })
+                }
+              />
+            </div>
+            <div>
+              <Label>Sıra numarası</Label>
+              <Input
+                type="number"
+                value={editing.sort_order}
+                onChange={(e) =>
+                  setEditing({ ...editing, sort_order: parseInt(e.target.value, 10) || 0 })
+                }
+              />
+            </div>
+            <div className="flex items-center gap-2 pt-6">
+              <Switch
+                checked={editing.published}
+                onCheckedChange={(v) => setEditing({ ...editing, published: v })}
+              />
+              <Label>Yayında</Label>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <Label>Fotoğraf</Label>
+            <div className="flex items-center gap-4">
+              {editing.photo_url ? (
+                <img
+                  src={editing.photo_url}
+                  alt=""
+                  className="h-20 w-20 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-20 w-20 items-center justify-center rounded-full border border-dashed border-border text-xs text-muted-foreground">
+                  Yok
+                </div>
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handlePhotoFile(f);
+                }}
+                disabled={uploading}
+              />
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <Label>Kısa Bio (≤300 karakter)</Label>
+            <Textarea
+              rows={3}
+              maxLength={300}
+              value={editing.short_bio ?? ""}
+              onChange={(e) => setEditing({ ...editing, short_bio: e.target.value })}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              {(editing.short_bio?.length ?? 0)} / 300
+            </p>
+          </div>
+
+          <div className="mt-4">
+            <Label>Uzun Bio</Label>
+            <Textarea
+              rows={8}
+              value={editing.long_bio ?? ""}
+              onChange={(e) => setEditing({ ...editing, long_bio: e.target.value })}
+            />
+          </div>
+
+          <div className="mt-6 flex gap-2">
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? "Kaydediliyor…" : "Kaydet"}
+            </Button>
+            <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>
+              İptal
+            </Button>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function PractitionerInquiries() {
+  const list = useServerFn(listAdminPractitionerInquiries);
+  const setStatus = useServerFn(updatePractitionerInquiryStatus);
+  const [rows, setRows] = useState<
+    Array<{
+      id: string;
+      practitioner_id: string;
+      practitioner_name: string;
+      sender_name: string;
+      sender_email: string;
+      message: string;
+      status: "acik" | "yanitlandi";
+      created_at: string;
+    }>
+  >([]);
+
+  const reload = useCallback(async () => {
+    const r = await list();
+    setRows((r ?? []) as any);
+  }, [list]);
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  async function toggle(id: string, next: "acik" | "yanitlandi") {
+    try {
+      await setStatus({ data: { id, status: next } });
+      reload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Güncellenemedi");
+    }
+  }
+
+  return (
+    <Card>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Tarih</TableHead>
+            <TableHead>Uygulayıcı</TableHead>
+            <TableHead>Gönderen</TableHead>
+            <TableHead>Mesaj</TableHead>
+            <TableHead>Durum</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((r) => (
+            <TableRow key={r.id}>
+              <TableCell className="whitespace-nowrap text-xs">{fmtDate(r.created_at)}</TableCell>
+              <TableCell>{r.practitioner_name}</TableCell>
+              <TableCell>
+                <div className="text-sm">{r.sender_name}</div>
+                <div className="text-xs text-muted-foreground">{r.sender_email}</div>
+              </TableCell>
+              <TableCell className="max-w-md whitespace-pre-wrap text-sm">{r.message}</TableCell>
+              <TableCell>
+                <Select
+                  value={r.status}
+                  onValueChange={(v) => toggle(r.id, v as "acik" | "yanitlandi")}
+                >
+                  <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="acik">Açık</SelectItem>
+                    <SelectItem value="yanitlandi">Yanıtlandı</SelectItem>
+                  </SelectContent>
+                </Select>
+              </TableCell>
+            </TableRow>
+          ))}
+          {rows.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                Henüz gelen talep yok.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </Card>
   );
 }
