@@ -514,6 +514,114 @@ export type Database = {
         }
         Relationships: []
       }
+      practitioner_inquiries: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          practitioner_id: string
+          sender_email: string
+          sender_name: string
+          status: Database["public"]["Enums"]["practitioner_inquiry_status"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          practitioner_id: string
+          sender_email: string
+          sender_name: string
+          status?: Database["public"]["Enums"]["practitioner_inquiry_status"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          practitioner_id?: string
+          sender_email?: string
+          sender_name?: string
+          status?: Database["public"]["Enums"]["practitioner_inquiry_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practitioner_inquiries_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "practitioners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "practitioner_inquiries_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "practitioners_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      practitioners: {
+        Row: {
+          category: Database["public"]["Enums"]["practitioner_category"]
+          city: string | null
+          country: string
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          languages: string[]
+          long_bio: string | null
+          mode: Database["public"]["Enums"]["practitioner_mode"]
+          photo_url: string | null
+          published: boolean
+          short_bio: string | null
+          sort_order: number
+          specializations: string[]
+          title: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["practitioner_category"]
+          city?: string | null
+          country?: string
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          languages?: string[]
+          long_bio?: string | null
+          mode?: Database["public"]["Enums"]["practitioner_mode"]
+          photo_url?: string | null
+          published?: boolean
+          short_bio?: string | null
+          sort_order?: number
+          specializations?: string[]
+          title?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["practitioner_category"]
+          city?: string | null
+          country?: string
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          languages?: string[]
+          long_bio?: string | null
+          mode?: Database["public"]["Enums"]["practitioner_mode"]
+          photo_url?: string | null
+          published?: boolean
+          short_bio?: string | null
+          sort_order?: number
+          specializations?: string[]
+          title?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       pro_client_invites: {
         Row: {
           client_name: string
@@ -757,7 +865,60 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      practitioners_public: {
+        Row: {
+          category: Database["public"]["Enums"]["practitioner_category"] | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          languages: string[] | null
+          long_bio: string | null
+          mode: Database["public"]["Enums"]["practitioner_mode"] | null
+          photo_url: string | null
+          short_bio: string | null
+          sort_order: number | null
+          specializations: string[] | null
+          title: string | null
+          website: string | null
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["practitioner_category"] | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          languages?: string[] | null
+          long_bio?: string | null
+          mode?: Database["public"]["Enums"]["practitioner_mode"] | null
+          photo_url?: string | null
+          short_bio?: string | null
+          sort_order?: number | null
+          specializations?: string[] | null
+          title?: string | null
+          website?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["practitioner_category"] | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          languages?: string[] | null
+          long_bio?: string | null
+          mode?: Database["public"]["Enums"]["practitioner_mode"] | null
+          photo_url?: string | null
+          short_bio?: string | null
+          sort_order?: number | null
+          specializations?: string[] | null
+          title?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_set_client_quota: {
@@ -803,6 +964,9 @@ export type Database = {
         | "session"
       invite_status: "pending" | "completed"
       order_status: "pending" | "paid" | "failed"
+      practitioner_category: "terapotik" | "kocluk" | "pedagojik" | "kurumsal"
+      practitioner_inquiry_status: "acik" | "yanitlandi"
+      practitioner_mode: "online" | "yuz_yuze" | "her_ikisi"
       product_type: "session" | "webinar" | "assessment" | "ebook"
     }
     CompositeTypes: {
@@ -943,6 +1107,9 @@ export const Constants = {
       ],
       invite_status: ["pending", "completed"],
       order_status: ["pending", "paid", "failed"],
+      practitioner_category: ["terapotik", "kocluk", "pedagojik", "kurumsal"],
+      practitioner_inquiry_status: ["acik", "yanitlandi"],
+      practitioner_mode: ["online", "yuz_yuze", "her_ikisi"],
       product_type: ["session", "webinar", "assessment", "ebook"],
     },
   },
