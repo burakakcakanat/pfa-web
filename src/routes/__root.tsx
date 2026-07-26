@@ -13,7 +13,12 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import pfaLogoAsset from "@/assets/pfa-logo-canva.png.asset.json";
+import { NewsletterForm } from "@/components/newsletter-form";
 const pfaLogo = pfaLogoAsset.url;
+
+function FooterNewsletter() {
+  return <NewsletterForm variant="footer" source="footer" />;
+}
 
 function NotFoundComponent() {
   return (
