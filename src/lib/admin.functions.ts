@@ -1270,3 +1270,135 @@ export const deletePodcastEpisode = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// -------- PRACTITIONERS --------
+const practitionerCategory = z.enum(["terapotik", "kocluk", "pedagojik", "kurumsal"]);
+const practitionerMode = z.enum(["online", "yuz_yuze", "her_ikisi"]);
+
+export const listAdminPractitioners = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("practitioners")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const upsertAdminPractitioner = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        full_name: z.string().trim().min(1).max(200),
+        category: practitionerCategory,
+        title: z.string().max(200).nullable().optional(),
+        photo_url: z.string().max(2000).nullable().optional(),
+        short_bio: z.string().max(300).nullable().optional(),
+        long_bio: z.string().max(10000).nullable().optional(),
+        specializations: z.array(z.string().max(120)).max(30).default([]),
+        languages: z.array(z.string().max(60)).max(20).default([]),
+        city: z.string().max(120).nullable().optional(),
+        country: z.string().max(120).default("Türkiye"),
+        mode: practitionerMode.default("online"),
+        email: z.string().email().max(200).nullable().optional(),
+        website: z.string().max(2000).nullable().optional(),
+        published: z.boolean().default(false),
+        sort_order: z.number().int().default(0),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.id) {
+      const { id, ...patch } = data;
+      const { error } = await supabaseAdmin.from("practitioners").update(patch).eq("id", id);
+      if (error) throw new Error(error.message);
+      return { ok: true, id };
+    }
+    const { id: _i, ...ins } = data;
+    const { data: row, error } = await supabaseAdmin
+      .from("practitioners")
+      .insert(ins)
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { ok: true, id: row.id as string };
+  });
+
+export const deleteAdminPractitioner = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("practitioners").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const createPractitionerPhotoUploadUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ filename: z.string().min(1).max(200) }).parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const ext = (data.filename.split(".").pop() || "jpg").toLowerCase();
+    const path = `photos/${crypto.randomUUID()}.${ext}`;
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from("practitioner-photos")
+      .createSignedUploadUrl(path);
+    if (error) throw new Error(error.message);
+    const { data: urlData, error: urlErr } = await supabaseAdmin.storage
+      .from("practitioner-photos")
+      .createSignedUrl(path, 60 * 60 * 24 * 365);
+    if (urlErr) throw new Error(urlErr.message);
+    return { path, token: signed.token, publicUrl: urlData.signedUrl };
+  });
+
+export const listAdminPractitionerInquiries = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("practitioner_inquiries")
+      .select("id, practitioner_id, sender_name, sender_email, message, status, created_at, practitioners(full_name)")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r: any) => ({
+      id: r.id as string,
+      practitioner_id: r.practitioner_id as string,
+      practitioner_name: r.practitioners?.full_name ?? "—",
+      sender_name: r.sender_name as string,
+      sender_email: r.sender_email as string,
+      message: r.message as string,
+      status: r.status as "acik" | "yanitlandi",
+      created_at: r.created_at as string,
+    }));
+  });
+
+export const updatePractitionerInquiryStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ id: z.string().uuid(), status: z.enum(["acik", "yanitlandi"]) }).parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("practitioner_inquiries")
+      .update({ status: data.status })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
