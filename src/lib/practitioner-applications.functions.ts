@@ -222,7 +222,7 @@ export const updateAdminApplication = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = {};
+    const patch: { status?: ApplicationStatus; admin_note?: string | null } = {};
     if (data.status !== undefined) patch.status = data.status;
     if (data.admin_note !== undefined) patch.admin_note = data.admin_note;
     if (Object.keys(patch).length === 0) return { ok: true };
