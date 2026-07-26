@@ -7,14 +7,14 @@ import { BuyButton } from "@/components/buy-button";
 export const Route = createFileRoute("/degerlendirme")({
   head: () => ({
     meta: [
-      { title: "PFA Ölçeği | PFA" },
+      { title: "PA Ölçeği | PFA" },
       {
         name: "description",
         content:
-          "PFA Ölçeği: her bilinç seviyesi için 30 soru; farkındalığı işlevsel farkındalığa taşıyan değerlendirme aracı.",
+          "PA Ölçeği: her bilinç seviyesi için 30 soru; farkındalığı işlevsel farkındalığa taşıyan değerlendirme aracı.",
       },
-      { property: "og:title", content: "PFA Ölçeği" },
-      { property: "og:description", content: "PFA Ölçeği: bilinç seviyeleri için işlevsel değerlendirme aracı." },
+      { property: "og:title", content: "PA Ölçeği" },
+      { property: "og:description", content: "PA Ölçeği: bilinç seviyeleri için işlevsel değerlendirme aracı." },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://psychofunctionalanalysis.com/degerlendirme" },
     ],
@@ -44,14 +44,14 @@ function AssessmentPage() {
   return (
     <div className="container-page py-20">
       <header className="mx-auto max-w-3xl text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">PFA Ölçeği</div>
+        <div className="text-xs uppercase tracking-[0.3em] text-accent">PA Ölçeği</div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">
-          PFA Ölçeği: Farkındalıktan İşlevsel Farkındalığa
+          PA Ölçeği: Farkındalıktan İşlevsel Farkındalığa
         </h1>
         <p className="mt-8 text-base leading-relaxed text-foreground/80">
           Resiflerde dalış yapan herkes anda ve farkındadır; ama yalnızca bir deniz
           biyoloğu hangi canlının neden renk değiştirdiğini görür. Bu fark,
-          farkındalık ile işlevsel farkındalık arasındaki farktır. PFA Ölçeği bu
+          farkındalık ile işlevsel farkındalık arasındaki farktır. PA Ölçeği bu
           geçişin aracıdır. Her bilinç seviyesi için 30 soru; hangi seviyede işlev
           aksadığını ve gelişimin nereden destek alacağını gösteren rapor. Bireysel
           gelişimden psikolojiye, eğitimden kurumsal seçme-yerleştirme-geliştirmeye
