@@ -2587,7 +2587,7 @@ function PractitionerApplications({
       </Card>
 
       {opened ? (
-        <Card className="space-y-4 p-6">
+        <div className="space-y-4 rounded-md border border-border bg-card p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h3 className="font-serif text-2xl">{opened.full_name}</h3>
@@ -2683,7 +2683,7 @@ function PractitionerApplications({
               </Button>
             </div>
           </div>
-        </Card>
+        </div>
       ) : null}
     </div>
   );
