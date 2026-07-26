@@ -30,6 +30,7 @@ import { Route as WebinarlarBilincSeviyeleriRouteImport } from './routes/webinar
 import { Route as UygulayicilarIdRouteImport } from './routes/uygulayicilar.$id'
 import { Route as HediyeTokenRouteImport } from './routes/hediye.$token'
 import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
+import { Route as BultenAyrilRouteImport } from './routes/bulten.ayril'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthenticatedRaporFinalizeRouteImport } from './routes/_authenticated/rapor-finalize'
 import { Route as AuthenticatedHesabimRouteImport } from './routes/_authenticated/hesabim'
@@ -146,6 +147,11 @@ const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
   path: '/degerlendirme/mini',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BultenAyrilRoute = BultenAyrilRouteImport.update({
+  id: '/bulten/ayril',
+  path: '/bulten/ayril',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/blog/$slug',
   path: '/blog/$slug',
@@ -222,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/hesabim': typeof AuthenticatedHesabimRoute
   '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/bulten/ayril': typeof BultenAyrilRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
@@ -254,6 +261,7 @@ export interface FileRoutesByTo {
   '/hesabim': typeof AuthenticatedHesabimRoute
   '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/bulten/ayril': typeof BultenAyrilRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
@@ -288,6 +296,7 @@ export interface FileRoutesById {
   '/_authenticated/hesabim': typeof AuthenticatedHesabimRoute
   '/_authenticated/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/bulten/ayril': typeof BultenAyrilRoute
   '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
@@ -322,6 +331,7 @@ export interface FileRouteTypes {
     | '/hesabim'
     | '/rapor-finalize'
     | '/blog/$slug'
+    | '/bulten/ayril'
     | '/degerlendirme/mini'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
@@ -354,6 +364,7 @@ export interface FileRouteTypes {
     | '/hesabim'
     | '/rapor-finalize'
     | '/blog/$slug'
+    | '/bulten/ayril'
     | '/degerlendirme/mini'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
@@ -387,6 +398,7 @@ export interface FileRouteTypes {
     | '/_authenticated/hesabim'
     | '/_authenticated/rapor-finalize'
     | '/blog/$slug'
+    | '/bulten/ayril'
     | '/degerlendirme_/mini'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
@@ -418,6 +430,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  BultenAyrilRoute: typeof BultenAyrilRoute
   DegerlendirmeMiniRoute: typeof DegerlendirmeMiniRoute
   HediyeTokenRoute: typeof HediyeTokenRoute
   UygulayicilarIdRoute: typeof UygulayicilarIdRoute
@@ -579,6 +592,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DegerlendirmeMiniRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bulten/ayril': {
+      id: '/bulten/ayril'
+      path: '/bulten/ayril'
+      fullPath: '/bulten/ayril'
+      preLoaderRoute: typeof BultenAyrilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/$slug': {
       id: '/blog/$slug'
       path: '/blog/$slug'
@@ -689,6 +709,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   BlogSlugRoute: BlogSlugRoute,
+  BultenAyrilRoute: BultenAyrilRoute,
   DegerlendirmeMiniRoute: DegerlendirmeMiniRoute,
   HediyeTokenRoute: HediyeTokenRoute,
   UygulayicilarIdRoute: UygulayicilarIdRoute,
