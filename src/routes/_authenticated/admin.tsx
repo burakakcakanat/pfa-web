@@ -160,7 +160,7 @@ function AdminPage() {
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
           <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
             <TabsTrigger value="pro-accounts">Pro Hesaplar</TabsTrigger>
-            <TabsTrigger value="questions">PA Ölçeği</TabsTrigger>
+            <TabsTrigger value="questions">PFA Ölçeği</TabsTrigger>
             <TabsTrigger value="webinars">Webinarlar</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
             <TabsTrigger value="podcasts">Podcastler</TabsTrigger>

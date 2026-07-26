@@ -46,7 +46,7 @@ const CATEGORIES: Array<{
     key: "kocluk",
     title: "Koçluk",
     audience: "Profesyonel koçlar",
-    value: "PA Ölçeği ile ölçülebilir gelişim takibi ve seans mimarisi.",
+    value: "PFA Ölçeği ile ölçülebilir gelişim takibi ve seans mimarisi.",
   },
   {
     key: "pedagojik",
