@@ -1984,7 +1984,10 @@ function emptyPractitioner(): Omit<PractitionerRow, "id" | "created_at"> & { id?
 }
 
 function PractitionersTab() {
-  const [view, setView] = useState<"list" | "inquiries">("list");
+  const [view, setView] = useState<"list" | "applications" | "inquiries">("list");
+  const [seed, setSeed] = useState<
+    (Omit<PractitionerRow, "id" | "created_at"> & { id?: string }) | null
+  >(null);
   return (
     <div className="space-y-6">
       <div className="flex gap-2">
@@ -1996,6 +1999,13 @@ function PractitionersTab() {
           Uygulayıcılar
         </Button>
         <Button
+          variant={view === "applications" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setView("applications")}
+        >
+          Başvurular
+        </Button>
+        <Button
           variant={view === "inquiries" ? "default" : "outline"}
           size="sm"
           onClick={() => setView("inquiries")}
@@ -2003,7 +2013,18 @@ function PractitionersTab() {
           Gelen Talepler
         </Button>
       </div>
-      {view === "list" ? <PractitionerList /> : <PractitionerInquiries />}
+      {view === "list" ? (
+        <PractitionerList seed={seed} onSeedConsumed={() => setSeed(null)} />
+      ) : view === "applications" ? (
+        <PractitionerApplications
+          onCreatePractitioner={(row) => {
+            setSeed(row);
+            setView("list");
+          }}
+        />
+      ) : (
+        <PractitionerInquiries />
+      )}
     </div>
   );
 }
