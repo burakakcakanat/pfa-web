@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { listBlogPosts } from "@/lib/blog.functions";
 import { listPublishedPodcasts, getPublicSiteSetting } from "@/lib/podcasts.functions";
 import { MediaEpisodeCard } from "@/components/media-episode-card";
+import { NewsletterForm } from "@/components/newsletter-form";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({
@@ -75,6 +76,10 @@ function BlogPage() {
         <div className="text-xs uppercase tracking-[0.3em] text-accent">Blog</div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">İçerik Merkezi</h1>
       </header>
+
+      <div className="mx-auto mt-10 max-w-3xl">
+        <NewsletterForm variant="banner" source="blog" />
+      </div>
 
       <div
         role="tablist"
