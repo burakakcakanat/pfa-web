@@ -27,7 +27,7 @@ const PROGRAM = [
 const KAZANIMLAR = [
   "Yedi seviyeyi kendi yaşam örneklerinizle eşleyebilmek.",
   "Hangi seviyede takıldığınızı fark edip hangi seviyeden destek alacağınızı bilmek.",
-  "Mini PFA Ölçeği sonucunuzu yorumlayabilmek.",
+  "Mini PA Ölçeği sonucunuzu yorumlayabilmek.",
 ];
 
 function Page() {

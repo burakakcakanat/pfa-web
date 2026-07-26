@@ -51,7 +51,7 @@ const PATHS = [
   },
   {
     tag: "ÖLÇ",
-    body: "PFA Ölçeği, her seviye için 30 soruyla hangi işlevin aksadığını gösterir; farkındalığı işlevsel farkındalığa taşır.",
+    body: "PA Ölçeği, her seviye için 30 soruyla hangi işlevin aksadığını gösterir; farkındalığı işlevsel farkındalığa taşır.",
     cta: "Ölçeği Tanı",
     to: "/degerlendirme",
   },
