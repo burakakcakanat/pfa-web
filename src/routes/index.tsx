@@ -10,6 +10,33 @@ export const Route = createFileRoute("/")({
         content:
           "Psİko-Fonksİyonel Analİz, insan bilincini yedi işlevsel seviyeye ayırır — Bekadan Aydınlanmaya uzanan bir harita.",
       },
+      { property: "og:title", content: "PFA — İnsan Bilincinin İşlevsel Haritası" },
+      { property: "og:description", content: "Psİko-Fonksİyonel Analİz: bilincin yedi seviyeli işlevsel haritası." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://psychofunctionalanalysis.com/" },
+    ],
+    links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Psiko-Fonksiyonel Analiz (PFA)",
+          url: "https://psychofunctionalanalysis.com",
+          logo: "https://psychofunctionalanalysis.com/favicon.ico",
+          founder: { "@type": "Person", name: "Burak Akçakanat" },
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Psiko-Fonksiyonel Analiz (PFA)",
+          url: "https://psychofunctionalanalysis.com",
+        }),
+      },
     ],
   }),
   component: HomePage,
