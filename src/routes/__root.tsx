@@ -265,7 +265,7 @@ function SiteFooter() {
   ].filter((s) => socials[s.key]);
   return (
     <footer className="mt-24 border-t border-border/60 bg-background">
-      <div className="container-page grid gap-10 py-14 md:grid-cols-3">
+      <div className="container-page grid gap-10 py-14 md:grid-cols-4">
         <div>
           <img
             src={pfaLogo}
@@ -315,6 +315,9 @@ function SiteFooter() {
               </li>
             ))}
           </ul>
+        </div>
+        <div>
+          <FooterNewsletter />
         </div>
       </div>
       <div className="border-t border-border/60">
