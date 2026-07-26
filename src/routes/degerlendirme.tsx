@@ -82,7 +82,7 @@ function AssessmentPage() {
                 Tam Testi Başlat
               </Link>
             ) : (
-              <BuyButton productSlug="tam-assessment-rapor" label="Tam Assessment Satın Al" />
+              <BuyButton productSlug="tam-assessment-rapor" label="Tam Ölçeği Satın Al" />
             )}
           </div>
         </div>
