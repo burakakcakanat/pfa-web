@@ -13,7 +13,12 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import pfaLogoAsset from "@/assets/pfa-logo-canva.png.asset.json";
+import { NewsletterForm } from "@/components/newsletter-form";
 const pfaLogo = pfaLogoAsset.url;
+
+function FooterNewsletter() {
+  return <NewsletterForm variant="footer" source="footer" />;
+}
 
 function NotFoundComponent() {
   return (
@@ -81,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "PFA — Psİko-Fonksİyonel Analİz | İnsan Bilincinin İşlevsel Haritası" },
-      { name: "description", content: "Psİko-Fonksİyonel Analİz (PFA): insan bilincini yedi işlevsel seviyeye ayıran bir harita. Kitaplar, PFA Ölçeği, birebir seanslar, webinarlar ve eğitim." },
+      { name: "description", content: "Psİko-Fonksİyonel Analİz (PFA): insan bilincini yedi işlevsel seviyeye ayıran bir harita. Kitaplar, PA Ölçeği, birebir seanslar, webinarlar ve eğitim." },
       { name: "author", content: "Burak Akçakanat" },
       { property: "og:title", content: "PFA — Psİko-Fonksİyonel Analİz" },
       { property: "og:description", content: "İnsan bilincinin yedi seviyeli işlevsel haritası." },
@@ -265,7 +270,7 @@ function SiteFooter() {
   ].filter((s) => socials[s.key]);
   return (
     <footer className="mt-24 border-t border-border/60 bg-background">
-      <div className="container-page grid gap-10 py-14 md:grid-cols-3">
+      <div className="container-page grid gap-10 py-14 md:grid-cols-4">
         <div>
           <img
             src={pfaLogo}
@@ -315,6 +320,9 @@ function SiteFooter() {
               </li>
             ))}
           </ul>
+        </div>
+        <div>
+          <FooterNewsletter />
         </div>
       </div>
       <div className="border-t border-border/60">

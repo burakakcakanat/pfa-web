@@ -428,6 +428,90 @@ export type Database = {
           },
         ]
       }
+      newsletter_issues: {
+        Row: {
+          content_md: string
+          created_at: string
+          id: string
+          scheduled_note: string | null
+          segment: Database["public"]["Enums"]["newsletter_target_segment"]
+          sent_at: string | null
+          sent_count: number | null
+          status: Database["public"]["Enums"]["newsletter_issue_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content_md?: string
+          created_at?: string
+          id?: string
+          scheduled_note?: string | null
+          segment?: Database["public"]["Enums"]["newsletter_target_segment"]
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: Database["public"]["Enums"]["newsletter_issue_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content_md?: string
+          created_at?: string
+          id?: string
+          scheduled_note?: string | null
+          segment?: Database["public"]["Enums"]["newsletter_target_segment"]
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: Database["public"]["Enums"]["newsletter_issue_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      newsletter_subscribers: {
+        Row: {
+          confirmed: boolean
+          consent: boolean
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          segment: Database["public"]["Enums"]["newsletter_segment"]
+          source: string | null
+          unsubscribe_token: string
+          unsubscribed_at: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          confirmed?: boolean
+          consent?: boolean
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          segment: Database["public"]["Enums"]["newsletter_segment"]
+          source?: string | null
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          confirmed?: boolean
+          consent?: boolean
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          segment?: Database["public"]["Enums"]["newsletter_segment"]
+          source?: string | null
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           amount_cents: number
@@ -1024,6 +1108,9 @@ export type Database = {
         | "pfa_pro"
         | "session"
       invite_status: "pending" | "completed"
+      newsletter_issue_status: "taslak" | "gonderildi"
+      newsletter_segment: "merakli" | "profesyonel" | "kurumsal"
+      newsletter_target_segment: "merakli" | "profesyonel" | "kurumsal" | "tumu"
       order_status: "pending" | "paid" | "failed"
       practitioner_category: "terapotik" | "kocluk" | "pedagojik" | "kurumsal"
       practitioner_inquiry_status: "acik" | "yanitlandi"
@@ -1168,6 +1255,9 @@ export const Constants = {
         "session",
       ],
       invite_status: ["pending", "completed"],
+      newsletter_issue_status: ["taslak", "gonderildi"],
+      newsletter_segment: ["merakli", "profesyonel", "kurumsal"],
+      newsletter_target_segment: ["merakli", "profesyonel", "kurumsal", "tumu"],
       order_status: ["pending", "paid", "failed"],
       practitioner_category: ["terapotik", "kocluk", "pedagojik", "kurumsal"],
       practitioner_inquiry_status: ["acik", "yanitlandi"],

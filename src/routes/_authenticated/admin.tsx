@@ -109,6 +109,16 @@ import {
   type AdminApplicationRow,
   type ApplicationStatus,
 } from "@/lib/practitioner-applications.functions";
+import {
+  listNewsletterSubscribers,
+  deleteNewsletterSubscriber,
+  listNewsletterIssues,
+  upsertNewsletterIssue,
+  deleteNewsletterIssue,
+  sendNewsletterIssue,
+  sendNewsletterTest,
+  getNewsletterConfigStatus,
+} from "@/lib/newsletter.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -150,7 +160,7 @@ function AdminPage() {
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
           <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
             <TabsTrigger value="pro-accounts">Pro Hesaplar</TabsTrigger>
-            <TabsTrigger value="questions">PFA Ölçeği</TabsTrigger>
+            <TabsTrigger value="questions">PA Ölçeği</TabsTrigger>
             <TabsTrigger value="webinars">Webinarlar</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
             <TabsTrigger value="podcasts">Podcastler</TabsTrigger>
@@ -158,6 +168,7 @@ function AdminPage() {
             <TabsTrigger value="orders">Siparişler</TabsTrigger>
             <TabsTrigger value="settings">Site Ayarları</TabsTrigger>
             <TabsTrigger value="practitioners">Uygulayıcılar</TabsTrigger>
+            <TabsTrigger value="newsletter">Bülten</TabsTrigger>
           </TabsList>
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
@@ -175,6 +186,7 @@ function AdminPage() {
             <TabsContent value="orders"><OrdersTab /></TabsContent>
             <TabsContent value="settings"><SiteSettingsTab /></TabsContent>
             <TabsContent value="practitioners"><PractitionersTab /></TabsContent>
+            <TabsContent value="newsletter"><NewsletterTab /></TabsContent>
           </div>
         </Tabs>
       </div>
@@ -2768,5 +2780,265 @@ function PractitionerInquiries() {
         </TableBody>
       </Table>
     </Card>
+  );
+}
+
+// -------------------- Newsletter Tab --------------------
+function NewsletterTab() {
+  const [sub, setSub] = useState<"aboneler" | "sayilar">("aboneler");
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2 border-b border-border">
+        <button
+          onClick={() => setSub("aboneler")}
+          className={`-mb-px border-b-2 px-4 py-2 text-sm ${sub === "aboneler" ? "border-accent text-accent" : "border-transparent text-muted-foreground"}`}
+        >Aboneler</button>
+        <button
+          onClick={() => setSub("sayilar")}
+          className={`-mb-px border-b-2 px-4 py-2 text-sm ${sub === "sayilar" ? "border-accent text-accent" : "border-transparent text-muted-foreground"}`}
+        >Bülten Sayıları</button>
+      </div>
+      {sub === "aboneler" ? <NewsletterSubscribers /> : <NewsletterIssues />}
+    </div>
+  );
+}
+
+function NewsletterSubscribers() {
+  const listFn = useServerFn(listNewsletterSubscribers);
+  const delFn = useServerFn(deleteNewsletterSubscriber);
+  const [rows, setRows] = useState<any[]>([]);
+  const [q, setQ] = useState("");
+  const [seg, setSeg] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await listFn();
+      setRows(r as any[]);
+    } finally { setLoading(false); }
+  }, [listFn]);
+  useEffect(() => { reload(); }, [reload]);
+
+  const filtered = rows.filter((r) => {
+    if (seg !== "all" && r.segment !== seg) return false;
+    if (q && !`${r.email} ${r.full_name ?? ""}`.toLowerCase().includes(q.toLowerCase())) return false;
+    return true;
+  });
+
+  const stats = {
+    total: rows.filter((r) => !r.unsubscribed_at).length,
+    merakli: rows.filter((r) => r.segment === "merakli" && !r.unsubscribed_at).length,
+    profesyonel: rows.filter((r) => r.segment === "profesyonel" && !r.unsubscribed_at).length,
+    kurumsal: rows.filter((r) => r.segment === "kurumsal" && !r.unsubscribed_at).length,
+  };
+
+  function exportCsv() {
+    const header = ["email","full_name","segment","source","consent","unsubscribed_at","created_at"];
+    const lines = [header.join(",")];
+    for (const r of filtered) {
+      lines.push(header.map((k) => JSON.stringify((r as any)[k] ?? "")).join(","));
+    }
+    const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "aboneler.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 md:grid-cols-4">
+        <div className="rounded-md border border-border p-3 text-sm"><div className="text-muted-foreground text-xs">Toplam</div><div className="text-2xl font-semibold">{stats.total}</div></div>
+        <div className="rounded-md border border-border p-3 text-sm"><div className="text-muted-foreground text-xs">Meraklı</div><div className="text-2xl font-semibold">{stats.merakli}</div></div>
+        <div className="rounded-md border border-border p-3 text-sm"><div className="text-muted-foreground text-xs">Profesyonel</div><div className="text-2xl font-semibold">{stats.profesyonel}</div></div>
+        <div className="rounded-md border border-border p-3 text-sm"><div className="text-muted-foreground text-xs">Kurumsal</div><div className="text-2xl font-semibold">{stats.kurumsal}</div></div>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Input placeholder="Ara (e-posta, ad)" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-xs" />
+        <Select value={seg} onValueChange={setSeg}>
+          <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tüm segmentler</SelectItem>
+            <SelectItem value="merakli">Meraklı</SelectItem>
+            <SelectItem value="profesyonel">Profesyonel</SelectItem>
+            <SelectItem value="kurumsal">Kurumsal</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button variant="outline" onClick={exportCsv}>CSV Dışa Aktar</Button>
+        <Button variant="outline" onClick={reload}>Yenile</Button>
+      </div>
+      {loading ? <p className="text-sm text-muted-foreground">Yükleniyor…</p> : (
+        <Table>
+          <TableHeader><TableRow><TableHead>E-posta</TableHead><TableHead>Ad</TableHead><TableHead>Segment</TableHead><TableHead>Kaynak</TableHead><TableHead>Tarih</TableHead><TableHead>Durum</TableHead><TableHead></TableHead></TableRow></TableHeader>
+          <TableBody>
+            {filtered.map((r) => (
+              <TableRow key={r.id}>
+                <TableCell className="font-mono text-xs">{r.email}</TableCell>
+                <TableCell>{r.full_name ?? "—"}</TableCell>
+                <TableCell>{r.segment}</TableCell>
+                <TableCell>{r.source ?? "—"}</TableCell>
+                <TableCell className="text-xs">{fmtDate(r.created_at)}</TableCell>
+                <TableCell className="text-xs">{r.unsubscribed_at ? "Ayrıldı" : "Aktif"}</TableCell>
+                <TableCell>
+                  <Button size="sm" variant="ghost" onClick={async () => {
+                    if (!confirm("Silinsin mi?")) return;
+                    await delFn({ data: { id: r.id } });
+                    reload();
+                  }}>Sil</Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </div>
+  );
+}
+
+function NewsletterIssues() {
+  const listFn = useServerFn(listNewsletterIssues);
+  const upsertFn = useServerFn(upsertNewsletterIssue);
+  const delFn = useServerFn(deleteNewsletterIssue);
+  const sendFn = useServerFn(sendNewsletterIssue);
+  const testFn = useServerFn(sendNewsletterTest);
+  const cfgFn = useServerFn(getNewsletterConfigStatus);
+
+  const [issues, setIssues] = useState<any[]>([]);
+  const [emailConfigured, setEmailConfigured] = useState(false);
+  const [editing, setEditing] = useState<any | null>(null);
+
+  const reload = useCallback(async () => {
+    const [rows, cfg] = await Promise.all([listFn(), cfgFn()]);
+    setIssues(rows as any[]);
+    setEmailConfigured((cfg as any).emailConfigured);
+  }, [listFn, cfgFn]);
+  useEffect(() => { reload(); }, [reload]);
+
+  if (editing) {
+    return <IssueEditor
+      initial={editing}
+      emailConfigured={emailConfigured}
+      onCancel={() => setEditing(null)}
+      onSave={async (v) => {
+        const r = await upsertFn({ data: v });
+        toast.success("Kaydedildi");
+        setEditing({ ...v, id: (r as any).id });
+        reload();
+      }}
+      onSend={async (id) => {
+        if (!confirm("Bu bülteni hedef aboneler için göndermek istediğinize emin misiniz?")) return;
+        try {
+          const r: any = await sendFn({ data: { issueId: id } });
+          toast.success(`Gönderildi: ${r.sent}/${r.total}`);
+          reload(); setEditing(null);
+        } catch (e: any) { toast.error(e?.message ?? "Gönderim başarısız"); }
+      }}
+      onTest={async (id) => {
+        try {
+          const r: any = await testFn({ data: { issueId: id } });
+          toast.success(`Test gönderildi: ${r.sentTo}`);
+        } catch (e: any) { toast.error(e?.message ?? "Test başarısız"); }
+      }}
+    />;
+  }
+
+  return (
+    <div className="space-y-4">
+      {!emailConfigured && (
+        <div className="rounded-md border border-border bg-muted/40 p-3 text-sm">
+          E-posta gönderimi için Resend kurulumu bekleniyor. Aboneler eklenebilir, sayılar taslak olarak kaydedilebilir; gönderim düğmesi pasiftir.
+        </div>
+      )}
+      <div className="flex justify-between">
+        <div className="text-sm text-muted-foreground">{issues.length} bülten sayısı</div>
+        <Button onClick={() => setEditing({ id: null, title: "", segment: "tumu", content_md: "" })}>Yeni Sayı</Button>
+      </div>
+      <Table>
+        <TableHeader><TableRow><TableHead>Başlık</TableHead><TableHead>Segment</TableHead><TableHead>Durum</TableHead><TableHead>Gönderilen</TableHead><TableHead>Oluşturma</TableHead><TableHead></TableHead></TableRow></TableHeader>
+        <TableBody>
+          {issues.map((r) => (
+            <TableRow key={r.id}>
+              <TableCell>{r.title}</TableCell>
+              <TableCell>{r.segment}</TableCell>
+              <TableCell>{r.status}</TableCell>
+              <TableCell>{r.sent_count ?? "—"}</TableCell>
+              <TableCell className="text-xs">{fmtDate(r.created_at)}</TableCell>
+              <TableCell className="space-x-2">
+                <Button size="sm" variant="outline" onClick={() => setEditing(r)}>Düzenle</Button>
+                <Button size="sm" variant="ghost" onClick={async () => {
+                  if (!confirm("Silinsin mi?")) return;
+                  await delFn({ data: { id: r.id } });
+                  reload();
+                }}>Sil</Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function IssueEditor({ initial, emailConfigured, onCancel, onSave, onSend, onTest }: {
+  initial: any;
+  emailConfigured: boolean;
+  onCancel: () => void;
+  onSave: (v: any) => Promise<void>;
+  onSend: (id: string) => Promise<void>;
+  onTest: (id: string) => Promise<void>;
+}) {
+  const [title, setTitle] = useState(initial.title ?? "");
+  const [segment, setSegment] = useState(initial.segment ?? "tumu");
+  const [content, setContent] = useState(initial.content_md ?? "");
+  const id = initial.id as string | null;
+  const sent = initial.status === "gonderildi";
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-serif text-xl">{id ? "Sayıyı Düzenle" : "Yeni Bülten Sayısı"}</h3>
+        <Button variant="ghost" onClick={onCancel}>Kapat</Button>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-3">
+          <Label>Başlık</Label>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+          <Label>Hedef Segment</Label>
+          <Select value={segment} onValueChange={setSegment}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="tumu">Tümü</SelectItem>
+              <SelectItem value="merakli">Meraklı</SelectItem>
+              <SelectItem value="profesyonel">Profesyonel</SelectItem>
+              <SelectItem value="kurumsal">Kurumsal</SelectItem>
+            </SelectContent>
+          </Select>
+          <Label>İçerik (Markdown, {"{{unsubscribe_url}}"} otomatik değiştirilir)</Label>
+          <Textarea rows={18} value={content} onChange={(e) => setContent(e.target.value)} className="font-mono text-xs" />
+        </div>
+        <div>
+          <Label>Önizleme</Label>
+          <div className="mt-2 rounded-md border border-border bg-[#fffdf7] p-6 text-sm text-[#1a2a2e]">
+            <div className="mb-4 text-center text-xs uppercase tracking-[0.2em] text-[#0f766e]">PFA — Psİko-Fonksİyonel Analİz</div>
+            <div className="prose prose-sm max-w-none">
+              <ReactMarkdown>{content}</ReactMarkdown>
+            </div>
+            <div className="mt-6 border-t border-border pt-3 text-center text-[10px] text-muted-foreground">
+              Abonelikten ayrıl
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button onClick={() => onSave({ id, title, segment, content_md: content })}>Kaydet</Button>
+        {id && !sent && (
+          <>
+            <Button variant="outline" disabled={!emailConfigured} onClick={() => onTest(id)}>Önce bana gönder</Button>
+            <Button disabled={!emailConfigured} onClick={() => onSend(id)}>Aboneler için gönder</Button>
+          </>
+        )}
+        {sent && <span className="text-xs text-muted-foreground">Bu sayı gönderilmiş.</span>}
+      </div>
+    </div>
   );
 }
