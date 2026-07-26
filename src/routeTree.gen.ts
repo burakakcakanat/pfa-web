@@ -24,6 +24,7 @@ import { Route as UygulayicilarIndexRouteImport } from './routes/uygulayicilar.i
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as WebinarlarPfaProRouteImport } from './routes/webinarlar.pfa-pro'
 import { Route as WebinarlarBilincSeviyeleriRouteImport } from './routes/webinarlar.bilinc-seviyeleri'
+import { Route as UygulayicilarIdRouteImport } from './routes/uygulayicilar.$id'
 import { Route as HediyeTokenRouteImport } from './routes/hediye.$token'
 import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
@@ -112,6 +113,11 @@ const WebinarlarBilincSeviyeleriRoute =
     path: '/webinarlar/bilinc-seviyeleri',
     getParentRoute: () => rootRouteImport,
   } as any)
+const UygulayicilarIdRoute = UygulayicilarIdRouteImport.update({
+  id: '/uygulayicilar/$id',
+  path: '/uygulayicilar/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HediyeTokenRoute = HediyeTokenRouteImport.update({
   id: '/hediye/$token',
   path: '/hediye/$token',
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/hediye/$token': typeof HediyeTokenRoute
+  '/uygulayicilar/$id': typeof UygulayicilarIdRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/blog/': typeof BlogIndexRoute
@@ -225,6 +232,7 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/hediye/$token': typeof HediyeTokenRoute
+  '/uygulayicilar/$id': typeof UygulayicilarIdRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/blog': typeof BlogIndexRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
   '/hediye/$token': typeof HediyeTokenRoute
+  '/uygulayicilar/$id': typeof UygulayicilarIdRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/blog/': typeof BlogIndexRoute
@@ -285,6 +294,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/degerlendirme/mini'
     | '/hediye/$token'
+    | '/uygulayicilar/$id'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/blog/'
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/degerlendirme/mini'
     | '/hediye/$token'
+    | '/uygulayicilar/$id'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/blog'
@@ -342,6 +353,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/degerlendirme_/mini'
     | '/hediye/$token'
+    | '/uygulayicilar/$id'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/blog/'
@@ -369,6 +381,7 @@ export interface RootRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
   DegerlendirmeMiniRoute: typeof DegerlendirmeMiniRoute
   HediyeTokenRoute: typeof HediyeTokenRoute
+  UygulayicilarIdRoute: typeof UygulayicilarIdRoute
   WebinarlarBilincSeviyeleriRoute: typeof WebinarlarBilincSeviyeleriRoute
   WebinarlarPfaProRoute: typeof WebinarlarPfaProRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -483,6 +496,13 @@ declare module '@tanstack/react-router' {
       path: '/webinarlar/bilinc-seviyeleri'
       fullPath: '/webinarlar/bilinc-seviyeleri'
       preLoaderRoute: typeof WebinarlarBilincSeviyeleriRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/uygulayicilar/$id': {
+      id: '/uygulayicilar/$id'
+      path: '/uygulayicilar/$id'
+      fullPath: '/uygulayicilar/$id'
+      preLoaderRoute: typeof UygulayicilarIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hediye/$token': {
@@ -608,6 +628,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
   DegerlendirmeMiniRoute: DegerlendirmeMiniRoute,
   HediyeTokenRoute: HediyeTokenRoute,
+  UygulayicilarIdRoute: UygulayicilarIdRoute,
   WebinarlarBilincSeviyeleriRoute: WebinarlarBilincSeviyeleriRoute,
   WebinarlarPfaProRoute: WebinarlarPfaProRoute,
   BlogIndexRoute: BlogIndexRoute,
