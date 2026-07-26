@@ -2457,6 +2457,238 @@ function PractitionerList({
   );
 }
 
+const APP_STATUS_LABEL: Record<ApplicationStatus, string> = {
+  yeni: "Yeni",
+  incelemede: "İncelemede",
+  gorusme: "Görüşme",
+  kabul: "Kabul",
+  red: "Red",
+};
+
+function PractitionerApplications({
+  onCreatePractitioner,
+}: {
+  onCreatePractitioner: (
+    row: Omit<PractitionerRow, "id" | "created_at"> & { id?: string },
+  ) => void;
+}) {
+  const list = useServerFn(listAdminApplications);
+  const getUrl = useServerFn(getAdminApplicationFileUrl);
+  const update = useServerFn(updateAdminApplication);
+  const [rows, setRows] = useState<AdminApplicationRow[]>([]);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [note, setNote] = useState("");
+
+  const reload = useCallback(async () => {
+    const r = await list();
+    setRows((r ?? []) as AdminApplicationRow[]);
+  }, [list]);
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  const opened = rows.find((r) => r.id === openId) ?? null;
+  useEffect(() => {
+    setNote(opened?.admin_note ?? "");
+  }, [openId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function openFile(path: string | null) {
+    if (!path) return;
+    try {
+      const { url } = (await getUrl({ data: { path } })) as { url: string };
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Dosya açılamadı");
+    }
+  }
+
+  async function changeStatus(id: string, status: ApplicationStatus) {
+    try {
+      await update({ data: { id, status } });
+      toast.success("Durum güncellendi");
+      reload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Güncellenemedi");
+    }
+  }
+
+  async function saveNote() {
+    if (!opened) return;
+    try {
+      await update({ data: { id: opened.id, admin_note: note } });
+      toast.success("Not kaydedildi");
+      reload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Kaydedilemedi");
+    }
+  }
+
+  function seedFromApplication(app: AdminApplicationRow) {
+    onCreatePractitioner({
+      full_name: app.full_name,
+      category: app.category,
+      title: app.profession_title ?? "",
+      photo_url: "",
+      short_bio: "",
+      long_bio: app.motivation ?? "",
+      specializations: [],
+      languages: [],
+      city: app.city ?? "",
+      country: "Türkiye",
+      mode: "online",
+      email: app.email,
+      website: "",
+      published: false, // otomatik yayınlanmaz
+      sort_order: 0,
+    });
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        {rows.length} başvuru — en yeni üstte.
+      </p>
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Ad</TableHead>
+              <TableHead>Kategori</TableHead>
+              <TableHead>Şehir</TableHead>
+              <TableHead>Tarih</TableHead>
+              <TableHead>Durum</TableHead>
+              <TableHead className="text-right">Detay</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((r) => (
+              <TableRow key={r.id}>
+                <TableCell className="font-medium">{r.full_name}</TableCell>
+                <TableCell>{P_CATEGORY_LABEL[r.category]}</TableCell>
+                <TableCell>{r.city ?? "—"}</TableCell>
+                <TableCell>{fmtDate(r.created_at)}</TableCell>
+                <TableCell>{APP_STATUS_LABEL[r.status]}</TableCell>
+                <TableCell className="text-right">
+                  <Button size="sm" variant="outline" onClick={() => setOpenId(r.id)}>
+                    Aç
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+            {rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
+                  Henüz başvuru yok.
+                </TableCell>
+              </TableRow>
+            ) : null}
+          </TableBody>
+        </Table>
+      </Card>
+
+      {opened ? (
+        <Card className="space-y-4 p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="font-serif text-2xl">{opened.full_name}</h3>
+              <p className="text-sm text-muted-foreground">
+                {opened.email}
+                {opened.phone ? ` · ${opened.phone}` : ""}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {P_CATEGORY_LABEL[opened.category]} ·{" "}
+                {opened.city ?? "Şehir belirtilmemiş"} ·{" "}
+                {fmtDate(opened.created_at)}
+              </p>
+            </div>
+            <Button size="sm" variant="ghost" onClick={() => setOpenId(null)}>
+              Kapat
+            </Button>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <Label>Meslek / Unvan</Label>
+              <p className="text-sm">{opened.profession_title ?? "—"}</p>
+            </div>
+            <div>
+              <Label>Deneyim (yıl)</Label>
+              <p className="text-sm">{opened.experience_years ?? "—"}</p>
+            </div>
+          </div>
+
+          <div>
+            <Label>Niyet metni</Label>
+            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed">
+              {opened.motivation}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={!opened.cv_path}
+              onClick={() => openFile(opened.cv_path)}
+            >
+              Özgeçmişi indir
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={!opened.diploma_path}
+              onClick={() => openFile(opened.diploma_path)}
+            >
+              Diplomayı indir
+            </Button>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-[1fr_auto]">
+            <div>
+              <Label>Durum</Label>
+              <Select
+                value={opened.status}
+                onValueChange={(v) => changeStatus(opened.id, v as ApplicationStatus)}
+              >
+                <SelectTrigger className="mt-1 w-56">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(APP_STATUS_LABEL) as ApplicationStatus[]).map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {APP_STATUS_LABEL[s]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end">
+              <Button size="sm" onClick={() => seedFromApplication(opened)}>
+                Uygulayıcı kaydı oluştur
+              </Button>
+            </div>
+          </div>
+
+          <div>
+            <Label>Admin notu</Label>
+            <Textarea
+              className="mt-1"
+              rows={4}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+            <div className="mt-2 flex justify-end">
+              <Button size="sm" onClick={saveNote}>
+                Notu kaydet
+              </Button>
+            </div>
+          </div>
+        </Card>
+      ) : null}
+    </div>
+  );
+}
+
 function PractitionerInquiries() {
   const list = useServerFn(listAdminPractitionerInquiries);
   const setStatus = useServerFn(updatePractitionerInquiryStatus);
