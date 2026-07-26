@@ -20,16 +20,50 @@ const booksQuery = () =>
   queryOptions({ queryKey: ["books-data"], queryFn: () => getBooksData(), staleTime: 0 });
 
 export const Route = createFileRoute("/kitaplar")({
-  head: () => ({
-    meta: [
-      { title: "Kitaplar — PFA" },
-      {
-        name: "description",
-        content:
-          "Psycho-Functional Analysis kitapları: bilincin yedi seviyeli haritası ve modelin kökleri.",
-      },
-    ],
-  }),
+  head: ({ loaderData }) => {
+    const url = "https://psychofunctionalanalysis.com/kitaplar";
+    const products = (loaderData?.products ?? []).filter((p) => p.active);
+    const bookSchemas = products
+      .filter((p) => p.book_key)
+      .map((p) => ({
+        "@context": "https://schema.org",
+        "@type": "Book",
+        name: p.name_tr,
+        inLanguage: p.language,
+        author: { "@type": "Person", name: "Burak Akçakanat" },
+        ...(p.book_key === "pfa" && p.language === "en"
+          ? { isbn: "9798188970468" }
+          : {}),
+        ...(p.cover_image_url ? { image: p.cover_image_url } : {}),
+        offers: {
+          "@type": "Offer",
+          price: (p.price_cents / 100).toFixed(2),
+          priceCurrency: p.currency || "USD",
+          availability: "https://schema.org/InStock",
+          url,
+          seller: { "@type": "Organization", name: "Psiko-Fonksiyonel Analiz (PFA)" },
+        },
+      }));
+    return {
+      meta: [
+        { title: "Kitaplar — PFA" },
+        {
+          name: "description",
+          content:
+            "Psycho-Functional Analysis kitapları: bilincin yedi seviyeli haritası ve modelin kökleri.",
+        },
+        { property: "og:title", content: "Kitaplar — PFA" },
+        { property: "og:description", content: "PFA kitapları ve imzalı nüshalar." },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: bookSchemas.map((s) => ({
+        type: "application/ld+json",
+        children: JSON.stringify(s),
+      })),
+    };
+  },
   loader: ({ context }) => context.queryClient.ensureQueryData(booksQuery()),
   component: BooksPage,
 });
