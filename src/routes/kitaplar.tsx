@@ -20,7 +20,7 @@ const booksQuery = () =>
   queryOptions({ queryKey: ["books-data"], queryFn: () => getBooksData(), staleTime: 0 });
 
 export const Route = createFileRoute("/kitaplar")({
-  head: ({ loaderData }) => {
+  head: ({ loaderData }: { loaderData?: BooksPayload }) => {
     const url = "https://psychofunctionalanalysis.com/kitaplar";
     const products = (loaderData?.products ?? []).filter((p) => p.active);
     const bookSchemas = products
