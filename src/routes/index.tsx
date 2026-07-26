@@ -98,7 +98,7 @@ function HomePage() {
       </section>
 
       {/* Bilinç Döngüsü */}
-      <section className="container-page pt-2">
+      <section className="container-page pt-2 pb-0">
         <div className="mx-auto max-w-6xl text-center">
           <div className="text-xs uppercase tracking-[0.3em] text-accent">
             Bilinç Döngüsü
@@ -110,21 +110,27 @@ function HomePage() {
             İlk üç seviyede genişleme, dördüncü seviyeden itibaren bütünleşme —
             yedi işlevsel seviye tek bir toroidal döngü içinde birleşir.
           </p>
-          <figure className="relative mt-5 left-1/2 -translate-x-1/2 w-[140vw] max-w-[1920px]">
+          <figure
+            data-map-figure
+            className="relative mt-5 mb-0 left-1/2 -translate-x-1/2 w-[140vw] max-w-[1920px]"
+          >
             <img
               src={pfaMapAsset.url}
               alt="PFA Bilinç Döngüsü — Yedi İşlevsel Seviye Haritası"
-              className="mx-auto h-auto w-full max-w-none drop-shadow-[0_24px_80px_rgba(12,28,32,0.35)] contrast-110"
+              className="mx-auto block h-auto w-full max-w-none align-bottom drop-shadow-[0_24px_80px_rgba(12,28,32,0.35)] contrast-110"
               loading="lazy"
             />
           </figure>
         </div>
       </section>
 
+      {/* Spacer — tam olarak 2 cm (her breakpoint'te doğrulanır) */}
+      <div data-map-gap aria-hidden="true" className="h-[2cm] w-full" />
+
       {/* Neden Bir Harita */}
-      <section className="container-page pb-20">
-        <div className="mx-auto mt-[calc(2cm-0.25rem)] max-w-3xl border-t border-border pt-1 text-center">
-          <div className="text-xs uppercase tracking-[0.3em] text-accent">
+      <section className="container-page pt-0 pb-20">
+        <div className="mx-auto max-w-3xl border-t border-border pt-6 text-center">
+          <div data-neden-heading className="text-xs uppercase tracking-[0.3em] text-accent">
             Neden Bir Harita?
           </div>
           <p className="mt-6 font-serif text-2xl leading-relaxed text-foreground md:text-3xl">
