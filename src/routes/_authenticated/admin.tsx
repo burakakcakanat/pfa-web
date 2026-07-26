@@ -2017,7 +2017,7 @@ function PractitionersTab() {
         <PractitionerList seed={seed} onSeedConsumed={() => setSeed(null)} />
       ) : view === "applications" ? (
         <PractitionerApplications
-          onCreatePractitioner={(row) => {
+          onCreatePractitioner={(row: Omit<PractitionerRow, "id" | "created_at"> & { id?: string }) => {
             setSeed(row);
             setView("list");
           }}
