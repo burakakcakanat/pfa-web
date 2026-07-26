@@ -94,6 +94,14 @@ import {
   upsertPodcastEpisode,
   deletePodcastEpisode,
 } from "@/lib/admin.functions";
+import {
+  listAdminPractitioners,
+  upsertAdminPractitioner,
+  deleteAdminPractitioner,
+  createPractitionerPhotoUploadUrl,
+  listAdminPractitionerInquiries,
+  updatePractitionerInquiryStatus,
+} from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -142,6 +150,7 @@ function AdminPage() {
             <TabsTrigger value="ebooks">E-Kitaplar</TabsTrigger>
             <TabsTrigger value="orders">Siparişler</TabsTrigger>
             <TabsTrigger value="settings">Site Ayarları</TabsTrigger>
+            <TabsTrigger value="practitioners">Uygulayıcılar</TabsTrigger>
           </TabsList>
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
@@ -158,6 +167,7 @@ function AdminPage() {
             <TabsContent value="ebooks"><EbooksTab /></TabsContent>
             <TabsContent value="orders"><OrdersTab /></TabsContent>
             <TabsContent value="settings"><SiteSettingsTab /></TabsContent>
+            <TabsContent value="practitioners"><PractitionersTab /></TabsContent>
           </div>
         </Tabs>
       </div>
