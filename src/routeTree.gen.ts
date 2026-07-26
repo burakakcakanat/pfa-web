@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UygulayiciOlunRouteImport } from './routes/uygulayici-olun'
+import { Route as UygulayiciEkosistemiRouteImport } from './routes/uygulayici-ekosistemi'
 import { Route as SeanslarRouteImport } from './routes/seanslar'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as KitaplarRouteImport } from './routes/kitaplar'
@@ -42,6 +43,11 @@ import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[
 const UygulayiciOlunRoute = UygulayiciOlunRouteImport.update({
   id: '/uygulayici-olun',
   path: '/uygulayici-olun',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UygulayiciEkosistemiRoute = UygulayiciEkosistemiRouteImport.update({
+  id: '/uygulayici-ekosistemi',
+  path: '/uygulayici-ekosistemi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SeanslarRoute = SeanslarRouteImport.update({
@@ -201,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/kitaplar': typeof KitaplarRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
+  '/uygulayici-ekosistemi': typeof UygulayiciEkosistemiRoute
   '/uygulayici-olun': typeof UygulayiciOlunRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -231,6 +238,7 @@ export interface FileRoutesByTo {
   '/kitaplar': typeof KitaplarRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
+  '/uygulayici-ekosistemi': typeof UygulayiciEkosistemiRoute
   '/uygulayici-olun': typeof UygulayiciOlunRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -263,6 +271,7 @@ export interface FileRoutesById {
   '/kitaplar': typeof KitaplarRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
+  '/uygulayici-ekosistemi': typeof UygulayiciEkosistemiRoute
   '/uygulayici-olun': typeof UygulayiciOlunRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -295,6 +304,7 @@ export interface FileRouteTypes {
     | '/kitaplar'
     | '/mcp'
     | '/seanslar'
+    | '/uygulayici-ekosistemi'
     | '/uygulayici-olun'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -325,6 +335,7 @@ export interface FileRouteTypes {
     | '/kitaplar'
     | '/mcp'
     | '/seanslar'
+    | '/uygulayici-ekosistemi'
     | '/uygulayici-olun'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -356,6 +367,7 @@ export interface FileRouteTypes {
     | '/kitaplar'
     | '/mcp'
     | '/seanslar'
+    | '/uygulayici-ekosistemi'
     | '/uygulayici-olun'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -388,6 +400,7 @@ export interface RootRouteChildren {
   KitaplarRoute: typeof KitaplarRoute
   McpRoute: typeof McpRoute
   SeanslarRoute: typeof SeanslarRoute
+  UygulayiciEkosistemiRoute: typeof UygulayiciEkosistemiRoute
   UygulayiciOlunRoute: typeof UygulayiciOlunRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -411,6 +424,13 @@ declare module '@tanstack/react-router' {
       path: '/uygulayici-olun'
       fullPath: '/uygulayici-olun'
       preLoaderRoute: typeof UygulayiciOlunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/uygulayici-ekosistemi': {
+      id: '/uygulayici-ekosistemi'
+      path: '/uygulayici-ekosistemi'
+      fullPath: '/uygulayici-ekosistemi'
+      preLoaderRoute: typeof UygulayiciEkosistemiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/seanslar': {
@@ -642,6 +662,7 @@ const rootRouteChildren: RootRouteChildren = {
   KitaplarRoute: KitaplarRoute,
   McpRoute: McpRoute,
   SeanslarRoute: SeanslarRoute,
+  UygulayiciEkosistemiRoute: UygulayiciEkosistemiRoute,
   UygulayiciOlunRoute: UygulayiciOlunRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
