@@ -14,6 +14,22 @@ export const Route = createFileRoute("/blog/")({
         content:
           "PFA içerik merkezi: yazılar, podcast bölümleri ve konuşma / eğitim videoları.",
       },
+      { property: "og:title", content: "Blog — PFA" },
+      { property: "og:description", content: "PFA yazıları, podcast bölümleri ve videolar." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://psychofunctionalanalysis.com/blog" },
+    ],
+    links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/blog" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "PodcastSeries",
+          name: "Psikofonksiyonel Analiz (PFA)",
+          url: "https://psychofunctionalanalysis.com/blog",
+        }),
+      },
     ],
   }),
   component: BlogPage,
