@@ -9,7 +9,12 @@ export const Route = createFileRoute("/hakkinda")({
         content:
           "PFA modelinin yaratıcısı Burak Akçakanat: 2001'de başlayan ve yirmi üç yılı aşan bir bilinç araştırması.",
       },
+      { property: "og:title", content: "Hakkında — Burak Akçakanat" },
+      { property: "og:description", content: "PFA modelinin yaratıcısı Burak Akçakanat hakkında." },
+      { property: "og:type", content: "profile" },
+      { property: "og:url", content: "https://psychofunctionalanalysis.com/hakkinda" },
     ],
+    links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/hakkinda" }],
   }),
   component: AboutPage,
 });

@@ -9,7 +9,12 @@ export const Route = createFileRoute("/webinarlar/")({
         content:
           "PFA webinar programları: Bilinç Seviyeleri Çalışmaları ve PFA-Pro Uygulayıcı Lisans Paketi.",
       },
+      { property: "og:title", content: "Webinarlar — PFA" },
+      { property: "og:description", content: "PFA webinar programları." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://psychofunctionalanalysis.com/webinarlar" },
     ],
+    links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/webinarlar" }],
   }),
   component: WebinarsPage,
 });

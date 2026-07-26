@@ -19,8 +19,10 @@ export const Route = createFileRoute("/uygulayici-olun")({
           "Terapötik, koçluk, pedagojik ve kurumsal alanlar için PFA uygulayıcı lisans programı.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://psychofunctionalanalysis.com/uygulayici-olun" },
       { name: "twitter:card", content: "summary" },
     ],
+    links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/uygulayici-olun" }],
   }),
   component: BecomePractitionerPage,
 });
