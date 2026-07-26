@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UygulayiciOlunRouteImport } from './routes/uygulayici-olun'
 import { Route as UygulayiciEkosistemiRouteImport } from './routes/uygulayici-ekosistemi'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SeanslarRouteImport } from './routes/seanslar'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as KitaplarRouteImport } from './routes/kitaplar'
@@ -48,6 +49,11 @@ const UygulayiciOlunRoute = UygulayiciOlunRouteImport.update({
 const UygulayiciEkosistemiRoute = UygulayiciEkosistemiRouteImport.update({
   id: '/uygulayici-ekosistemi',
   path: '/uygulayici-ekosistemi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SeanslarRoute = SeanslarRouteImport.update({
@@ -207,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/kitaplar': typeof KitaplarRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/uygulayici-ekosistemi': typeof UygulayiciEkosistemiRoute
   '/uygulayici-olun': typeof UygulayiciOlunRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -238,6 +245,7 @@ export interface FileRoutesByTo {
   '/kitaplar': typeof KitaplarRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/uygulayici-ekosistemi': typeof UygulayiciEkosistemiRoute
   '/uygulayici-olun': typeof UygulayiciOlunRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -271,6 +279,7 @@ export interface FileRoutesById {
   '/kitaplar': typeof KitaplarRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/uygulayici-ekosistemi': typeof UygulayiciEkosistemiRoute
   '/uygulayici-olun': typeof UygulayiciOlunRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -304,6 +313,7 @@ export interface FileRouteTypes {
     | '/kitaplar'
     | '/mcp'
     | '/seanslar'
+    | '/sitemap.xml'
     | '/uygulayici-ekosistemi'
     | '/uygulayici-olun'
     | '/.mcp/list-tools'
@@ -335,6 +345,7 @@ export interface FileRouteTypes {
     | '/kitaplar'
     | '/mcp'
     | '/seanslar'
+    | '/sitemap.xml'
     | '/uygulayici-ekosistemi'
     | '/uygulayici-olun'
     | '/.mcp/list-tools'
@@ -367,6 +378,7 @@ export interface FileRouteTypes {
     | '/kitaplar'
     | '/mcp'
     | '/seanslar'
+    | '/sitemap.xml'
     | '/uygulayici-ekosistemi'
     | '/uygulayici-olun'
     | '/.mcp/list-tools'
@@ -400,6 +412,7 @@ export interface RootRouteChildren {
   KitaplarRoute: typeof KitaplarRoute
   McpRoute: typeof McpRoute
   SeanslarRoute: typeof SeanslarRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   UygulayiciEkosistemiRoute: typeof UygulayiciEkosistemiRoute
   UygulayiciOlunRoute: typeof UygulayiciOlunRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
@@ -431,6 +444,13 @@ declare module '@tanstack/react-router' {
       path: '/uygulayici-ekosistemi'
       fullPath: '/uygulayici-ekosistemi'
       preLoaderRoute: typeof UygulayiciEkosistemiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/seanslar': {
@@ -662,6 +682,7 @@ const rootRouteChildren: RootRouteChildren = {
   KitaplarRoute: KitaplarRoute,
   McpRoute: McpRoute,
   SeanslarRoute: SeanslarRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   UygulayiciEkosistemiRoute: UygulayiciEkosistemiRoute,
   UygulayiciOlunRoute: UygulayiciOlunRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
