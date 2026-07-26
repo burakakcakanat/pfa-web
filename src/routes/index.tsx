@@ -98,7 +98,7 @@ function HomePage() {
       </section>
 
       {/* Bilinç Döngüsü */}
-      <section className="container-page pt-2 pb-2">
+      <section className="container-page pt-2">
         <div className="mx-auto max-w-6xl text-center">
           <div className="text-xs uppercase tracking-[0.3em] text-accent">
             Bilinç Döngüsü
@@ -122,8 +122,8 @@ function HomePage() {
       </section>
 
       {/* Neden Bir Harita */}
-      <section className="container-page pt-4 pb-20">
-        <div className="mx-auto max-w-3xl border-t border-border pt-8 text-center">
+      <section className="container-page pb-20">
+        <div className="mx-auto mt-[2cm] max-w-3xl border-t border-border pt-6 text-center">
           <div className="text-xs uppercase tracking-[0.3em] text-accent">
             Neden Bir Harita?
           </div>
