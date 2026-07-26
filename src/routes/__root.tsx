@@ -335,37 +335,3 @@ function SiteFooter() {
   );
 }
 
-function SocialIcon({ name }: { name: string }) {
-  const c = "h-4 w-4";
-  if (name === "instagram") {
-    return (
-      <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-        <rect x="3" y="3" width="18" height="18" rx="5" />
-        <circle cx="12" cy="12" r="4" />
-        <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
-      </svg>
-    );
-  }
-  if (name === "linkedin") {
-    return (
-      <svg className={c} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M4.98 3.5A2.5 2.5 0 1 1 5 8.5a2.5 2.5 0 0 1 0-5zM3 9.75h4V21H3zM10 9.75h3.8v1.55h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21h-4v-5.05c0-1.2-.03-2.75-1.75-2.75-1.75 0-2.02 1.3-2.02 2.65V21H10z" />
-      </svg>
-    );
-  }
-  if (name === "x") {
-    return (
-      <svg className={c} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M18.244 2H21l-6.53 7.46L22 22h-6.828l-4.79-6.24L4.8 22H2l7.02-8.02L2 2h6.914l4.34 5.74L18.244 2zm-2.394 18h1.7L7.29 4H5.49l10.36 16z" />
-      </svg>
-    );
-  }
-  if (name === "youtube") {
-    return (
-      <svg className={c} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M23 7.2s-.22-1.56-.9-2.24c-.86-.9-1.83-.9-2.27-.96C16.7 3.75 12 3.75 12 3.75s-4.7 0-7.83.25c-.44.06-1.4.06-2.27.96C1.22 5.64 1 7.2 1 7.2S.75 9.04.75 10.87v1.76C.75 14.46 1 16.3 1 16.3s.22 1.56.9 2.24c.87.9 2 .87 2.5.97C6.2 19.75 12 19.8 12 19.8s4.7 0 7.83-.26c.44-.06 1.4-.06 2.27-.96.68-.68.9-2.24.9-2.24s.25-1.83.25-3.67v-1.76C23.25 9.04 23 7.2 23 7.2zM9.75 14.5V8.62l6.13 2.94-6.13 2.94z" />
-      </svg>
-    );
-  }
-  return null;
-}
