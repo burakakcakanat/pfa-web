@@ -172,7 +172,7 @@ const FEATURES = [
   {
     icon: Users,
     title: "Danışan Yönetimi",
-    body: "Danışanlarınızı davet eder, PA Ölçeği süreçlerini ve sonuçlarını kendi panelinizden takip edersiniz.",
+    body: "Danışanlarınızı davet eder, PFA Ölçeği süreçlerini ve sonuçlarını kendi panelinizden takip edersiniz.",
   },
   {
     icon: BookOpen,

@@ -18,10 +18,10 @@ export const Route = createFileRoute("/webinarlar/pfa-pro")({
 });
 
 const ICERIK = [
-  "6 canlı online eğitim oturumu (kuramsal temel; yedi seviyenin işlevleri ve nedensellikleri; PA Ölçeği uygulama ve rapor yorumlama; vaka çalışması; uygulama etiği ve sınırlar).",
+  "6 canlı online eğitim oturumu (kuramsal temel; yedi seviyenin işlevleri ve nedensellikleri; PFA Ölçeği uygulama ve rapor yorumlama; vaka çalışması; uygulama etiği ve sınırlar).",
   "PFA Applier/Practitioner unvanı ve dijital sertifika (PDF, Hesabım'a düşer).",
   "Portal Pro hesabı: \"Danışanlarım\" paneli.",
-  "20 danışan ölçeği hakkı (danışanlarınıza ücretsiz tam PA Ölçeği tanımlama).",
+  "20 danışan ölçeği hakkı (danışanlarınıza ücretsiz tam PFA Ölçeği tanımlama).",
   "Pro materyal alanı (uygulama kılavuzları).",
 ];
 
@@ -49,7 +49,7 @@ function Page() {
 
         <p className="mt-8 leading-relaxed text-foreground/85">
           Terapist, koç, eğitimci ve İK profesyonelleri için: modeli kuramsal temeliyle
-          öğrenin, PA Ölçeği'ni danışanlarınıza uygulayın, raporları tek panelden yönetin.
+          öğrenin, PFA Ölçeği'ni danışanlarınıza uygulayın, raporları tek panelden yönetin.
         </p>
 
         <Section title="Paket içeriği">

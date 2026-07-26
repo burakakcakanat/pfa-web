@@ -309,7 +309,7 @@ function BundlesSection({
         <div className="text-xs uppercase tracking-[0.3em] text-accent">Paketler</div>
         <h2 className="mt-4 font-serif text-3xl md:text-4xl">İmzalı kitapla birlikte</h2>
         <p className="mt-4 text-sm text-foreground/75">
-          Kitap, PA Ölçeği ve birebir seans — tek pakette.
+          Kitap, PFA Ölçeği ve birebir seans — tek pakette.
         </p>
       </div>
 
@@ -349,7 +349,7 @@ function BundleRow({
   const hasSession = bundle.items.some((i) => i.product_slug === "danismanlik-oturumu");
   const hasAssessment = bundle.items.some((i) => i.product_slug === "tam-assessment-rapor");
 
-  // Görsel sırası: kitap → PA Ölçeği → Seans (varsa)
+  // Görsel sırası: kitap → PFA Ölçeği → Seans (varsa)
   const bookProduct = bundle.includes_book
     ? productBySlug.get(bookSlugFor(bundle.book_key, lang))
     : null;
@@ -365,7 +365,7 @@ function BundleRow({
     | { kind: "session"; label: string };
   const pieces: Piece[] = [];
   if (bundle.includes_book) pieces.push({ kind: "book", label: "Kitap" });
-  if (hasAssessment) pieces.push({ kind: "assessment", label: "PA Ölçeği" });
+  if (hasAssessment) pieces.push({ kind: "assessment", label: "PFA Ölçeği" });
   if (hasSession) pieces.push({ kind: "session", label: "Seans" });
 
   return (
