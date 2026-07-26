@@ -20,6 +20,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WebinarlarIndexRouteImport } from './routes/webinarlar.index'
+import { Route as UygulayicilarIndexRouteImport } from './routes/uygulayicilar.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as WebinarlarPfaProRouteImport } from './routes/webinarlar.pfa-pro'
 import { Route as WebinarlarBilincSeviyeleriRouteImport } from './routes/webinarlar.bilinc-seviyeleri'
@@ -88,6 +89,11 @@ const IndexRoute = IndexRouteImport.update({
 const WebinarlarIndexRoute = WebinarlarIndexRouteImport.update({
   id: '/webinarlar/',
   path: '/webinarlar/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UygulayicilarIndexRoute = UygulayicilarIndexRouteImport.update({
+  id: '/uygulayicilar/',
+  path: '/uygulayicilar/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -194,6 +200,7 @@ export interface FileRoutesByFullPath {
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/blog/': typeof BlogIndexRoute
+  '/uygulayicilar/': typeof UygulayicilarIndexRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/blog': typeof BlogIndexRoute
+  '/uygulayicilar': typeof UygulayicilarIndexRoute
   '/webinarlar': typeof WebinarlarIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -250,6 +258,7 @@ export interface FileRoutesById {
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/blog/': typeof BlogIndexRoute
+  '/uygulayicilar/': typeof UygulayicilarIndexRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -279,6 +288,7 @@ export interface FileRouteTypes {
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/blog/'
+    | '/uygulayicilar/'
     | '/webinarlar/'
     | '/.mcp/invoke-tool/$tool'
     | '/degerlendirme/tam'
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/blog'
+    | '/uygulayicilar'
     | '/webinarlar'
     | '/.mcp/invoke-tool/$tool'
     | '/degerlendirme/tam'
@@ -334,6 +345,7 @@ export interface FileRouteTypes {
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/blog/'
+    | '/uygulayicilar/'
     | '/webinarlar/'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/degerlendirme/tam'
@@ -360,6 +372,7 @@ export interface RootRouteChildren {
   WebinarlarBilincSeviyeleriRoute: typeof WebinarlarBilincSeviyeleriRoute
   WebinarlarPfaProRoute: typeof WebinarlarPfaProRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  UygulayicilarIndexRoute: typeof UygulayicilarIndexRoute
   WebinarlarIndexRoute: typeof WebinarlarIndexRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
@@ -442,6 +455,13 @@ declare module '@tanstack/react-router' {
       path: '/webinarlar'
       fullPath: '/webinarlar/'
       preLoaderRoute: typeof WebinarlarIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/uygulayicilar/': {
+      id: '/uygulayicilar/'
+      path: '/uygulayicilar'
+      fullPath: '/uygulayicilar/'
+      preLoaderRoute: typeof UygulayicilarIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -591,6 +611,7 @@ const rootRouteChildren: RootRouteChildren = {
   WebinarlarBilincSeviyeleriRoute: WebinarlarBilincSeviyeleriRoute,
   WebinarlarPfaProRoute: WebinarlarPfaProRoute,
   BlogIndexRoute: BlogIndexRoute,
+  UygulayicilarIndexRoute: UygulayicilarIndexRoute,
   WebinarlarIndexRoute: WebinarlarIndexRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
