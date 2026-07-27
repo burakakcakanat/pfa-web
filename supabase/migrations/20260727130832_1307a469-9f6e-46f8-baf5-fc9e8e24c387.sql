@@ -1,0 +1,1 @@
+INSERT INTO public.site_settings (key, value) VALUES ('admin_notification_email', 'corteqssocial@gmail.com') ON CONFLICT (key) DO NOTHING;
