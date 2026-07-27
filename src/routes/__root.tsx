@@ -188,7 +188,7 @@ function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-sm">
-      <div className="container-page flex h-16 items-center justify-between gap-6">
+      <div className="container-page flex h-64 items-center justify-between gap-6">
         <Link
           to="/"
           className="flex h-[85%] flex-col items-start justify-center gap-1 leading-none"
