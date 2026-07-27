@@ -111,13 +111,24 @@ export const submitPractitionerInquiry = createServerFn({ method: "POST" })
     });
     if (insErr) throw new Error(insErr.message);
 
-    // TODO: E-posta bildirimi. Gerçek e-posta sağlayıcı entegrasyonu (Resend/Postmark)
-    // eklendiğinde burada p.email adresine mail gönderilecek.
-    // Şimdilik yalnızca sunucu tarafında loglanır; e-posta adresi asla client'a dönmez.
-    if (typeof console !== "undefined") {
-      console.info(
-        `[practitioner-inquiry] queued for practitioner ${p.id} (${p.full_name})`,
-      );
+    // E-posta bildirimi — uygulayıcıya ad + kısa önizleme (mesaj gövdesi yok).
+    if (p.email) {
+      const { sendEmail } = await import("@/lib/email/send.server");
+      const { renderEmail, esc } = await import("@/lib/email/templates");
+      const firstName = (data.sender_name.trim().split(/\s+/)[0] ?? "").slice(0, 60);
+      const preview = data.message.trim().replace(/\s+/g, " ").slice(0, 80);
+      const bodyHtml = `
+        <p>Merhaba ${esc(p.full_name)},</p>
+        <p><strong>${esc(firstName)}</strong> adında bir kişi PFA uygulayıcı profilinizden size ulaştı.</p>
+        <p style="border-left:3px solid #C9A96A;padding:8px 12px;background:#F7F3EA;color:#4a4a4a;font-style:italic">
+          "${esc(preview)}${data.message.length > 80 ? "…" : ""}"
+        </p>
+        <p>Yanıt vermek için PFA panelinize giriş yapabilirsiniz. Gönderenin e-postası panelde görünür.</p>`;
+      await sendEmail({
+        to: p.email,
+        subject: "PFA — Yeni bir mesajınız var",
+        html: renderEmail({ title: "Yeni bir mesajınız var", bodyHtml }),
+      });
     }
 
     return { ok: true };
