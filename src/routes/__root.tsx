@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import pfaLogoAsset from "@/assets/pfa-logo-canva.png.asset.json";
+import pfaHeaderMarkAsset from "@/assets/pfa-header-mark.png.asset.json";
+import pfaHeaderTaglineAsset from "@/assets/pfa-header-tagline.png.asset.json";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Instagram, Linkedin, Youtube, Twitter } from "lucide-react";
 const pfaLogo = pfaLogoAsset.url;
@@ -187,11 +189,20 @@ function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-sm">
       <div className="container-page flex h-16 items-center justify-between gap-6">
-        <Link to="/" className="flex items-center" aria-label="PFA — Psİko-Fonksİyonel Analİz">
+        <Link
+          to="/"
+          className="flex h-[85%] flex-col items-start justify-center gap-1 leading-none"
+          aria-label="PFA — Psycho-Functional Analysis"
+        >
           <img
-            src={pfaLogo}
-            alt="PFA — Psycho-Functional Analysis"
-            className="h-10 w-auto md:h-12"
+            src={pfaHeaderMarkAsset.url}
+            alt="PFA"
+            className="block h-[68%] w-auto object-contain"
+          />
+          <img
+            src={pfaHeaderTaglineAsset.url}
+            alt="Psycho-Functional Analysis"
+            className="block h-[18%] w-auto object-contain"
           />
         </Link>
         <nav className="hidden items-center gap-6 text-[0.82rem] tracking-wide lg:flex">
