@@ -156,6 +156,40 @@ export const submitPractitionerApplication = createServerFn({ method: "POST" })
       });
     if (insErr) throw new Error(insErr.message);
 
+    // Admin bildirim e-postası (kırılmasın)
+    try {
+      const { sendEmail, getAdminNotificationEmail } = await import("@/lib/email/send.server");
+      const { renderEmail, esc } = await import("@/lib/email/templates");
+      const to = await getAdminNotificationEmail();
+      const categoryLabel: Record<PractitionerCategory, string> = {
+        terapotik: "Terapötik",
+        kocluk: "Koçluk",
+        pedagojik: "Pedagojik",
+        kurumsal: "Kurumsal",
+      };
+      const bodyHtml = `
+        <p>Yeni bir uygulayıcı başvurusu alındı.</p>
+        <table style="width:100%;font-size:14px;border-collapse:collapse">
+          <tr><td style="padding:6px 0;color:#6b6355;width:140px">Ad Soyad</td><td>${esc(parsed.full_name)}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b6355">E-posta</td><td>${esc(parsed.email)}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b6355">Telefon</td><td>${esc(parsed.phone || "—")}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b6355">Şehir</td><td>${esc(parsed.city || "—")}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b6355">Kategori</td><td>${esc(categoryLabel[parsed.category])}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b6355">Unvan</td><td>${esc(parsed.profession_title || "—")}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b6355">Deneyim (yıl)</td><td>${esc(String(parsed.experience_years ?? "—"))}</td></tr>
+        </table>
+        <p style="margin-top:14px"><strong>Motivasyon</strong></p>
+        <p style="white-space:pre-wrap">${esc(parsed.motivation)}</p>`;
+      await sendEmail({
+        to,
+        replyTo: parsed.email,
+        subject: `PFA — Yeni uygulayıcı başvurusu: ${parsed.full_name}`,
+        html: renderEmail({ title: "Yeni uygulayıcı başvurusu", bodyHtml }),
+      });
+    } catch (e) {
+      console.error("[email] application admin notify failed", e);
+    }
+
     return { ok: true };
   });
 

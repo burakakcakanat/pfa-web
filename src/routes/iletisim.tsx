@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { submitContactMessage } from "@/lib/contact.functions";
 
 export const Route = createFileRoute("/iletisim")({
   head: () => ({
@@ -18,6 +20,9 @@ export const Route = createFileRoute("/iletisim")({
 
 function ContactPage() {
   const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const send = useServerFn(submitContactMessage);
   return (
     <div className="container-page py-20">
       <div className="mx-auto grid max-w-5xl gap-14 md:grid-cols-2">
@@ -59,35 +64,59 @@ function ContactPage() {
           ) : (
             <form
               className="grid gap-4"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                setSent(true);
+                setErr(null);
+                setBusy(true);
+                const fd = new FormData(e.currentTarget);
+                try {
+                  await send({
+                    data: {
+                      full_name: String(fd.get("full_name") ?? ""),
+                      email: String(fd.get("email") ?? ""),
+                      subject: String(fd.get("subject") ?? ""),
+                      message: String(fd.get("message") ?? ""),
+                      website_hp: String(fd.get("website_hp") ?? ""),
+                    },
+                  });
+                  setSent(true);
+                } catch (e2: any) {
+                  setErr(e2?.message ?? "Bir hata oluştu.");
+                } finally {
+                  setBusy(false);
+                }
               }}
             >
               <input
                 required
+                name="full_name"
                 placeholder="Adınız Soyadınız"
                 className="rounded-md border border-input bg-background px-3 py-2.5 text-sm"
               />
               <input
                 required
                 type="email"
+                name="email"
                 placeholder="E-posta"
                 className="rounded-md border border-input bg-background px-3 py-2.5 text-sm"
               />
               <input
+                name="subject"
                 placeholder="Konu"
                 className="rounded-md border border-input bg-background px-3 py-2.5 text-sm"
               />
               <textarea
                 required
+                name="message"
                 rows={5}
                 placeholder="Mesajınız"
                 className="rounded-md border border-input bg-background px-3 py-2.5 text-sm"
               />
-              <button className="btn-primary hover:btn-primary-hover justify-self-start">
-                Gönder
+              <input type="text" name="website_hp" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
+              <button disabled={busy} className="btn-primary hover:btn-primary-hover justify-self-start disabled:opacity-60">
+                {busy ? "Gönderiliyor…" : "Gönder"}
               </button>
+              {err && <span className="text-xs text-destructive">{err}</span>}
             </form>
           )}
         </div>
