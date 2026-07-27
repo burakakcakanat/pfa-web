@@ -243,27 +243,39 @@ function LangPill({ active, children, onClick }: { active: boolean; children: Re
 }
 
 function AmazonRow({ label, edition }: { label: string; edition: BooksPayload["editions"][number] }) {
+  // Safari popup engelini aşmak için: onClick/window.open YOK.
+  // Her ülke seçeneği render anında href hesaplanmış gerçek <a target="_blank"> olarak DOM'a giriyor.
+  const options = edition.marketplaces
+    .map((mk) => ({ mk, url: amazonUrlFor(mk, edition.asin, edition.overrides) }))
+    .filter((o): o is { mk: string; url: string } => !!o.url);
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <span className="font-serif text-base">{label}</span>
-      <select
-        defaultValue=""
-        onChange={(e) => {
-          const mk = e.target.value;
-          if (!mk) return;
-          const url = amazonUrlFor(mk, edition.asin, edition.overrides);
-          if (url) window.open(url, "_blank", "noopener,noreferrer");
-          e.target.value = "";
-        }}
-        className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-      >
-        <option value="">Ülke seç…</option>
-        {edition.marketplaces.map((mk) => (
-          <option key={mk} value={mk}>
-            {MARKETPLACE_NAMES[mk] ?? mk.toUpperCase()}
-          </option>
-        ))}
-      </select>
+      <details className="relative">
+        <summary
+          className="cursor-pointer list-none rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground marker:hidden focus:outline-none focus:ring-2 focus:ring-accent"
+        >
+          Ülke seç…
+        </summary>
+        <ul
+          role="menu"
+          className="absolute right-0 z-20 mt-1 min-w-[10rem] overflow-hidden rounded-md border border-border bg-background shadow-lg"
+        >
+          {options.map(({ mk, url }) => (
+            <li key={mk} role="none">
+              <a
+                role="menuitem"
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block px-3 py-1.5 text-sm text-foreground hover:bg-accent/10 hover:text-accent"
+              >
+                {MARKETPLACE_NAMES[mk] ?? mk.toUpperCase()}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </details>
     </div>
   );
 }
