@@ -1084,7 +1084,7 @@ function SiteSettingsTab() {
   const [msg, setMsg] = useState<string | null>(null);
   useEffect(() => {
     fetchList().then((data) => {
-      const out: Record<string, string> = { social_instagram: "", social_linkedin: "", social_x: "", social_youtube: "", podcast_program_url: "" };
+      const out: Record<string, string> = { social_instagram: "", social_linkedin: "", social_x: "", social_youtube: "", podcast_program_url: "", admin_notification_email: "" };
       for (const r of data as any[]) out[r.key] = r.value ?? "";
       setRows(out);
     });
@@ -1102,6 +1102,7 @@ function SiteSettingsTab() {
     } finally { setBusy(false); }
   };
   return (
+    <div className="space-y-6">
     <Card title="Sosyal Medya Bağlantıları">
       <div className="grid gap-3 md:grid-cols-2">
         <div><Label>Instagram URL</Label><Input placeholder="https://instagram.com/…" value={rows.social_instagram ?? ""} onChange={(e) => upd("social_instagram", e.target.value)} /></div>
@@ -1116,6 +1117,26 @@ function SiteSettingsTab() {
       </div>
       <p className="mt-3 text-xs text-muted-foreground">Boş bırakılan alanlar footer'da gösterilmez.</p>
     </Card>
+    <Card title="Bildirim E-postası">
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="md:col-span-2">
+          <Label>Yönetici Bildirim E-postası</Label>
+          <Input
+            type="email"
+            placeholder="corteqssocial@gmail.com"
+            value={rows.admin_notification_email ?? ""}
+            onChange={(e) => upd("admin_notification_email", e.target.value)}
+          />
+          <p className="mt-2 text-xs text-muted-foreground">
+            Yeni sipariş, başvuru ve iletişim mesajları bu adrese iletilir.
+          </p>
+        </div>
+      </div>
+      <div className="mt-4">
+        <Button onClick={submit} disabled={busy}>{busy ? "Kaydediliyor…" : "Kaydet"}</Button>
+      </div>
+    </Card>
+    </div>
   );
 }
 
