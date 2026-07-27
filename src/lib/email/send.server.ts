@@ -1,8 +1,8 @@
-// Server-only shared email helper. Sends via Resend through the Lovable
-// connector gateway. Never throws — logs errors so user-facing flows
-// (orders, applications, inquiries) never break due to email failure.
+// Server-only shared email helper. Sends via Resend's REST API directly
+// using RESEND_API_KEY_DIRECT. Never throws — logs errors so user-facing
+// flows (orders, applications, inquiries) never break due to email failure.
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend/emails";
+const RESEND_URL = "https://api.resend.com/emails";
 const FROM = "PFA <bildirim@psychofunctionalanalysis.com>";
 
 export type SendEmailInput = {
@@ -14,19 +14,17 @@ export type SendEmailInput = {
 };
 
 export async function sendEmail(input: SendEmailInput): Promise<{ ok: boolean; error?: string }> {
-  const lovableKey = process.env.LOVABLE_API_KEY;
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!lovableKey || !resendKey) {
-    console.warn("[email] skipped — LOVABLE_API_KEY or RESEND_API_KEY missing");
+  const resendKey = process.env.RESEND_API_KEY_DIRECT;
+  if (!resendKey) {
+    console.warn("[email] skipped — RESEND_API_KEY_DIRECT missing");
     return { ok: false, error: "email_not_configured" };
   }
   try {
-    const res = await fetch(GATEWAY_URL, {
+    const res = await fetch(RESEND_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${lovableKey}`,
-        "X-Connection-Api-Key": resendKey,
+        Authorization: `Bearer ${resendKey}`,
       },
       body: JSON.stringify({
         from: FROM,
@@ -39,8 +37,8 @@ export async function sendEmail(input: SendEmailInput): Promise<{ ok: boolean; e
     });
     if (!res.ok) {
       const body = await res.text();
-      console.error(`[email] gateway ${res.status}: ${body}`);
-      return { ok: false, error: `gateway_${res.status}` };
+      console.error(`[email] resend ${res.status}: ${body}`);
+      return { ok: false, error: `resend_${res.status}` };
     }
     return { ok: true };
   } catch (e) {
