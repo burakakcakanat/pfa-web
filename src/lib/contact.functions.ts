@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { parseFriendly } from "@/lib/zod-friendly";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const schema = z.object({
   full_name: z.string().trim().min(2).max(120),
@@ -10,9 +12,24 @@ const schema = z.object({
 });
 
 export const submitContactMessage = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => schema.parse(d))
+  .inputValidator((d: unknown) => parseFriendly(schema, d))
   .handler(async ({ data }) => {
     if (data.website_hp && data.website_hp.length > 0) return { ok: true };
+
+    // 1) Persist message first — this must always succeed.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: insErr } = await supabaseAdmin.from("contact_messages").insert({
+      full_name: data.full_name,
+      email: data.email,
+      subject: data.subject || "",
+      message: data.message,
+    });
+    if (insErr) {
+      console.error("[contact] persist failed", insErr);
+      throw new Error("Mesajınız kaydedilemedi. Lütfen kısa süre sonra tekrar deneyin.");
+    }
+
+    // 2) Best-effort email notification (errors never break the flow).
     try {
       const { sendEmail, getAdminNotificationEmail } = await import("@/lib/email/send.server");
       const { renderEmail, esc } = await import("@/lib/email/templates");
@@ -34,5 +51,42 @@ export const submitContactMessage = createServerFn({ method: "POST" })
     } catch (e) {
       console.error("[email] contact admin notify failed", e);
     }
+    return { ok: true };
+  });
+
+async function assertAdmin(supabase: any, userId: string) {
+  const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Forbidden");
+}
+
+export const listContactMessages = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("contact_messages")
+      .select("id, full_name, email, subject, message, is_read, read_at, created_at")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) throw new Error(error.message);
+    const unread = (data ?? []).filter((m) => !m.is_read).length;
+    return { messages: data ?? [], unread };
+  });
+
+export const markContactMessageRead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ id: z.string().uuid(), is_read: z.boolean().default(true) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("contact_messages")
+      .update({ is_read: data.is_read, read_at: data.is_read ? new Date().toISOString() : null })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
