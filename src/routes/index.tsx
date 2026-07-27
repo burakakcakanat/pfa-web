@@ -285,37 +285,38 @@ function IntelligencesStrip() {
     Icon: INTELLIGENCE_ICON[lvl],
   }));
   return (
-    <section className="container-page py-12 md:py-14">
+    <section className="container-page py-10 md:py-12">
       <div className="mx-auto max-w-6xl text-center">
         <div className="text-xs uppercase tracking-[0.3em] text-accent">
           Yedi Seviye, Yedi Zekâ
         </div>
-        <ol className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-7">
+        <ol className="mt-8 grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-7">
           {items.map((it) => {
             const Icon = it.Icon;
             return (
               <li
                 key={it.lvl}
-                className="group relative flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl border border-border/70 bg-card/70 p-4 text-center shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/60 hover:bg-card hover:shadow-[0_10px_30px_-18px_rgba(0,0,0,0.35)]"
+                className="group flex flex-col items-center justify-center rounded-lg border border-border/70 bg-card/70 px-2 py-3 text-center shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/60 hover:bg-card hover:shadow-[0_8px_22px_-14px_rgba(0,0,0,0.3)]"
               >
-                <span className="absolute left-2 top-2 text-[0.6rem] font-medium uppercase tracking-[0.2em] text-accent/80">
+                <span className="flex items-center gap-1.5 text-[0.6rem] font-medium uppercase tracking-[0.2em] text-accent/80">
                   L{it.lvl}
+                  <span className="inline-block h-px w-4 bg-accent/40" />
                 </span>
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 text-accent transition-colors group-hover:bg-accent/15">
-                  <Icon className="h-5 w-5" strokeWidth={1.5} />
+                <span className="mt-2 flex h-7 w-7 items-center justify-center rounded-md bg-accent/10 text-accent transition-colors group-hover:bg-accent/15">
+                  <Icon className="h-3.5 w-3.5" strokeWidth={1.5} />
                 </span>
-                <span className="mt-1 text-[0.78rem] font-medium leading-tight text-foreground/90">
+                <span className="mt-2 text-[0.66rem] font-medium leading-tight text-foreground/90">
                   {it.intel}
                 </span>
               </li>
             );
           })}
         </ol>
-        <p className="mx-auto mt-8 max-w-2xl font-serif text-lg leading-relaxed text-foreground/85 md:text-xl">
+        <p className="mx-auto mt-6 max-w-2xl font-serif text-base leading-relaxed text-foreground/85 md:text-lg">
           Her seviyenin kendi zekâsı vardır; gelişim, bu zekâların birlikte
           akort edilmesidir.
         </p>
-        <p className="mt-3 text-xs tracking-wide text-muted-foreground">
+        <p className="mt-2 text-xs tracking-wide text-muted-foreground">
           Zekâ profili ölçümü üzerinde çalışıyoruz.
         </p>
       </div>
