@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { parseFriendly } from "@/lib/zod-friendly";
 
 const SEGMENTS = ["merakli", "profesyonel", "kurumsal"] as const;
 const TARGETS = ["merakli", "profesyonel", "kurumsal", "tumu"] as const;
@@ -22,7 +23,7 @@ async function assertAdmin(supabase: any, userId: string) {
 
 // -------- PUBLIC: subscribe --------
 export const subscribeNewsletter = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => subscribeSchema.parse(d))
+  .inputValidator((d: unknown) => parseFriendly(subscribeSchema, d))
   .handler(async ({ data }) => {
     if (data.website && data.website.trim() !== "") {
       // honeypot triggered — pretend success

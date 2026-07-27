@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
+import { listContactMessages, markContactMessageRead } from "@/lib/contact.functions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -169,6 +170,7 @@ function AdminPage() {
             <TabsTrigger value="settings">Site Ayarları</TabsTrigger>
             <TabsTrigger value="practitioners">Uygulayıcılar</TabsTrigger>
             <TabsTrigger value="newsletter">Bülten</TabsTrigger>
+            <TabsTrigger value="messages">Mesajlar</TabsTrigger>
           </TabsList>
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
@@ -187,10 +189,105 @@ function AdminPage() {
             <TabsContent value="settings"><SiteSettingsTab /></TabsContent>
             <TabsContent value="practitioners"><PractitionersTab /></TabsContent>
             <TabsContent value="newsletter"><NewsletterTab /></TabsContent>
+            <TabsContent value="messages"><MessagesTab /></TabsContent>
           </div>
         </Tabs>
       </div>
     </div>
+  );
+}
+
+function MessagesTab() {
+  const listFn = useServerFn(listContactMessages);
+  const markFn = useServerFn(markContactMessageRead);
+  const [rows, setRows] = useState<any[]>([]);
+  const [unread, setUnread] = useState(0);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await listFn();
+      setRows(r.messages);
+      setUnread(r.unread);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Yüklenemedi");
+    } finally {
+      setLoading(false);
+    }
+  }, [listFn]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const toggleRead = async (id: string, is_read: boolean) => {
+    try {
+      await markFn({ data: { id, is_read } });
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Güncellenemedi");
+    }
+  };
+
+  return (
+    <Card title={`İletişim Mesajları${unread > 0 ? ` (${unread} okunmamış)` : ""}`}>
+      <div className="mb-3 flex items-center gap-2">
+        <Button variant="outline" size="sm" onClick={load} disabled={loading}>Yenile</Button>
+      </div>
+      {rows.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Henüz mesaj yok.</p>
+      ) : (
+        <div className="space-y-2">
+          {rows.map((m) => {
+            const isOpen = openId === m.id;
+            return (
+              <div
+                key={m.id}
+                className={`rounded-md border p-3 ${m.is_read ? "border-border bg-card" : "border-primary/30 bg-primary/5"}`}
+              >
+                <button
+                  className="flex w-full items-start justify-between gap-3 text-left"
+                  onClick={() => setOpenId(isOpen ? null : m.id)}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      {!m.is_read && (
+                        <span className="inline-flex h-2 w-2 rounded-full bg-primary" aria-label="okunmamış" />
+                      )}
+                      <span className="font-medium">{m.full_name}</span>
+                      <span className="text-xs text-muted-foreground">&lt;{m.email}&gt;</span>
+                    </div>
+                    <div className="mt-0.5 text-sm text-foreground/80">
+                      {m.subject || "(konu yok)"}
+                    </div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">{fmtDate(m.created_at)}</div>
+                  </div>
+                  <div className="shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => { e.stopPropagation(); toggleRead(m.id, !m.is_read); }}
+                    >
+                      {m.is_read ? "Okunmadı yap" : "Okundu işaretle"}
+                    </Button>
+                  </div>
+                </button>
+                {isOpen && (
+                  <div className="mt-3 whitespace-pre-wrap rounded bg-background p-3 text-sm">
+                    {m.message}
+                    <div className="mt-3">
+                      <a className="text-primary underline" href={`mailto:${m.email}?subject=Re:%20${encodeURIComponent(m.subject || "İletişim")}`}>
+                        E-posta ile yanıtla
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Card>
   );
 }
 

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { parseFriendly } from "@/lib/zod-friendly";
 
 export type PractitionerCategory = "terapotik" | "kocluk" | "pedagojik" | "kurumsal";
 export type PractitionerMode = "online" | "yuz_yuze" | "her_ikisi";
@@ -75,18 +76,16 @@ export const getPublicPractitioner = createServerFn({ method: "GET" })
 // Public inquiry submission. Honeypot field `website_hp` must be empty.
 // Uses supabaseAdmin server-side so the practitioner's email is read
 // on the server only and NEVER returned to the caller.
+const inquirySchema = z.object({
+  practitioner_id: z.string().uuid(),
+  sender_name: z.string().trim().min(2).max(120),
+  sender_email: z.string().trim().email().max(200),
+  message: z.string().trim().min(10).max(4000),
+  website_hp: z.string().max(0).optional().default(""),
+});
+
 export const submitPractitionerInquiry = createServerFn({ method: "POST" })
-  .inputValidator((d) =>
-    z
-      .object({
-        practitioner_id: z.string().uuid(),
-        sender_name: z.string().trim().min(2).max(120),
-        sender_email: z.string().trim().email().max(200),
-        message: z.string().trim().min(10).max(4000),
-        website_hp: z.string().max(0).optional().default(""),
-      })
-      .parse(d),
-  )
+  .inputValidator((d: unknown) => parseFriendly(inquirySchema, d))
   .handler(async ({ data }) => {
     if (data.website_hp && data.website_hp.length > 0) {
       // Silently accept — bot honeypot.

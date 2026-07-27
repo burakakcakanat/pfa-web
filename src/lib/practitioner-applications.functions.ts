@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { parseFriendly } from "@/lib/zod-friendly";
 
 export type ApplicationStatus = "yeni" | "incelemede" | "gorusme" | "kabul" | "red";
 export type PractitionerCategory = "terapotik" | "kocluk" | "pedagojik" | "kurumsal";
@@ -26,8 +27,7 @@ export const submitPractitionerApplication = createServerFn({ method: "POST" })
       throw new Error("FormData bekleniyor");
     }
     const website_hp = String(data.get("website_hp") ?? "");
-    const parsed = z
-      .object({
+    const applicationSchema = z.object({
         full_name: z.string().trim().min(2).max(200),
         email: z.string().trim().toLowerCase().email().max(200),
         phone: z.string().trim().max(60).optional().default(""),
@@ -37,8 +37,8 @@ export const submitPractitionerApplication = createServerFn({ method: "POST" })
         experience_years: z.coerce.number().int().min(0).max(80).optional(),
         motivation: z.string().trim().min(200).max(1500),
         kvkk_accepted: z.literal("true"),
-      })
-      .parse({
+      });
+    const parsed = parseFriendly(applicationSchema, {
         full_name: data.get("full_name"),
         email: data.get("email"),
         phone: data.get("phone") ?? "",

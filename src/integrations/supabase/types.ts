@@ -342,6 +342,45 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          ip_hash: string | null
+          is_read: boolean
+          message: string
+          read_at: string | null
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          ip_hash?: string | null
+          is_read?: boolean
+          message: string
+          read_at?: string | null
+          subject?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          ip_hash?: string | null
+          is_read?: boolean
+          message?: string
+          read_at?: string | null
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ebook_dedication_templates: {
         Row: {
           author_name: string
