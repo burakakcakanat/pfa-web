@@ -228,21 +228,10 @@ function wrapEmailHtml(bodyHtml: string, unsubscribeUrl: string): string {
   </table></body></html>`;
 }
 
-async function sendResendEmail(apiKey: string, to: string, subject: string, html: string) {
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      from: "PFA Bülten <onboarding@resend.dev>",
-      to: [to],
-      subject,
-      html,
-    }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Resend ${res.status}: ${text}`);
-  }
+async function sendResendEmail(_apiKey: string, to: string, subject: string, html: string) {
+  const { sendEmail } = await import("@/lib/email/send.server");
+  const r = await sendEmail({ to, subject, html });
+  if (!r.ok) throw new Error(r.error ?? "send_failed");
 }
 
 export const sendNewsletterTest = createServerFn({ method: "POST" })
@@ -283,11 +272,16 @@ export const sendNewsletterIssue = createServerFn({ method: "POST" })
       .eq("id", data.issueId)
       .single();
     if (error || !issue) throw new Error("Sayı bulunamadı.");
+    // Çift gönderim koruması
+    if (issue.status === "gonderildi") {
+      return { ok: true, sent: issue.sent_count ?? 0, total: issue.sent_count ?? 0, alreadySent: true };
+    }
 
     let q = supabaseAdmin
       .from("newsletter_subscribers")
       .select("email, unsubscribe_token, segment")
       .eq("consent", true)
+      .eq("confirmed", true)
       .is("unsubscribed_at", null);
     if (issue.segment !== "tumu") q = q.eq("segment", issue.segment);
     const { data: subs, error: subsErr } = await q;
@@ -296,14 +290,21 @@ export const sendNewsletterIssue = createServerFn({ method: "POST" })
 
     const base = process.env.SITE_URL || "https://psychofunctionalanalysis.com";
     let sent = 0;
-    for (const s of recipients) {
-      const unsubUrl = `${base}/bulten/ayril?token=${s.unsubscribe_token}`;
-      const html = wrapEmailHtml(mdToHtml(issue.content_md).replace(/{{unsubscribe_url}}/g, unsubUrl), unsubUrl);
-      try {
-        await sendResendEmail(apiKey, s.email, issue.title, html);
-        sent += 1;
-      } catch (e) {
-        console.error("[newsletter] send failed", s.email, e);
+    const BATCH = 50;
+    for (let i = 0; i < recipients.length; i += BATCH) {
+      const batch = recipients.slice(i, i + BATCH);
+      await Promise.all(batch.map(async (s) => {
+        const unsubUrl = `${base}/bulten/ayril?token=${s.unsubscribe_token}`;
+        const html = wrapEmailHtml(mdToHtml(issue.content_md).replace(/{{unsubscribe_url}}/g, unsubUrl), unsubUrl);
+        try {
+          await sendResendEmail(apiKey, s.email, issue.title, html);
+          sent += 1;
+        } catch (e) {
+          console.error("[newsletter] send failed", s.email, e);
+        }
+      }));
+      if (i + BATCH < recipients.length) {
+        await new Promise((r) => setTimeout(r, 1000));
       }
     }
 
