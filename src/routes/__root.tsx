@@ -237,33 +237,110 @@ function SiteHeader() {
             </Link>
           )}
         </nav>
-        <details className="lg:hidden">
-          <summary className="cursor-pointer list-none rounded-md border border-border px-3 py-1.5 text-sm">
-            Menü
-          </summary>
-          <div className="absolute right-4 mt-2 flex w-56 flex-col rounded-md border border-border bg-background shadow-sm">
-            {NAV_LINKS.map((l) => (
-              <Link
-                key={l.to}
-                to={l.to}
-                className="border-b border-border/60 px-4 py-2.5 text-sm last:border-b-0"
-              >
-                {l.label}
-              </Link>
-            ))}
-            {email ? (
-              <>
-                <Link to="/hesabim" className="border-b border-border/60 px-4 py-2.5 text-sm">Hesabım</Link>
-                {isAdmin && (<Link to="/admin" className="border-b border-border/60 px-4 py-2.5 text-sm">Admin</Link>)}
-                <button type="button" onClick={signOut} className="px-4 py-2.5 text-left text-sm">Çıkış</button>
-              </>
-            ) : (
-              <Link to="/auth" className="px-4 py-2.5 text-sm text-accent">Giriş Yap</Link>
-            )}
-          </div>
-        </details>
+        <MobileMenu
+          email={email}
+          isAdmin={isAdmin}
+          onSignOut={signOut}
+          navLinks={NAV_LINKS}
+        />
       </div>
     </header>
+  );
+}
+
+function MobileMenu({
+  email,
+  isAdmin,
+  onSignOut,
+  navLinks,
+}: {
+  email: string | null;
+  isAdmin: boolean;
+  onSignOut: () => void;
+  navLinks: readonly { to: string; label: string }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handlePointer = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (
+        menuRef.current &&
+        buttonRef.current &&
+        !menuRef.current.contains(target) &&
+        !buttonRef.current.contains(target)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointer);
+    document.addEventListener("touchstart", handlePointer);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handlePointer);
+      document.removeEventListener("touchstart", handlePointer);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
+
+  return (
+    <div className="lg:hidden">
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls="mobile-nav-menu"
+        className="rounded-md border border-border px-3 py-1.5 text-sm"
+      >
+        Menü
+      </button>
+      {open && (
+        <div
+          id="mobile-nav-menu"
+          ref={menuRef}
+          className="absolute right-4 mt-2 flex w-56 flex-col rounded-md border border-border bg-background shadow-sm"
+        >
+          {navLinks.map((l) => (
+            <Link
+              key={l.to}
+              to={l.to}
+              className="border-b border-border/60 px-4 py-2.5 text-sm last:border-b-0"
+              onClick={() => setOpen(false)}
+            >
+              {l.label}
+            </Link>
+          ))}
+          {email ? (
+            <>
+              <Link to="/hesabim" className="border-b border-border/60 px-4 py-2.5 text-sm" onClick={() => setOpen(false)}>Hesabım</Link>
+              {isAdmin && (<Link to="/admin" className="border-b border-border/60 px-4 py-2.5 text-sm" onClick={() => setOpen(false)}>Admin</Link>)}
+              <button
+                type="button"
+                onClick={() => { setOpen(false); onSignOut(); }}
+                className="px-4 py-2.5 text-left text-sm"
+              >
+                Çıkış
+              </button>
+            </>
+          ) : (
+            <Link to="/auth" className="px-4 py-2.5 text-sm text-accent" onClick={() => setOpen(false)}>Giriş Yap</Link>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
