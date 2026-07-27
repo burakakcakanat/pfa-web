@@ -228,7 +228,12 @@ function AudienceSection() {
         </div>
         <div className="mt-10 grid items-center gap-10 md:grid-cols-2">
           <div className="order-1 md:order-none">
-            <LadderArt />
+            <img
+              src={heroStepsAsset.url}
+              alt="Bilincin yedi basamağı — beka merdiveninden aydınlanmaya yolculuk"
+              className="mx-auto block h-auto w-full max-w-md object-contain"
+              loading="lazy"
+            />
           </div>
           <div className="flex flex-col gap-4">
             {AUDIENCES.map((a) => (
