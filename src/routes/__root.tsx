@@ -289,11 +289,27 @@ function SiteFooter() {
     <footer className="mt-24 border-t border-border/60 bg-background">
       <div className="container-page grid gap-10 py-14 md:grid-cols-4">
         <div>
-          <img
-            src={pfaLogo}
-            alt="PFA — Psycho-Functional Analysis"
-            className="h-14 w-auto"
-          />
+          <Link
+            to="/"
+            className="flex flex-col items-start justify-center leading-none"
+            aria-label="PFA — Psiko-Fonksiyonel Analiz"
+          >
+            <span
+              className="font-serif text-[34px] font-semibold text-primary"
+              style={{ letterSpacing: "0.08em", lineHeight: 1 }}
+            >
+              PFA
+            </span>
+            <span
+              className="text-[9.5px] tracking-[0.28em] text-primary/80"
+              style={{
+                marginTop: "3px",
+                fontFamily: "Inter, sans-serif",
+              }}
+            >
+              {BRAND_TAGLINE.tr}
+            </span>
+          </Link>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
             İnsan bilincinin yedi seviyeli işlevsel haritası.
           </p>
