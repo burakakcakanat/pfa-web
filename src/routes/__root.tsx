@@ -191,18 +191,18 @@ function SiteHeader() {
       <div className="container-page flex h-16 items-center justify-between gap-6">
         <Link
           to="/"
-          className="relative flex flex-col items-start justify-center overflow-visible leading-none"
+          className="flex shrink-0 flex-col items-start justify-center gap-1 leading-none"
           aria-label="PFA — Psycho-Functional Analysis"
         >
           <img
             src={pfaHeaderMarkAsset.url}
             alt="PFA"
-            className="block h-36 w-auto object-contain"
+            className="block h-7 w-auto object-contain sm:h-8"
           />
           <img
             src={pfaHeaderTaglineAsset.url}
             alt="Psycho-Functional Analysis"
-            className="block h-10 w-auto object-contain"
+            className="hidden h-2.5 w-auto object-contain tracking-widest sm:block"
           />
         </Link>
         <nav className="hidden items-center gap-6 text-[0.82rem] tracking-wide lg:flex">
