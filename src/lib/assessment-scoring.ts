@@ -11,7 +11,7 @@ export const LEVEL_TO_INTELLIGENCE: Record<number, string> = {
 export const INTELLIGENCE_LABEL: Record<string, string> = {
   PQ: "Fiziksel Zeka (PQ)",
   EQ: "Duygusal Zeka (EQ)",
-  IQ: "Zihinsel Zeka (IQ)",
+  IQ: "Rasyonel Zeka (IQ)",
   LQ: "Sevgi/Anlam Zekası (LQ)",
   CQ: "Yaratıcı Zeka (CQ)",
   TQ: "Bilgelik Zekası (TQ)",
