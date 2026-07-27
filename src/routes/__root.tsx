@@ -12,10 +12,9 @@ import { useEffect, useState, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
-import pfaLogoAsset from "@/assets/pfa-logo-canva.png.asset.json";
+import { BRAND_TAGLINE } from "@/lib/brand";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Instagram, Linkedin, Youtube, Twitter } from "lucide-react";
-const pfaLogo = pfaLogoAsset.url;
 
 function FooterNewsletter() {
   return <NewsletterForm variant="footer" source="footer" />;
