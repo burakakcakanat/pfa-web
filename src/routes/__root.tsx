@@ -13,8 +13,6 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import pfaLogoAsset from "@/assets/pfa-logo-canva.png.asset.json";
-import pfaHeaderMarkAsset from "@/assets/pfa-header-mark.png.asset.json";
-import pfaHeaderTaglineAsset from "@/assets/pfa-header-tagline.png.asset.json";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Instagram, Linkedin, Youtube, Twitter } from "lucide-react";
 const pfaLogo = pfaLogoAsset.url;
@@ -191,19 +189,27 @@ function SiteHeader() {
       <div className="container-page flex h-16 items-center justify-between gap-6">
         <Link
           to="/"
-          className="relative z-50 flex shrink-0 flex-col items-start justify-center gap-1 overflow-visible leading-none"
+          className="flex shrink-0 flex-col items-start justify-center leading-none"
           aria-label="PFA — Psycho-Functional Analysis"
         >
-          <img
-            src={pfaHeaderMarkAsset.url}
-            alt="PFA"
-            className="block h-20 w-auto object-contain sm:h-24"
-          />
-          <img
-            src={pfaHeaderTaglineAsset.url}
-            alt="Psycho-Functional Analysis"
-            className="hidden h-7 w-auto object-contain tracking-widest sm:block"
-          />
+          <span
+            className="font-serif font-semibold text-primary text-[28px] sm:text-[34px]"
+            style={{ letterSpacing: "0.08em", lineHeight: 1 }}
+          >
+            PFA
+          </span>
+          <span
+            className="hidden sm:block text-primary/80"
+            style={{
+              fontSize: "9.5px",
+              letterSpacing: "0.28em",
+              marginTop: "3px",
+              fontFamily: "Inter, sans-serif",
+              textTransform: "uppercase",
+            }}
+          >
+            Psycho-Functional Analysis
+          </span>
         </Link>
         <nav className="hidden items-center gap-6 text-[0.82rem] tracking-wide lg:flex">
           {NAV_LINKS.map((l) => (
