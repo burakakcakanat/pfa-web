@@ -12,10 +12,9 @@ import { useEffect, useState, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
-import pfaLogoAsset from "@/assets/pfa-logo-canva.png.asset.json";
+import { BRAND_TAGLINE } from "@/lib/brand";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Instagram, Linkedin, Youtube, Twitter } from "lucide-react";
-const pfaLogo = pfaLogoAsset.url;
 
 function FooterNewsletter() {
   return <NewsletterForm variant="footer" source="footer" />;
@@ -190,23 +189,22 @@ function SiteHeader() {
         <Link
           to="/"
           className="flex shrink-0 flex-col items-start justify-center leading-none"
-          aria-label="PFA — Psycho-Functional Analysis"
+          aria-label="PFA — Psiko-Fonksiyonel Analiz"
         >
           <span
-            className="font-serif font-semibold text-primary text-[28px] sm:text-[34px]"
+            className="font-serif text-[28px] font-semibold text-primary sm:text-[34px]"
             style={{ letterSpacing: "0.08em", lineHeight: 1 }}
           >
             PFA
           </span>
           <span
-            className="text-primary/80 text-[8px] sm:text-[9.5px] tracking-[0.22em] sm:tracking-[0.28em]"
+            className="text-[8px] tracking-[0.22em] text-primary/80 sm:text-[9.5px] sm:tracking-[0.28em]"
             style={{
               marginTop: "3px",
               fontFamily: "Inter, sans-serif",
-              textTransform: "uppercase",
             }}
           >
-            Psycho-Functional Analysis
+            {BRAND_TAGLINE.tr}
           </span>
         </Link>
         <nav className="hidden items-center gap-6 text-[0.82rem] tracking-wide lg:flex">
@@ -291,11 +289,27 @@ function SiteFooter() {
     <footer className="mt-24 border-t border-border/60 bg-background">
       <div className="container-page grid gap-10 py-14 md:grid-cols-4">
         <div>
-          <img
-            src={pfaLogo}
-            alt="PFA — Psycho-Functional Analysis"
-            className="h-14 w-auto"
-          />
+          <Link
+            to="/"
+            className="flex flex-col items-start justify-center leading-none"
+            aria-label="PFA — Psiko-Fonksiyonel Analiz"
+          >
+            <span
+              className="font-serif text-[34px] font-semibold text-primary"
+              style={{ letterSpacing: "0.08em", lineHeight: 1 }}
+            >
+              PFA
+            </span>
+            <span
+              className="text-[9.5px] tracking-[0.28em] text-primary/80"
+              style={{
+                marginTop: "3px",
+                fontFamily: "Inter, sans-serif",
+              }}
+            >
+              {BRAND_TAGLINE.tr}
+            </span>
+          </Link>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
             İnsan bilincinin yedi seviyeli işlevsel haritası.
           </p>
