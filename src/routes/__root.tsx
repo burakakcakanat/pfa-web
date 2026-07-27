@@ -189,23 +189,22 @@ function SiteHeader() {
         <Link
           to="/"
           className="flex shrink-0 flex-col items-start justify-center leading-none"
-          aria-label="PFA — Psycho-Functional Analysis"
+          aria-label="PFA — Psiko-Fonksiyonel Analiz"
         >
           <span
-            className="font-serif font-semibold text-primary text-[28px] sm:text-[34px]"
+            className="font-serif text-[28px] font-semibold text-primary sm:text-[34px]"
             style={{ letterSpacing: "0.08em", lineHeight: 1 }}
           >
             PFA
           </span>
           <span
-            className="text-primary/80 text-[8px] sm:text-[9.5px] tracking-[0.22em] sm:tracking-[0.28em]"
+            className="text-[8px] tracking-[0.22em] text-primary/80 sm:text-[9.5px] sm:tracking-[0.28em]"
             style={{
               marginTop: "3px",
               fontFamily: "Inter, sans-serif",
-              textTransform: "uppercase",
             }}
           >
-            Psycho-Functional Analysis
+            {BRAND_TAGLINE.tr}
           </span>
         </Link>
         <nav className="hidden items-center gap-6 text-[0.82rem] tracking-wide lg:flex">
