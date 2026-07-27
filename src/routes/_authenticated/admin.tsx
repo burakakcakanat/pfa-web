@@ -153,7 +153,7 @@ function AdminPage() {
       <div className="mx-auto max-w-7xl">
         <h1 className="mb-6 font-serif text-3xl text-primary">Admin Paneli</h1>
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="flex flex-wrap justify-start gap-1 bg-transparent">
+          <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-transparent">
             <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
             <TabsTrigger value="products">Ürünler</TabsTrigger>
             <TabsTrigger value="bundles">Paketler</TabsTrigger>
