@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import pfaMapAsset from "@/assets/pfa-map-hero.png.asset.json";
+import heroStepsAsset from "@/assets/hero-steps.png.asset.json";
 import { INTELLIGENCE_LABEL, LEVEL_LABEL_TR, LEVEL_TO_INTELLIGENCE } from "@/lib/assessment-scoring";
 
 export const Route = createFileRoute("/")({
