@@ -2,6 +2,17 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import pfaMapAsset from "@/assets/pfa-map-hero.png.asset.json";
 import heroStepsAsset from "@/assets/hero-steps.png.asset.json";
 import { INTELLIGENCE_LABEL, LEVEL_LABEL_TR, LEVEL_TO_INTELLIGENCE } from "@/lib/assessment-scoring";
+import { Dumbbell, Heart, Brain, Sparkles, Palette, BookOpen, Infinity as InfinityIcon, type LucideIcon } from "lucide-react";
+
+const INTELLIGENCE_ICON: Record<number, LucideIcon> = {
+  1: Dumbbell,
+  2: Heart,
+  3: Brain,
+  4: Sparkles,
+  5: Palette,
+  6: BookOpen,
+  7: InfinityIcon,
+};
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -271,6 +282,7 @@ function IntelligencesStrip() {
     lvl,
     level: LEVEL_LABEL_TR[lvl],
     intel: INTELLIGENCE_LABEL[LEVEL_TO_INTELLIGENCE[lvl]],
+    Icon: INTELLIGENCE_ICON[lvl],
   }));
   return (
     <section className="container-page py-12 md:py-14">
@@ -278,22 +290,26 @@ function IntelligencesStrip() {
         <div className="text-xs uppercase tracking-[0.3em] text-accent">
           Yedi Seviye, Yedi Zekâ
         </div>
-        <ol className="mt-8 flex flex-wrap items-stretch justify-center gap-2 md:gap-3">
-          {items.map((it, i) => (
-            <li key={it.lvl} className="flex items-center gap-2 md:gap-3">
-              <div className="flex min-w-[9.5rem] flex-col items-center gap-1 rounded-full border border-border bg-card/60 px-4 py-2">
-                <div className="text-[0.68rem] uppercase tracking-[0.25em] text-accent">
+        <ol className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-7">
+          {items.map((it) => {
+            const Icon = it.Icon;
+            return (
+              <li
+                key={it.lvl}
+                className="group relative flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl border border-border/70 bg-card/70 p-4 text-center shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/60 hover:bg-card hover:shadow-[0_10px_30px_-18px_rgba(0,0,0,0.35)]"
+              >
+                <span className="absolute left-2 top-2 text-[0.6rem] font-medium uppercase tracking-[0.2em] text-accent/80">
                   L{it.lvl}
-                </div>
-                <div className="text-[0.78rem] font-medium text-foreground/85">
+                </span>
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 text-accent transition-colors group-hover:bg-accent/15">
+                  <Icon className="h-5 w-5" strokeWidth={1.5} />
+                </span>
+                <span className="mt-1 text-[0.78rem] font-medium leading-tight text-foreground/90">
                   {it.intel}
-                </div>
-              </div>
-              {i < items.length - 1 && (
-                <span aria-hidden className="hidden h-px w-3 bg-border md:block" />
-              )}
-            </li>
-          ))}
+                </span>
+              </li>
+            );
+          })}
         </ol>
         <p className="mx-auto mt-8 max-w-2xl font-serif text-lg leading-relaxed text-foreground/85 md:text-xl">
           Her seviyenin kendi zekâsı vardır; gelişim, bu zekâların birlikte
