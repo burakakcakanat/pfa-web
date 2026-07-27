@@ -199,10 +199,8 @@ function SiteHeader() {
             PFA
           </span>
           <span
-            className="hidden sm:block text-primary/80"
+            className="text-primary/80 text-[8px] sm:text-[9.5px] tracking-[0.22em] sm:tracking-[0.28em]"
             style={{
-              fontSize: "9.5px",
-              letterSpacing: "0.28em",
               marginTop: "3px",
               fontFamily: "Inter, sans-serif",
               textTransform: "uppercase",
