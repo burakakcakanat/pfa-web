@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import pfaMapAsset from "@/assets/pfa-map-hero.png.asset.json";
+import heroStepsAsset from "@/assets/hero-steps.png.asset.json";
 import { INTELLIGENCE_LABEL, LEVEL_LABEL_TR, LEVEL_TO_INTELLIGENCE } from "@/lib/assessment-scoring";
 
 export const Route = createFileRoute("/")({
@@ -227,7 +228,12 @@ function AudienceSection() {
         </div>
         <div className="mt-10 grid items-center gap-10 md:grid-cols-2">
           <div className="order-1 md:order-none">
-            <LadderArt />
+            <img
+              src={heroStepsAsset.url}
+              alt="Bilincin yedi basamağı — beka merdiveninden aydınlanmaya yolculuk"
+              className="mx-auto block h-auto w-full max-w-md object-contain"
+              loading="lazy"
+            />
           </div>
           <div className="flex flex-col gap-4">
             {AUDIENCES.map((a) => (
@@ -259,80 +265,6 @@ function AudienceSection() {
   );
 }
 
-function LadderArt() {
-  // Petrol/teal foreground token as stroke via currentColor; gold via --accent.
-  return (
-    <svg
-      viewBox="0 0 400 460"
-      className="mx-auto block h-auto w-full max-w-md text-foreground"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      {/* dotted orbit */}
-      <ellipse cx="200" cy="240" rx="170" ry="180" strokeDasharray="2 6" opacity="0.35" />
-      <ellipse cx="200" cy="240" rx="110" ry="130" strokeDasharray="2 6" opacity="0.2" />
-
-      {/* ladder rails */}
-      <line x1="130" y1="430" x2="210" y2="60" />
-      <line x1="230" y1="430" x2="310" y2="60" />
-
-      {/* 7 rungs, ascending */}
-      {Array.from({ length: 7 }).map((_, i) => {
-        const t = i / 6;
-        const y1 = 430 - t * 370;
-        const x1 = 130 + t * 80;
-        const x2 = 230 + t * 80;
-        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y1} />;
-      })}
-
-      {/* climbing figure — stepping on rung 5 (t≈0.66) */}
-      {(() => {
-        const t = 0.72;
-        const rx1 = 130 + t * 80;
-        const rx2 = 230 + t * 80;
-        const ry = 430 - t * 370;
-        const cx = (rx1 + rx2) / 2 + 4;
-        const footY = ry;
-        return (
-          <g strokeWidth="1.6">
-            {/* head */}
-            <circle cx={cx} cy={footY - 92} r="10" />
-            {/* torso */}
-            <line x1={cx} y1={footY - 82} x2={cx + 2} y2={footY - 40} />
-            {/* front arm reaching up */}
-            <path d={`M${cx + 2} ${footY - 74} Q ${cx + 22} ${footY - 92} ${cx + 34} ${footY - 118}`} />
-            {/* back arm */}
-            <path d={`M${cx + 2} ${footY - 72} Q ${cx - 14} ${footY - 60} ${cx - 20} ${footY - 44}`} />
-            {/* front leg (stepping up) */}
-            <path d={`M${cx + 2} ${footY - 40} Q ${cx + 14} ${footY - 22} ${cx + 20} ${footY - 8}`} />
-            {/* back leg */}
-            <path d={`M${cx + 2} ${footY - 40} Q ${cx - 10} ${footY - 18} ${cx - 16} ${footY - 2}`} />
-          </g>
-        );
-      })()}
-
-      {/* top rung gold glow */}
-      <g style={{ color: "var(--accent)" }}>
-        <circle cx="270" cy="60" r="14" stroke="currentColor" strokeWidth="1" opacity="0.5" />
-        <circle cx="270" cy="60" r="6" fill="currentColor" stroke="none" />
-        <circle cx="270" cy="60" r="22" stroke="currentColor" strokeWidth="0.6" opacity="0.35" />
-      </g>
-
-      {/* scattered orbit dots */}
-      <g fill="currentColor" stroke="none" opacity="0.55">
-        <circle cx="42" cy="180" r="1.6" />
-        <circle cx="368" cy="300" r="1.6" />
-        <circle cx="90" cy="90" r="1.4" />
-        <circle cx="340" cy="140" r="1.4" />
-        <circle cx="60" cy="360" r="1.4" />
-      </g>
-    </svg>
-  );
-}
 
 function IntelligencesStrip() {
   const items = [1, 2, 3, 4, 5, 6, 7].map((lvl) => ({
