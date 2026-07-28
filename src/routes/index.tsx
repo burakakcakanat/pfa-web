@@ -231,7 +231,7 @@ function AudienceSection() {
       <div className="mx-auto max-w-6xl">
         <div className="text-center">
           <div className="text-xs uppercase tracking-[0.3em] text-accent">
-            PFA Kime Hitap Eder
+            PFA Kime Hitap Eder?
           </div>
           <h2 className="mt-2 font-serif text-3xl md:text-4xl">
             Üç alanda çözümler
