@@ -234,7 +234,7 @@ function AudienceSection() {
             PFA Kime Hitap Eder
           </div>
           <h2 className="mt-2 font-serif text-3xl md:text-4xl">
-            Üç yol, tek harita
+            Üç alanda çözümler
           </h2>
         </div>
         <div className="mt-10 grid items-center gap-10 md:grid-cols-2">
