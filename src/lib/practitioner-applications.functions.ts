@@ -190,6 +190,28 @@ export const submitPractitionerApplication = createServerFn({ method: "POST" })
       console.error("[email] application admin notify failed", e);
     }
 
+    // Başvurana onay e-postası (kırılmasın)
+    try {
+      const { sendEmail } = await import("@/lib/email/send.server");
+      const { renderEmail, esc } = await import("@/lib/email/templates");
+      const firstName = parsed.full_name.trim().split(/\s+/)[0] || parsed.full_name;
+      await sendEmail({
+        to: parsed.email,
+        replyTo: "info@psychofunctionalanalysis.com",
+        subject: "Başvurunuz alındı — PFA",
+        html: renderEmail({
+          title: "Başvurunuz alındı",
+          bodyHtml: `
+            <p>Merhaba ${esc(firstName)},</p>
+            <p>PFA Uygulayıcı Programı'na gösterdiğiniz ilgi için teşekkür ederiz. Başvurunuz elimize ulaştı ve değerlendirmeye alındı.</p>
+            <p>İnceleme tamamlandığında sonuçla ilgili size dönüş yapacağız.</p>
+            <p>Sevgiyle,<br/>PFA Ekibi</p>`,
+        }),
+      });
+    } catch (e) {
+      console.error("[email] application sender confirmation failed", e);
+    }
+
     return { ok: true };
   });
 
