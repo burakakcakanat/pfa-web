@@ -173,8 +173,8 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Spacer — 1.5 cm */}
-      <div data-map-gap aria-hidden="true" className="h-[1.5cm] w-full" />
+      {/* Spacer */}
+      <div data-map-gap aria-hidden="true" className="h-0 w-full" />
 
       {/* Yedi Seviye, Yedi Zekâ */}
       <IntelligencesStrip />
@@ -285,7 +285,7 @@ function IntelligencesStrip() {
     Icon: INTELLIGENCE_ICON[lvl],
   }));
   return (
-    <section className="container-page py-10 md:py-12">
+    <section className="container-page -mt-[22vw] pb-10 pt-0 md:-mt-[16vw] md:pb-12">
       <div className="mx-auto max-w-6xl text-center">
         <div className="text-xs uppercase tracking-[0.3em] text-accent">
           Yedi Seviye, Yedi Zekâ
