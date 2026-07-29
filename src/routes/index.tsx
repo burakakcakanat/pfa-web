@@ -161,7 +161,7 @@ function HomePage() {
           </p>
           <figure
             data-map-figure
-            className="relative -mt-[1.5cm] mb-0 left-1/2 -translate-x-1/2 w-[140vw] max-w-[1920px]"
+            className="relative -mt-[3cm] mb-0 left-1/2 -translate-x-1/2 w-[140vw] max-w-[1920px]"
           >
             <img
               src={pfaMapAsset.url}
