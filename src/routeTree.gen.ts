@@ -14,8 +14,10 @@ import { Route as UygulayiciEkosistemiRouteImport } from './routes/uygulayici-ek
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SeanslarRouteImport } from './routes/seanslar'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as KullanimKosullariRouteImport } from './routes/kullanim-kosullari'
 import { Route as KitaplarRouteImport } from './routes/kitaplar'
 import { Route as IletisimRouteImport } from './routes/iletisim'
+import { Route as IadePolitikasiRouteImport } from './routes/iade-politikasi'
 import { Route as HakkindaRouteImport } from './routes/hakkinda'
 import { Route as EgitimRouteImport } from './routes/egitim'
 import { Route as DegerlendirmeRouteImport } from './routes/degerlendirme'
@@ -67,6 +69,11 @@ const McpRoute = McpRouteImport.update({
   path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KullanimKosullariRoute = KullanimKosullariRouteImport.update({
+  id: '/kullanim-kosullari',
+  path: '/kullanim-kosullari',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KitaplarRoute = KitaplarRouteImport.update({
   id: '/kitaplar',
   path: '/kitaplar',
@@ -75,6 +82,11 @@ const KitaplarRoute = KitaplarRouteImport.update({
 const IletisimRoute = IletisimRouteImport.update({
   id: '/iletisim',
   path: '/iletisim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IadePolitikasiRoute = IadePolitikasiRouteImport.update({
+  id: '/iade-politikasi',
+  path: '/iade-politikasi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HakkindaRoute = HakkindaRouteImport.update({
@@ -215,8 +227,10 @@ export interface FileRoutesByFullPath {
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
   '/hakkinda': typeof HakkindaRoute
+  '/iade-politikasi': typeof IadePolitikasiRoute
   '/iletisim': typeof IletisimRoute
   '/kitaplar': typeof KitaplarRoute
+  '/kullanim-kosullari': typeof KullanimKosullariRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -248,8 +262,10 @@ export interface FileRoutesByTo {
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
   '/hakkinda': typeof HakkindaRoute
+  '/iade-politikasi': typeof IadePolitikasiRoute
   '/iletisim': typeof IletisimRoute
   '/kitaplar': typeof KitaplarRoute
+  '/kullanim-kosullari': typeof KullanimKosullariRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -283,8 +299,10 @@ export interface FileRoutesById {
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
   '/hakkinda': typeof HakkindaRoute
+  '/iade-politikasi': typeof IadePolitikasiRoute
   '/iletisim': typeof IletisimRoute
   '/kitaplar': typeof KitaplarRoute
+  '/kullanim-kosullari': typeof KullanimKosullariRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -318,8 +336,10 @@ export interface FileRouteTypes {
     | '/degerlendirme'
     | '/egitim'
     | '/hakkinda'
+    | '/iade-politikasi'
     | '/iletisim'
     | '/kitaplar'
+    | '/kullanim-kosullari'
     | '/mcp'
     | '/seanslar'
     | '/sitemap.xml'
@@ -351,8 +371,10 @@ export interface FileRouteTypes {
     | '/degerlendirme'
     | '/egitim'
     | '/hakkinda'
+    | '/iade-politikasi'
     | '/iletisim'
     | '/kitaplar'
+    | '/kullanim-kosullari'
     | '/mcp'
     | '/seanslar'
     | '/sitemap.xml'
@@ -385,8 +407,10 @@ export interface FileRouteTypes {
     | '/degerlendirme'
     | '/egitim'
     | '/hakkinda'
+    | '/iade-politikasi'
     | '/iletisim'
     | '/kitaplar'
+    | '/kullanim-kosullari'
     | '/mcp'
     | '/seanslar'
     | '/sitemap.xml'
@@ -420,8 +444,10 @@ export interface RootRouteChildren {
   DegerlendirmeRoute: typeof DegerlendirmeRoute
   EgitimRoute: typeof EgitimRoute
   HakkindaRoute: typeof HakkindaRoute
+  IadePolitikasiRoute: typeof IadePolitikasiRoute
   IletisimRoute: typeof IletisimRoute
   KitaplarRoute: typeof KitaplarRoute
+  KullanimKosullariRoute: typeof KullanimKosullariRoute
   McpRoute: typeof McpRoute
   SeanslarRoute: typeof SeanslarRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -480,6 +506,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kullanim-kosullari': {
+      id: '/kullanim-kosullari'
+      path: '/kullanim-kosullari'
+      fullPath: '/kullanim-kosullari'
+      preLoaderRoute: typeof KullanimKosullariRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/kitaplar': {
       id: '/kitaplar'
       path: '/kitaplar'
@@ -492,6 +525,13 @@ declare module '@tanstack/react-router' {
       path: '/iletisim'
       fullPath: '/iletisim'
       preLoaderRoute: typeof IletisimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/iade-politikasi': {
+      id: '/iade-politikasi'
+      path: '/iade-politikasi'
+      fullPath: '/iade-politikasi'
+      preLoaderRoute: typeof IadePolitikasiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hakkinda': {
@@ -698,8 +738,10 @@ const rootRouteChildren: RootRouteChildren = {
   DegerlendirmeRoute: DegerlendirmeRoute,
   EgitimRoute: EgitimRoute,
   HakkindaRoute: HakkindaRoute,
+  IadePolitikasiRoute: IadePolitikasiRoute,
   IletisimRoute: IletisimRoute,
   KitaplarRoute: KitaplarRoute,
+  KullanimKosullariRoute: KullanimKosullariRoute,
   McpRoute: McpRoute,
   SeanslarRoute: SeanslarRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
