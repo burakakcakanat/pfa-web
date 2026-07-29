@@ -51,6 +51,31 @@ export const submitContactMessage = createServerFn({ method: "POST" })
     } catch (e) {
       console.error("[email] contact admin notify failed", e);
     }
+
+    // 3) Gönderene onay e-postası (kırılmasın).
+    try {
+      const { sendEmail } = await import("@/lib/email/send.server");
+      const { renderEmail, esc } = await import("@/lib/email/templates");
+      const firstName = data.full_name.trim().split(/\s+/)[0] || data.full_name;
+      const subjectRef = data.subject
+        ? `<p style="color:#6b6355;font-size:14px">Konu: <strong>${esc(data.subject)}</strong></p>`
+        : "";
+      await sendEmail({
+        to: data.email,
+        replyTo: "info@psychofunctionalanalysis.com",
+        subject: "Mesajınız bize ulaştı — PFA",
+        html: renderEmail({
+          title: "Mesajınız elimize ulaştı",
+          bodyHtml: `
+            <p>Merhaba ${esc(firstName)},</p>
+            <p>Bize yazdığınız için teşekkür ederiz. Mesajınız elimize ulaştı ve en kısa sürede size dönüş yapacağız.</p>
+            ${subjectRef}
+            <p>Sevgiyle,<br/>PFA Ekibi</p>`,
+        }),
+      });
+    } catch (e) {
+      console.error("[email] contact sender confirmation failed", e);
+    }
     return { ok: true };
   });
 
