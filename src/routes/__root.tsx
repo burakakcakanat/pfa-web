@@ -429,6 +429,16 @@ function SiteFooter() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link to="/kullanim-kosullari" className="hover:text-accent">
+                Kullanım Koşulları
+              </Link>
+            </li>
+            <li>
+              <Link to="/iade-politikasi" className="hover:text-accent">
+                İade Politikası
+              </Link>
+            </li>
           </ul>
         </div>
         <div>
