@@ -196,7 +196,7 @@ function BookBlock({
         {/* B — Amazon */}
         {(kindle || paperback) && (
           <div className="mt-6 rounded-lg border border-border bg-card p-5">
-            <div className="text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">Amazon · Standart Baskı</div>
+            <div className="text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">Amazon · Standart Baskı (İmzasız)</div>
             <div className="mt-3 space-y-2">
               {kindle && <AmazonRow label="Kindle" edition={kindle} />}
               {paperback && <AmazonRow label="Karton Kapak" edition={paperback} />}
