@@ -43,6 +43,12 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
                 const { renderEmail, esc } = await import("@/lib/email/templates");
                 let productName = updated.bundle_slug ? `Paket: ${updated.bundle_slug}` : "Ürün";
                 let productType: string | null = null;
+                let bundleIncludesBook = false;
+                if (updated.bundle_slug) {
+                  const { data: b } = await supabaseAdmin
+                    .from("bundles").select("name_tr, includes_book").eq("slug", updated.bundle_slug).maybeSingle();
+                  if (b) { productName = b.name_tr; bundleIncludesBook = !!b.includes_book; }
+                }
                 if (updated.product_id) {
                   const { data: p } = await supabaseAdmin
                     .from("products").select("name_tr, type").eq("id", updated.product_id).maybeSingle();
@@ -60,7 +66,8 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
                     <table style="width:100%;font-size:14px;margin-top:10px">
                       <tr><td style="color:#6b6355;padding:4px 0;width:120px">Ürün</td><td>${esc(productName)}</td></tr>
                       <tr><td style="color:#6b6355;padding:4px 0">Tutar</td><td>${esc(amount)}</td></tr>
-                    </table>`;
+                    </table>
+                    ${bundleIncludesBook ? `<p style="margin-top:16px">İmzalı basılı kitabınız hazırlanıp adresinize kargolanacaktır. Kitabınızın dijital kopyaları (PDF ve EPUB) hesabınıza tanımlandı; /hesabim sayfanızdan okuyabilir veya indirebilirsiniz.</p>` : ""}`;
                   await sendEmail({
                     to: prof.email,
                     subject: `PFA — Siparişiniz onaylandı: ${productName}`,
