@@ -147,7 +147,7 @@ function HomePage() {
       </section>
 
       {/* Bilinç Döngüsü */}
-      <section id="bilinc-haritasi" className="container-page pt-8 pb-0 scroll-mt-24">
+      <section id="bilinc-haritasi" className="container-page pt-[1.5cm] pb-0 scroll-mt-24">
         <div className="mx-auto max-w-6xl text-center">
           <div className="text-xs uppercase tracking-[0.3em] text-accent">
             Bilinç Döngüsü
@@ -161,20 +161,20 @@ function HomePage() {
           </p>
           <figure
             data-map-figure
-            className="relative mt-4 mb-0 left-1/2 -translate-x-1/2 w-[140vw] max-w-[1920px]"
+            className="relative mt-0 mb-0 left-1/2 -translate-x-1/2 w-[140vw] max-w-[1920px]"
           >
             <img
               src={pfaMapAsset.url}
               alt="PFA Bilinç Döngüsü — Yedi İşlevsel Seviye Haritası"
-              className="mx-auto block h-auto w-full max-w-none align-bottom drop-shadow-[0_24px_80px_rgba(12,28,32,0.35)] contrast-110"
+              className="mx-auto block h-auto w-full max-w-none align-bottom"
               loading="lazy"
             />
           </figure>
         </div>
       </section>
 
-      {/* Spacer — 2 cm */}
-      <div data-map-gap aria-hidden="true" className="h-[2cm] w-full" />
+      {/* Spacer — 1.5 cm */}
+      <div data-map-gap aria-hidden="true" className="h-[1.5cm] w-full" />
 
       {/* Yedi Seviye, Yedi Zekâ */}
       <IntelligencesStrip />
