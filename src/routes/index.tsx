@@ -90,7 +90,7 @@ function HomePage() {
         <Ornament />
         <div className="container-page relative py-20 md:py-28">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="text-sm font-medium uppercase tracking-[0.35em] text-accent md:text-base">
+            <div className="text-[1.09375rem] font-medium uppercase tracking-[0.35em] text-accent md:text-xl">
               Psİko-Fonksİyonel Analİz
             </div>
             <h1 className="mt-6 font-serif text-4xl leading-[1.08] text-foreground md:text-6xl">
