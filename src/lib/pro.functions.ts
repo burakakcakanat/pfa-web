@@ -28,7 +28,7 @@ export const getProDashboard = createServerFn({ method: "GET" })
     // Her tamamlanmış davet için ilgili tamamlanmış ölçek oturumunu eşle.
     // RLS: uygulayıcı yalnızca kendi davetlerine bağlı oturumları görebilir.
     const inviteIds = (invites ?? []).map((i) => i.id);
-    let sessionByInvite: Record<string, string> = {};
+    const sessionByInvite: Record<string, string> = {};
     if (inviteIds.length > 0) {
       const { data: sessions } = await supabase
         .from("assessment_sessions")
