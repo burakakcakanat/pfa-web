@@ -925,6 +925,175 @@ export type Database = {
         }
         Relationships: []
       }
+      sevenq_answers: {
+        Row: {
+          created_at: string
+          id: string
+          question_id: string
+          session_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_id: string
+          session_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_id?: string
+          session_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sevenq_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "sevenq_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sevenq_answers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sevenq_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sevenq_questions: {
+        Row: {
+          active: boolean
+          awareness_item: boolean
+          capacity: string
+          created_at: string
+          id: string
+          is_pilot_only: boolean
+          item_code: string
+          level: number
+          sort_order: number
+          text_en: string | null
+          text_tr: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          awareness_item?: boolean
+          capacity: string
+          created_at?: string
+          id?: string
+          is_pilot_only?: boolean
+          item_code: string
+          level: number
+          sort_order: number
+          text_en?: string | null
+          text_tr: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          awareness_item?: boolean
+          capacity?: string
+          created_at?: string
+          id?: string
+          is_pilot_only?: boolean
+          item_code?: string
+          level?: number
+          sort_order?: number
+          text_en?: string | null
+          text_tr?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sevenq_results: {
+        Row: {
+          akort: number
+          awareness_score: number
+          capacity_scores: Json
+          created_at: string
+          id: string
+          level_scores: Json
+          session_id: string
+          total_score: number
+        }
+        Insert: {
+          akort?: number
+          awareness_score?: number
+          capacity_scores?: Json
+          created_at?: string
+          id?: string
+          level_scores?: Json
+          session_id: string
+          total_score?: number
+        }
+        Update: {
+          akort?: number
+          awareness_score?: number
+          capacity_scores?: Json
+          created_at?: string
+          id?: string
+          level_scores?: Json
+          session_id?: string
+          total_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sevenq_results_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "sevenq_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sevenq_sessions: {
+        Row: {
+          client_invite_id: string | null
+          completed_at: string | null
+          created_at: string
+          guest_token: string | null
+          id: string
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          client_invite_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          guest_token?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          client_invite_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          guest_token?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sevenq_sessions_client_invite_id_fkey"
+            columns: ["client_invite_id"]
+            isOneToOne: false
+            referencedRelation: "pro_client_invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_settings: {
         Row: {
           key: string
@@ -1109,6 +1278,10 @@ export type Database = {
         Returns: undefined
       }
       can_view_assessment_session: {
+        Args: { _session_id: string }
+        Returns: boolean
+      }
+      can_view_sevenq_session: {
         Args: { _session_id: string }
         Returns: boolean
       }
