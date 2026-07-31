@@ -25,12 +25,33 @@ export const getProDashboard = createServerFn({ method: "GET" })
       .select("id, client_name, token, status, created_at")
       .order("created_at", { ascending: false });
 
+    // Her tamamlanmış davet için ilgili tamamlanmış ölçek oturumunu eşle.
+    // RLS: uygulayıcı yalnızca kendi davetlerine bağlı oturumları görebilir.
+    const inviteIds = (invites ?? []).map((i) => i.id);
+    let sessionByInvite: Record<string, string> = {};
+    if (inviteIds.length > 0) {
+      const { data: sessions } = await supabase
+        .from("assessment_sessions")
+        .select("id, client_invite_id, completed_at")
+        .in("client_invite_id", inviteIds)
+        .eq("status", "completed")
+        .order("completed_at", { ascending: false });
+      for (const s of sessions ?? []) {
+        if (s.client_invite_id && !sessionByInvite[s.client_invite_id]) {
+          sessionByInvite[s.client_invite_id] = s.id;
+        }
+      }
+    }
+
     return {
       hasPro: !!ent,
       quota,
       used,
       remaining: Math.max(0, quota - used),
-      invites: invites ?? [],
+      invites: (invites ?? []).map((i) => ({
+        ...i,
+        session_id: sessionByInvite[i.id] ?? null,
+      })),
     };
   });
 
