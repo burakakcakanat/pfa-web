@@ -444,6 +444,7 @@ function ClientsTab() {
           <ul className="divide-y divide-border">
             {data.invites.map((i: ProInvite) => {
               const link = typeof window !== "undefined" ? `${window.location.origin}/degerlendirme?invite=${i.token}` : "";
+              const sevenqLink = typeof window !== "undefined" ? `${window.location.origin}/7q?invite=${i.token}` : "";
               return (
                 <li key={i.id} className="p-4 text-sm">
                   <div className="flex items-center justify-between gap-4">
@@ -455,16 +456,31 @@ function ClientsTab() {
                       {i.status === "completed" ? "Tamamlandı" : "Beklemede"}
                     </span>
                   </div>
-                  {i.status === "completed" && i.session_id && (
-                    <div className="mt-2">
-                      <Link to="/rapor/$sessionId" params={{ sessionId: i.session_id }} className="text-accent hover:underline">
-                        Raporu Gör →
-                      </Link>
+                  {(i.session_id || i.sevenq_session_id) && (
+                    <div className="mt-2 flex flex-wrap items-center gap-4">
+                      {i.session_id && (
+                        <Link to="/rapor/$sessionId" params={{ sessionId: i.session_id }} className="text-accent hover:underline">
+                          Ölçek Raporu →
+                        </Link>
+                      )}
+                      {i.sevenq_session_id && (
+                        <Link to="/7q/rapor/$sessionId" params={{ sessionId: i.sevenq_session_id }} className="text-accent hover:underline">
+                          7Q Raporu →
+                        </Link>
+                      )}
                     </div>
                   )}
-                  <div className="mt-2 flex items-center gap-2">
-                    <input readOnly value={link} className="flex-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs" />
-                    <button type="button" onClick={() => navigator.clipboard?.writeText(link)} className="btn-outline text-xs">Kopyala</button>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-16 shrink-0 text-xs text-muted-foreground">Ölçek</span>
+                      <input readOnly value={link} className="flex-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs" />
+                      <button type="button" onClick={() => navigator.clipboard?.writeText(link)} className="btn-outline text-xs">Kopyala</button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-16 shrink-0 text-xs text-muted-foreground">7Q</span>
+                      <input readOnly value={sevenqLink} className="flex-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs" />
+                      <button type="button" onClick={() => navigator.clipboard?.writeText(sevenqLink)} className="btn-outline text-xs">Kopyala</button>
+                    </div>
                   </div>
                 </li>
               );
