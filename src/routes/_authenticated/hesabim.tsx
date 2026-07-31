@@ -31,7 +31,7 @@ type MyGift = {
   claimed_at: string | null;
 };
 type AssessmentSessionRow = { id: string; type: "mini" | "full"; status: string; created_at: string; completed_at: string | null };
-type ProInvite = { id: string; client_name: string; token: string; status: string; created_at: string };
+type ProInvite = { id: string; client_name: string; token: string; status: string; created_at: string; session_id?: string | null };
 
 const TABS = [
   { id: "profile", label: "Profil" },
@@ -417,6 +417,13 @@ function ClientsTab() {
                       {i.status === "completed" ? "Tamamlandı" : "Beklemede"}
                     </span>
                   </div>
+                  {i.status === "completed" && i.session_id && (
+                    <div className="mt-2">
+                      <Link to="/rapor/$sessionId" params={{ sessionId: i.session_id }} className="text-accent hover:underline">
+                        Raporu Gör →
+                      </Link>
+                    </div>
+                  )}
                   <div className="mt-2 flex items-center gap-2">
                     <input readOnly value={link} className="flex-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs" />
                     <button type="button" onClick={() => navigator.clipboard?.writeText(link)} className="btn-outline text-xs">Kopyala</button>

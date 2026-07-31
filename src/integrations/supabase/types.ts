@@ -1108,6 +1108,10 @@ export type Database = {
         Args: { _entitlement_id: string; _quota: number; _used: number }
         Returns: undefined
       }
+      can_view_assessment_session: {
+        Args: { _session_id: string }
+        Returns: boolean
+      }
       claim_ebook_gift: { Args: { _token: string }; Returns: string }
       create_pro_invite: {
         Args: { _client_name: string }

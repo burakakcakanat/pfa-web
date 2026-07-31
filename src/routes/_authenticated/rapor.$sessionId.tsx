@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/rapor/$sessionId")({
   component: ReportPage,
 });
 
-type Session = { id: string; type: "mini" | "full"; created_at: string; completed_at: string | null };
+type Session = { id: string; type: "mini" | "full"; created_at: string; completed_at: string | null; user_id: string | null };
 type Result = {
   level_scores: Record<string, number>;
   intelligence_scores: Record<string, number>;
@@ -25,22 +25,25 @@ function ReportPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isOwner, setIsOwner] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const [{ data: s, error: sErr }, { data: r, error: rErr }] = await Promise.all([
-        supabase.from("assessment_sessions").select("id, type, created_at, completed_at").eq("id", sessionId).maybeSingle(),
+      const [{ data: s, error: sErr }, { data: r, error: rErr }, { data: userRes }] = await Promise.all([
+        supabase.from("assessment_sessions").select("id, type, created_at, completed_at, user_id").eq("id", sessionId).maybeSingle(),
         supabase.from("assessment_results").select("level_scores, intelligence_scores").eq("session_id", sessionId).maybeSingle(),
+        supabase.auth.getUser(),
       ]);
       if (sErr || rErr) {
         setError(sErr?.message || rErr?.message || "Yükleme hatası");
         return;
       }
       if (!s || !r) {
-        setError("Rapor bulunamadı.");
+        setError("Rapor bulunamadı veya bu rapora erişim yetkiniz yok.");
         return;
       }
       setSession(s as Session);
+      setIsOwner(!!userRes?.user?.id && (s as Session).user_id === userRes.user.id);
       setResult(r as unknown as Result);
     })();
   }, [sessionId]);
@@ -61,7 +64,8 @@ function ReportPage() {
     <div className="container-page py-16">
       <header className="mx-auto mb-10 max-w-3xl text-center">
         <div className="text-xs uppercase tracking-[0.3em] text-accent">
-          {session.type === "mini" ? "Mini Değerlendirme Sonucu" : "Tam Assessment Raporu"}
+          {!isOwner ? "Danışan Raporu · " : ""}
+          {session.type === "mini" ? "Mini Değerlendirme Sonucu" : "Tam Ölçek Raporu"}
         </div>
         <h1 className="mt-3 font-serif text-3xl md:text-4xl">Bilinç Seviyeleri Haritanız</h1>
         <p className="mt-2 text-xs text-muted-foreground">
@@ -76,7 +80,7 @@ function ReportPage() {
           variant={session.type}
         />
 
-        {session.type === "mini" && (
+        {session.type === "mini" && isOwner && (
           <div className="mt-12 rounded-lg border-2 border-accent/50 bg-accent/5 p-8 text-center">
             <div className="text-xs uppercase tracking-[0.3em] text-accent">Bir Adım Daha</div>
             <h3 className="mt-3 font-serif text-2xl md:text-3xl">Tam Assessment + Bilinç Seviyesi Raporu</h3>
