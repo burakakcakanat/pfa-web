@@ -31,7 +31,17 @@ type MyGift = {
   claimed_at: string | null;
 };
 type AssessmentSessionRow = { id: string; type: "mini" | "full"; status: string; created_at: string; completed_at: string | null };
-type ProInvite = { id: string; client_name: string; token: string; status: string; created_at: string; session_id?: string | null };
+type SevenqSessionRow = { id: string; status: string; created_at: string; completed_at: string | null };
+type ReportRow = { id: string; kind: "scale" | "sevenq"; label: string; date: string };
+type ProInvite = {
+  id: string;
+  client_name: string;
+  token: string;
+  status: string;
+  created_at: string;
+  session_id?: string | null;
+  sevenq_session_id?: string | null;
+};
 
 const TABS = [
   { id: "profile", label: "Profil" },
@@ -46,6 +56,7 @@ function AccountPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [entitlements, setEntitlements] = useState<Entitlement[]>([]);
   const [assessments, setAssessments] = useState<AssessmentSessionRow[]>([]);
+  const [sevenqSessions, setSevenqSessions] = useState<SevenqSessionRow[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
   const [tab, setTab] = useState<string>("profile");
   const [fullName, setFullName] = useState("");
@@ -60,18 +71,20 @@ function AccountPage() {
       const { data: userRes } = await supabase.auth.getUser();
       const uid = userRes.user?.id;
       if (!uid) return;
-      const [{ data: p }, { data: o }, { data: e }, { data: r }, { data: a }] = await Promise.all([
+      const [{ data: p }, { data: o }, { data: e }, { data: r }, { data: a }, { data: sq }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
         supabase.from("orders").select("id,status,amount_cents,currency,created_at,products(name_tr,slug)").order("created_at", { ascending: false }),
         supabase.from("user_entitlements").select("id,type,created_at,metadata").order("created_at", { ascending: false }),
         supabase.from("user_roles").select("role"),
         supabase.from("assessment_sessions").select("id, type, status, created_at, completed_at").eq("status", "completed").order("completed_at", { ascending: false }),
+        supabase.from("sevenq_sessions").select("id, status, created_at, completed_at").eq("user_id", uid).eq("status", "completed").order("completed_at", { ascending: false }),
       ]);
       if (p) { setProfile(p as Profile); setFullName((p as Profile).full_name ?? ""); setPreferredLanguage((p as Profile).preferred_language ?? "tr"); }
       setOrders((o ?? []) as unknown as Order[]);
       setEntitlements((e ?? []) as unknown as Entitlement[]);
       setRoles(((r ?? []) as { role: string }[]).map((x) => x.role));
       setAssessments((a ?? []) as unknown as AssessmentSessionRow[]);
+      setSevenqSessions((sq ?? []) as unknown as SevenqSessionRow[]);
     })();
   }, []);
 
@@ -91,6 +104,21 @@ function AccountPage() {
 
   const ebooks = entitlements.filter((x) => x.type === "ebook");
   const webinars = entitlements.filter((x) => x.type === "webinar_bsc" || x.type === "pfa_pro");
+
+  const reports: ReportRow[] = [
+    ...assessments.map((a) => ({
+      id: a.id,
+      kind: "scale" as const,
+      label: a.type === "full" ? "Tam Ölçek Raporu" : "Mini Değerlendirme",
+      date: a.completed_at ?? a.created_at,
+    })),
+    ...sevenqSessions.map((s) => ({
+      id: s.id,
+      kind: "sevenq" as const,
+      label: "Kapasite Profili",
+      date: s.completed_at ?? s.created_at,
+    })),
+  ].sort((x, y) => new Date(y.date).getTime() - new Date(x.date).getTime());
 
   return (
     <div className="container-page py-16">
@@ -152,19 +180,29 @@ function AccountPage() {
 
         {tab === "reports" && (
           <div className="rounded-lg border border-border bg-card">
-            {assessments.length === 0 ? (
+            {reports.length === 0 ? (
               <div className="p-6 text-sm text-muted-foreground">
-                Henüz bir raporunuz yok. <Link to="/degerlendirme" className="text-accent">Değerlendirmeye başla →</Link>
+                Henüz bir raporunuz yok. <Link to="/degerlendirme" className="text-accent">PFA Ölçeği →</Link>{" "}
+                <Link to="/7q" className="text-accent">7Q Profili →</Link>
               </div>
             ) : (
               <ul className="divide-y divide-border">
-                {assessments.map((a) => (
-                  <li key={a.id} className="flex items-center justify-between p-4 text-sm">
+                {reports.map((a) => (
+                  <li key={`${a.kind}-${a.id}`} className="flex items-center justify-between gap-4 p-4 text-sm">
                     <div>
-                      <div className="font-medium">{a.type === "full" ? "Tam Assessment Raporu" : "Mini Değerlendirme"}</div>
-                      <div className="text-xs text-muted-foreground">{new Date(a.completed_at ?? a.created_at).toLocaleString("tr-TR")}</div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`rounded-full px-2 py-0.5 text-xs ${a.kind === "sevenq" ? "bg-accent/15 text-accent" : "bg-muted text-foreground"}`}>
+                          {a.kind === "sevenq" ? "7Q Profili" : "PFA Ölçeği"}
+                        </span>
+                        <span className="font-medium">{a.label}</span>
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">{new Date(a.date).toLocaleString("tr-TR")}</div>
                     </div>
-                    <Link to="/rapor/$sessionId" params={{ sessionId: a.id }} className="text-accent hover:underline">Görüntüle →</Link>
+                    {a.kind === "sevenq" ? (
+                      <Link to="/7q/rapor/$sessionId" params={{ sessionId: a.id }} className="shrink-0 text-accent hover:underline">Görüntüle →</Link>
+                    ) : (
+                      <Link to="/rapor/$sessionId" params={{ sessionId: a.id }} className="shrink-0 text-accent hover:underline">Görüntüle →</Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -406,6 +444,7 @@ function ClientsTab() {
           <ul className="divide-y divide-border">
             {data.invites.map((i: ProInvite) => {
               const link = typeof window !== "undefined" ? `${window.location.origin}/degerlendirme?invite=${i.token}` : "";
+              const sevenqLink = typeof window !== "undefined" ? `${window.location.origin}/7q?invite=${i.token}` : "";
               return (
                 <li key={i.id} className="p-4 text-sm">
                   <div className="flex items-center justify-between gap-4">
@@ -417,16 +456,31 @@ function ClientsTab() {
                       {i.status === "completed" ? "Tamamlandı" : "Beklemede"}
                     </span>
                   </div>
-                  {i.status === "completed" && i.session_id && (
-                    <div className="mt-2">
-                      <Link to="/rapor/$sessionId" params={{ sessionId: i.session_id }} className="text-accent hover:underline">
-                        Raporu Gör →
-                      </Link>
+                  {(i.session_id || i.sevenq_session_id) && (
+                    <div className="mt-2 flex flex-wrap items-center gap-4">
+                      {i.session_id && (
+                        <Link to="/rapor/$sessionId" params={{ sessionId: i.session_id }} className="text-accent hover:underline">
+                          Ölçek Raporu →
+                        </Link>
+                      )}
+                      {i.sevenq_session_id && (
+                        <Link to="/7q/rapor/$sessionId" params={{ sessionId: i.sevenq_session_id }} className="text-accent hover:underline">
+                          7Q Raporu →
+                        </Link>
+                      )}
                     </div>
                   )}
-                  <div className="mt-2 flex items-center gap-2">
-                    <input readOnly value={link} className="flex-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs" />
-                    <button type="button" onClick={() => navigator.clipboard?.writeText(link)} className="btn-outline text-xs">Kopyala</button>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-16 shrink-0 text-xs text-muted-foreground">Ölçek</span>
+                      <input readOnly value={link} className="flex-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs" />
+                      <button type="button" onClick={() => navigator.clipboard?.writeText(link)} className="btn-outline text-xs">Kopyala</button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-16 shrink-0 text-xs text-muted-foreground">7Q</span>
+                      <input readOnly value={sevenqLink} className="flex-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs" />
+                      <button type="button" onClick={() => navigator.clipboard?.writeText(sevenqLink)} className="btn-outline text-xs">Kopyala</button>
+                    </div>
                   </div>
                 </li>
               );

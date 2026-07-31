@@ -29,6 +29,7 @@ export const getProDashboard = createServerFn({ method: "GET" })
     // RLS: uygulayıcı yalnızca kendi davetlerine bağlı oturumları görebilir.
     const inviteIds = (invites ?? []).map((i) => i.id);
     const sessionByInvite: Record<string, string> = {};
+    const sevenqByInvite: Record<string, string> = {};
     if (inviteIds.length > 0) {
       const { data: sessions } = await supabase
         .from("assessment_sessions")
@@ -41,6 +42,19 @@ export const getProDashboard = createServerFn({ method: "GET" })
           sessionByInvite[s.client_invite_id] = s.id;
         }
       }
+
+      // 7Q oturumları: aynı davet, ayrı ölçüm hattı.
+      const { data: sevenq } = await supabase
+        .from("sevenq_sessions")
+        .select("id, client_invite_id, completed_at")
+        .in("client_invite_id", inviteIds)
+        .eq("status", "completed")
+        .order("completed_at", { ascending: false });
+      for (const s of sevenq ?? []) {
+        if (s.client_invite_id && !sevenqByInvite[s.client_invite_id]) {
+          sevenqByInvite[s.client_invite_id] = s.id;
+        }
+      }
     }
 
     return {
@@ -51,6 +65,7 @@ export const getProDashboard = createServerFn({ method: "GET" })
       invites: (invites ?? []).map((i) => ({
         ...i,
         session_id: sessionByInvite[i.id] ?? null,
+        sevenq_session_id: sevenqByInvite[i.id] ?? null,
       })),
     };
   });

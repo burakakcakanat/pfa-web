@@ -27,6 +27,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as WebinarlarIndexRouteImport } from './routes/webinarlar.index'
 import { Route as UygulayicilarIndexRouteImport } from './routes/uygulayicilar.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as R7qIndexRouteImport } from './routes/7q.index'
 import { Route as WebinarlarPfaProRouteImport } from './routes/webinarlar.pfa-pro'
 import { Route as WebinarlarBilincSeviyeleriRouteImport } from './routes/webinarlar.bilinc-seviyeleri'
 import { Route as UygulayicilarIdRouteImport } from './routes/uygulayicilar.$id'
@@ -42,7 +43,9 @@ import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as AuthenticatedRaporSessionIdRouteImport } from './routes/_authenticated/rapor.$sessionId'
 import { Route as AuthenticatedDegerlendirmeTamRouteImport } from './routes/_authenticated/degerlendirme.tam'
+import { Route as Authenticated7qFormRouteImport } from './routes/_authenticated/7q.form'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as Authenticated7qRaporSessionIdRouteImport } from './routes/_authenticated/7q.rapor.$sessionId'
 
 const UygulayiciOlunRoute = UygulayiciOlunRouteImport.update({
   id: '/uygulayici-olun',
@@ -133,6 +136,11 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const R7qIndexRoute = R7qIndexRouteImport.update({
+  id: '/7q/',
+  path: '/7q/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WebinarlarPfaProRoute = WebinarlarPfaProRouteImport.update({
   id: '/webinarlar/pfa-pro',
   path: '/webinarlar/pfa-pro',
@@ -214,11 +222,22 @@ const AuthenticatedDegerlendirmeTamRoute =
     path: '/degerlendirme/tam',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const Authenticated7qFormRoute = Authenticated7qFormRouteImport.update({
+  id: '/7q/form',
+  path: '/7q/form',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const Authenticated7qRaporSessionIdRoute =
+  Authenticated7qRaporSessionIdRouteImport.update({
+    id: '/7q/rapor/$sessionId',
+    path: '/7q/rapor/$sessionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -248,13 +267,16 @@ export interface FileRoutesByFullPath {
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
+  '/7q/': typeof R7qIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/uygulayicilar/': typeof UygulayicilarIndexRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/7q/form': typeof Authenticated7qFormRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
   '/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -283,13 +305,16 @@ export interface FileRoutesByTo {
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
+  '/7q': typeof R7qIndexRoute
   '/blog': typeof BlogIndexRoute
   '/uygulayicilar': typeof UygulayicilarIndexRoute
   '/webinarlar': typeof WebinarlarIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/7q/form': typeof Authenticated7qFormRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
   '/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -320,13 +345,16 @@ export interface FileRoutesById {
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
+  '/7q/': typeof R7qIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/uygulayicilar/': typeof UygulayicilarIndexRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/7q/form': typeof Authenticated7qFormRoute
   '/_authenticated/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
   '/_authenticated/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/_authenticated/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -357,13 +385,16 @@ export interface FileRouteTypes {
     | '/uygulayicilar/$id'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
+    | '/7q/'
     | '/blog/'
     | '/uygulayicilar/'
     | '/webinarlar/'
     | '/.mcp/invoke-tool/$tool'
+    | '/7q/form'
     | '/degerlendirme/tam'
     | '/rapor/$sessionId'
     | '/api/public/stripe-webhook'
+    | '/7q/rapor/$sessionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -392,13 +423,16 @@ export interface FileRouteTypes {
     | '/uygulayicilar/$id'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
+    | '/7q'
     | '/blog'
     | '/uygulayicilar'
     | '/webinarlar'
     | '/.mcp/invoke-tool/$tool'
+    | '/7q/form'
     | '/degerlendirme/tam'
     | '/rapor/$sessionId'
     | '/api/public/stripe-webhook'
+    | '/7q/rapor/$sessionId'
   id:
     | '__root__'
     | '/'
@@ -428,13 +462,16 @@ export interface FileRouteTypes {
     | '/uygulayicilar/$id'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
+    | '/7q/'
     | '/blog/'
     | '/uygulayicilar/'
     | '/webinarlar/'
     | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/7q/form'
     | '/_authenticated/degerlendirme/tam'
     | '/_authenticated/rapor/$sessionId'
     | '/api/public/stripe-webhook'
+    | '/_authenticated/7q/rapor/$sessionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -462,6 +499,7 @@ export interface RootRouteChildren {
   UygulayicilarIdRoute: typeof UygulayicilarIdRoute
   WebinarlarBilincSeviyeleriRoute: typeof WebinarlarBilincSeviyeleriRoute
   WebinarlarPfaProRoute: typeof WebinarlarPfaProRoute
+  R7qIndexRoute: typeof R7qIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
   UygulayicilarIndexRoute: typeof UygulayicilarIndexRoute
   WebinarlarIndexRoute: typeof WebinarlarIndexRoute
@@ -597,6 +635,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/7q/': {
+      id: '/7q/'
+      path: '/7q'
+      fullPath: '/7q/'
+      preLoaderRoute: typeof R7qIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/webinarlar/pfa-pro': {
       id: '/webinarlar/pfa-pro'
       path: '/webinarlar/pfa-pro'
@@ -702,12 +747,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDegerlendirmeTamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/7q/form': {
+      id: '/_authenticated/7q/form'
+      path: '/7q/form'
+      fullPath: '/7q/form'
+      preLoaderRoute: typeof Authenticated7qFormRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
       path: '/.mcp/invoke-tool/$tool'
       fullPath: '/.mcp/invoke-tool/$tool'
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/7q/rapor/$sessionId': {
+      id: '/_authenticated/7q/rapor/$sessionId'
+      path: '/7q/rapor/$sessionId'
+      fullPath: '/7q/rapor/$sessionId'
+      preLoaderRoute: typeof Authenticated7qRaporSessionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
@@ -716,16 +775,20 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedHesabimRoute: typeof AuthenticatedHesabimRoute
   AuthenticatedRaporFinalizeRoute: typeof AuthenticatedRaporFinalizeRoute
+  Authenticated7qFormRoute: typeof Authenticated7qFormRoute
   AuthenticatedDegerlendirmeTamRoute: typeof AuthenticatedDegerlendirmeTamRoute
   AuthenticatedRaporSessionIdRoute: typeof AuthenticatedRaporSessionIdRoute
+  Authenticated7qRaporSessionIdRoute: typeof Authenticated7qRaporSessionIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedHesabimRoute: AuthenticatedHesabimRoute,
   AuthenticatedRaporFinalizeRoute: AuthenticatedRaporFinalizeRoute,
+  Authenticated7qFormRoute: Authenticated7qFormRoute,
   AuthenticatedDegerlendirmeTamRoute: AuthenticatedDegerlendirmeTamRoute,
   AuthenticatedRaporSessionIdRoute: AuthenticatedRaporSessionIdRoute,
+  Authenticated7qRaporSessionIdRoute: Authenticated7qRaporSessionIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -757,6 +820,7 @@ const rootRouteChildren: RootRouteChildren = {
   UygulayicilarIdRoute: UygulayicilarIdRoute,
   WebinarlarBilincSeviyeleriRoute: WebinarlarBilincSeviyeleriRoute,
   WebinarlarPfaProRoute: WebinarlarPfaProRoute,
+  R7qIndexRoute: R7qIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
   UygulayicilarIndexRoute: UygulayicilarIndexRoute,
   WebinarlarIndexRoute: WebinarlarIndexRoute,

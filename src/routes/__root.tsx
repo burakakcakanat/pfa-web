@@ -150,6 +150,7 @@ const NAV_LINKS = [
   { to: "/", label: "Ana Sayfa" },
   { to: "/kitaplar", label: "Kitaplar" },
   { to: "/degerlendirme", label: "PFA Ölçeği" },
+  { to: "/7q", label: "7Q Profil" },
   { to: "/seanslar", label: "Seanslar" },
   { to: "/webinarlar", label: "Webinarlar" },
   { to: "/blog", label: "Blog" },
