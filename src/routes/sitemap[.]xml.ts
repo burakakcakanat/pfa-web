@@ -43,6 +43,8 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/hakkinda", changefreq: "yearly", priority: "0.6" },
           { path: "/iletisim", changefreq: "yearly", priority: "0.5" },
           { path: "/uygulayici-olun", changefreq: "monthly", priority: "0.7" },
+          { path: "/ulke-lisansi", changefreq: "monthly", priority: "0.7" },
+          { path: "/kurumsal-lisans", changefreq: "monthly", priority: "0.7" },
           { path: "/kullanim-kosullari", changefreq: "yearly", priority: "0.3" },
           { path: "/iade-politikasi", changefreq: "yearly", priority: "0.3" },
         ];

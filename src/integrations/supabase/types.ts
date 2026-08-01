@@ -470,6 +470,102 @@ export type Database = {
           },
         ]
       }
+      license_inquiries: {
+        Row: {
+          admin_note: string | null
+          annual_trainee_volume: number | null
+          city: string | null
+          consent: boolean
+          country: string | null
+          created_at: string
+          current_programmes: string | null
+          email: string
+          existing_business_area: string | null
+          expected_timeline: string | null
+          full_name: string
+          gtm_approach: string | null
+          id: string
+          institution_type: string | null
+          intended_use: string | null
+          ip_hash: string | null
+          message: string
+          organisation: string | null
+          phone: string | null
+          role: string | null
+          status: string
+          target_territory: string | null
+          team_size: number | null
+          trainer_count: number | null
+          type: string
+          updated_at: string
+          website: string | null
+          why_pfa: string | null
+          years_in_field: number | null
+        }
+        Insert: {
+          admin_note?: string | null
+          annual_trainee_volume?: number | null
+          city?: string | null
+          consent?: boolean
+          country?: string | null
+          created_at?: string
+          current_programmes?: string | null
+          email: string
+          existing_business_area?: string | null
+          expected_timeline?: string | null
+          full_name: string
+          gtm_approach?: string | null
+          id?: string
+          institution_type?: string | null
+          intended_use?: string | null
+          ip_hash?: string | null
+          message: string
+          organisation?: string | null
+          phone?: string | null
+          role?: string | null
+          status?: string
+          target_territory?: string | null
+          team_size?: number | null
+          trainer_count?: number | null
+          type: string
+          updated_at?: string
+          website?: string | null
+          why_pfa?: string | null
+          years_in_field?: number | null
+        }
+        Update: {
+          admin_note?: string | null
+          annual_trainee_volume?: number | null
+          city?: string | null
+          consent?: boolean
+          country?: string | null
+          created_at?: string
+          current_programmes?: string | null
+          email?: string
+          existing_business_area?: string | null
+          expected_timeline?: string | null
+          full_name?: string
+          gtm_approach?: string | null
+          id?: string
+          institution_type?: string | null
+          intended_use?: string | null
+          ip_hash?: string | null
+          message?: string
+          organisation?: string | null
+          phone?: string | null
+          role?: string | null
+          status?: string
+          target_territory?: string | null
+          team_size?: number | null
+          trainer_count?: number | null
+          type?: string
+          updated_at?: string
+          website?: string | null
+          why_pfa?: string | null
+          years_in_field?: number | null
+        }
+        Relationships: []
+      }
       newsletter_issues: {
         Row: {
           content_md: string

@@ -222,6 +222,8 @@ const FOOTER_MORE: NavItem[] = [
   { to: "/uygulayicilar", label: "Uygulayıcı Bul" },
   { to: "/uygulayici-olun", label: "Uygulayıcı Programı" },
   { to: "/uygulayici-ekosistemi", label: "Uygulayıcı Ekosistemi" },
+  { to: "/ulke-lisansi", label: "Ülke Lisansları" },
+  { to: "/kurumsal-lisans", label: "Kurumsal Lisanslar" },
   { to: "/kullanim-kosullari", label: "Kullanım Koşulları" },
   { to: "/iade-politikasi", label: "İade Politikası" },
 ];
