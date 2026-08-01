@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useState, type FormEvent } from "react";
-import { submitPractitionerApplication } from "@/lib/practitioner-applications.functions";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/uygulayici-olun")({
   head: () => ({
@@ -231,8 +230,12 @@ function BecomePractitionerPage() {
               <p className="mt-4 text-sm text-foreground/70">
                 Değerlendirme yaklaşık 1–2 hafta içinde e-posta ile iletilir.
               </p>
+              <p className="mt-2 text-sm text-foreground/70">
+                Başvuru, PFA hesabınız üzerinden yapılır; böylece durumunuzu her an takip
+                edebilirsiniz.
+              </p>
             </div>
-            <ApplicationForm />
+            <ApplicationCta />
           </div>
         </div>
       </section>
@@ -277,210 +280,37 @@ function Stage({
   );
 }
 
-function ApplicationForm() {
-  const submit = useServerFn(submitPractitionerApplication);
-  const [status, setStatus] = useState<"idle" | "sending" | "ok" | "error">("idle");
-  const [error, setError] = useState<string | null>(null);
-  const [motivationLen, setMotivationLen] = useState(0);
+function ApplicationCta() {
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
 
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setStatus("sending");
-    setError(null);
-    const form = e.currentTarget;
-    const fd = new FormData(form);
-    // Coerce checkbox to string
-    fd.set("kvkk_accepted", (form.elements.namedItem("kvkk_accepted") as HTMLInputElement)?.checked ? "true" : "");
-    try {
-      await submit({ data: fd });
-      setStatus("ok");
-      form.reset();
-      setMotivationLen(0);
-    } catch (err: any) {
-      const msg = err?.message ?? "Başvuru gönderilemedi.";
-      // Zod issues gelirse ilkini göster
-      setError(msg);
-      setStatus("error");
-    }
-  }
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
+  }, []);
 
-  if (status === "ok") {
-    return (
-      <div className="mt-10 border border-border bg-background p-8 text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">
-          Teşekkürler
-        </div>
-        <p className="mt-4 font-serif text-xl text-foreground">
-          Başvurunuz alındı. Değerlendirme sonrası e-posta ile dönüş yapılacaktır.
-        </p>
-      </div>
-    );
-  }
+  const target = "/hesabim?tab=practitioner";
 
   return (
-    <form onSubmit={onSubmit} className="mt-10 space-y-5" noValidate>
-      {/* Honeypot */}
-      <input
-        type="text"
-        name="website_hp"
-        tabIndex={-1}
-        autoComplete="off"
-        aria-hidden="true"
-        className="absolute h-0 w-0 opacity-0 pointer-events-none"
-      />
-
-      <div className="grid gap-5 md:grid-cols-2">
-        <Field label="Ad Soyad" name="full_name" required maxLength={200} />
-        <Field label="E-posta" name="email" type="email" required maxLength={200} />
-        <Field label="Telefon (opsiyonel)" name="phone" type="tel" maxLength={60} />
-        <Field label="Şehir" name="city" maxLength={120} />
-        <div className="flex flex-col">
-          <label className="mb-1.5 text-xs uppercase tracking-[0.2em] text-foreground/70">
-            Kategori <span className="text-destructive">*</span>
-          </label>
-          <select
-            name="category"
-            required
-            defaultValue=""
-            className="border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none"
-          >
-            <option value="" disabled>
-              Seçiniz
-            </option>
-            {CATEGORIES.map((c) => (
-              <option key={c.key} value={c.key}>
-                {c.title}
-              </option>
-            ))}
-          </select>
-        </div>
-        <Field label="Mevcut unvan / meslek" name="profession_title" maxLength={200} />
-        <Field
-          label="Deneyim (yıl)"
-          name="experience_years"
-          type="number"
-          min={0}
-          max={80}
-        />
-      </div>
-
-      <div className="flex flex-col">
-        <label className="mb-1.5 text-xs uppercase tracking-[0.2em] text-foreground/70">
-          Niyet metni <span className="text-destructive">*</span>{" "}
-          <span className="ml-2 text-[10px] tracking-normal text-foreground/50">
-            (200–1500 karakter · {motivationLen})
-          </span>
-        </label>
-        <textarea
-          name="motivation"
-          required
-          minLength={200}
-          maxLength={1500}
-          rows={7}
-          onChange={(e) => setMotivationLen(e.target.value.length)}
-          placeholder="Neden PFA uygulayıcı olmak istediğinizi kısaca aktarın."
-          className="border border-border bg-background px-3 py-2.5 text-sm leading-relaxed text-foreground focus:border-primary focus:outline-none"
-        />
-      </div>
-
-      <div className="grid gap-5 md:grid-cols-2">
-        <FileField
-          label="Özgeçmiş (PDF, ≤10MB)"
-          name="cv"
-          accept="application/pdf"
-          required
-        />
-        <FileField
-          label="Diploma / sertifika (PDF/JPG, opsiyonel, ≤10MB)"
-          name="diploma"
-          accept="application/pdf,image/jpeg,image/png"
-        />
-      </div>
-
-      <label className="flex items-start gap-3 pt-2 text-sm text-foreground/85">
-        <input
-          type="checkbox"
-          name="kvkk_accepted"
-          required
-          className="mt-1 h-4 w-4 accent-primary"
-        />
-        <span>
-          Kişisel verilerimin başvuru değerlendirmesi amacıyla işlenmesini kabul
-          ediyorum.{" "}
-          <Link to="/hakkinda" className="underline underline-offset-4">
-            KVKK aydınlatma metni
-          </Link>
-        </span>
-      </label>
-
-      {status === "error" && error ? (
-        <p className="text-sm text-destructive">{error}</p>
-      ) : null}
-
-      <div className="pt-3">
-        <button
-          type="submit"
-          disabled={status === "sending"}
-          className="inline-flex items-center justify-center rounded-none border border-primary bg-primary px-8 py-3 text-sm uppercase tracking-[0.2em] text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+    <div className="mt-10 border border-border bg-background p-8 text-center">
+      {signedIn ? (
+        <Link
+          to="/hesabim"
+          search={{ tab: "practitioner" }}
+          className="inline-flex items-center justify-center rounded-none border border-primary bg-primary px-8 py-3 text-sm uppercase tracking-[0.2em] text-primary-foreground transition hover:bg-primary/90"
         >
-          {status === "sending" ? "Gönderiliyor…" : "Başvuruyu Gönder"}
-        </button>
-      </div>
-    </form>
-  );
-}
-
-function Field({
-  label,
-  name,
-  type = "text",
-  required,
-  ...rest
-}: {
-  label: string;
-  name: string;
-  type?: string;
-  required?: boolean;
-} & React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <div className="flex flex-col">
-      <label className="mb-1.5 text-xs uppercase tracking-[0.2em] text-foreground/70">
-        {label} {required ? <span className="text-destructive">*</span> : null}
-      </label>
-      <input
-        name={name}
-        type={type}
-        required={required}
-        {...rest}
-        className="border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none"
-      />
-    </div>
-  );
-}
-
-function FileField({
-  label,
-  name,
-  accept,
-  required,
-}: {
-  label: string;
-  name: string;
-  accept: string;
-  required?: boolean;
-}) {
-  return (
-    <div className="flex flex-col">
-      <label className="mb-1.5 text-xs uppercase tracking-[0.2em] text-foreground/70">
-        {label} {required ? <span className="text-destructive">*</span> : null}
-      </label>
-      <input
-        name={name}
-        type="file"
-        accept={accept}
-        required={required}
-        className="border border-border bg-background px-3 py-2 text-sm text-foreground file:mr-3 file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:uppercase file:tracking-[0.2em] file:text-primary hover:file:bg-primary/20"
-      />
+          Başvuru Yap
+        </Link>
+      ) : (
+        <Link
+          to="/auth"
+          search={{ redirect: target }}
+          className="inline-flex items-center justify-center rounded-none border border-primary bg-primary px-8 py-3 text-sm uppercase tracking-[0.2em] text-primary-foreground transition hover:bg-primary/90"
+        >
+          Başvuru Yap
+        </Link>
+      )}
+      <p className="mt-4 text-xs text-foreground/60">
+        Başvuru formu Hesabım → Uygulayıcı sekmesinde yer alır.
+      </p>
     </div>
   );
 }

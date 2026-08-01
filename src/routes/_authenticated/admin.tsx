@@ -107,6 +107,8 @@ import {
   listAdminApplications,
   getAdminApplicationFileUrl,
   updateAdminApplication,
+  acceptApplicationAsPractitioner,
+  makeUserPractitioner,
   type AdminApplicationRow,
   type ApplicationStatus,
 } from "@/lib/practitioner-applications.functions";
@@ -2605,9 +2607,14 @@ function PractitionerApplications({
   const list = useServerFn(listAdminApplications);
   const getUrl = useServerFn(getAdminApplicationFileUrl);
   const update = useServerFn(updateAdminApplication);
+  const acceptAsPractitioner = useServerFn(acceptApplicationAsPractitioner);
+  const promoteUser = useServerFn(makeUserPractitioner);
   const [rows, setRows] = useState<AdminApplicationRow[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [promoteEmail, setPromoteEmail] = useState("");
+  const [promoteBusy, setPromoteBusy] = useState(false);
+  const [acceptBusy, setAcceptBusy] = useState(false);
 
   const reload = useCallback(async () => {
     const r = await list();
@@ -2673,11 +2680,68 @@ function PractitionerApplications({
     });
   }
 
+  async function acceptAndPromote(app: AdminApplicationRow) {
+    setAcceptBusy(true);
+    try {
+      const res = (await acceptAsPractitioner({ data: { id: app.id } })) as {
+        created: boolean;
+      };
+      toast.success(
+        res.created
+          ? "Kabul edildi, pro rolü verildi ve taslak uygulayıcı kaydı oluşturuldu."
+          : "Kabul edildi, pro rolü verildi. Uygulayıcı kaydı zaten mevcut.",
+      );
+      reload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "İşlem başarısız");
+    } finally {
+      setAcceptBusy(false);
+    }
+  }
+
+  async function promoteByEmail() {
+    if (!promoteEmail.trim()) return;
+    setPromoteBusy(true);
+    try {
+      const res = (await promoteUser({ data: { email: promoteEmail.trim() } })) as {
+        created: boolean;
+      };
+      toast.success(
+        res.created
+          ? "Kullanıcıya pro rolü verildi ve taslak uygulayıcı kaydı oluşturuldu."
+          : "Kullanıcıya pro rolü verildi. Uygulayıcı kaydı zaten mevcut.",
+      );
+      setPromoteEmail("");
+    } catch (e: any) {
+      toast.error(e?.message ?? "İşlem başarısız");
+    } finally {
+      setPromoteBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
         {rows.length} başvuru — en yeni üstte.
       </p>
+      <div className="space-y-3 rounded-md border border-border bg-card p-4">
+        <Label>Bu kullanıcıyı uygulayıcı yap (başvuru olmadan)</Label>
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            className="w-72"
+            type="email"
+            placeholder="hesap e-postası"
+            value={promoteEmail}
+            onChange={(e) => setPromoteEmail(e.target.value)}
+          />
+          <Button size="sm" disabled={promoteBusy} onClick={promoteByEmail}>
+            {promoteBusy ? "İşleniyor…" : "Uygulayıcı yap"}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Var olan bir hesaba pro rolü verir ve yayınlanmamış taslak uygulayıcı kaydı oluşturur.
+        </p>
+      </div>
       <Card>
         <Table>
           <TableHeader>
@@ -2797,6 +2861,22 @@ function PractitionerApplications({
                 Uygulayıcı kaydı oluştur
               </Button>
             </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
+            <Button
+              size="sm"
+              disabled={!opened.user_id || acceptBusy}
+              onClick={() => acceptAndPromote(opened)}
+            >
+              {acceptBusy ? "İşleniyor…" : "Kabul et ve uygulayıcı yap"}
+            </Button>
+            {!opened.user_id ? (
+              <span className="text-xs text-muted-foreground">
+                Bu başvuru bir hesaba bağlı değil (eski kayıt). Yukarıdaki e-posta alanını
+                kullanın.
+              </span>
+            ) : null}
           </div>
 
           <div>

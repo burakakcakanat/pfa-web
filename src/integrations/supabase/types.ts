@@ -656,6 +656,7 @@ export type Database = {
           profession_title: string | null
           status: Database["public"]["Enums"]["application_status"]
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           admin_note?: string | null
@@ -675,6 +676,7 @@ export type Database = {
           profession_title?: string | null
           status?: Database["public"]["Enums"]["application_status"]
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           admin_note?: string | null
@@ -694,6 +696,7 @@ export type Database = {
           profession_title?: string | null
           status?: Database["public"]["Enums"]["application_status"]
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -761,6 +764,7 @@ export type Database = {
           specializations: string[]
           title: string | null
           updated_at: string
+          user_id: string | null
           website: string | null
         }
         Insert: {
@@ -781,6 +785,7 @@ export type Database = {
           specializations?: string[]
           title?: string | null
           updated_at?: string
+          user_id?: string | null
           website?: string | null
         }
         Update: {
@@ -801,6 +806,7 @@ export type Database = {
           specializations?: string[]
           title?: string | null
           updated_at?: string
+          user_id?: string | null
           website?: string | null
         }
         Relationships: []
