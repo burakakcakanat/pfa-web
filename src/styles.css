@@ -68,6 +68,8 @@
   --radius: 0.5rem;
   /* Ivory / cream background #F7F3E8 */
   --background: oklch(0.962 0.021 89);
+  /* Map-matched cream background #FBF3E8 */
+  --hero-map-bg: oklch(0.968 0.021 89);
   /* Deep petrol/teal #1F4E52 */
   --foreground: oklch(0.38 0.045 202);
   --card: oklch(0.978 0.014 89);
@@ -105,6 +107,7 @@
 
 .dark {
   --background: oklch(0.129 0.042 264.695);
+  --hero-map-bg: oklch(0.968 0.021 89);
   --foreground: oklch(0.984 0.003 247.858);
   --card: oklch(0.208 0.042 265.755);
   --card-foreground: oklch(0.984 0.003 247.858);
