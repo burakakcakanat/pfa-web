@@ -18,13 +18,13 @@ export const Route = createFileRoute("/bulten/ayril")({
 function UnsubscribePage() {
   const { token } = Route.useSearch();
   const unsub = useServerFn(unsubscribeNewsletter);
-  const [state, setState] = useState<"loading" | "ok" | "unknown">("loading");
+  const [state, setState] = useState<"loading" | "ok" | "unknown" | "error">("loading");
 
   useEffect(() => {
     if (!token) { setState("unknown"); return; }
     unsub({ data: { token } })
       .then((r) => setState(r?.ok ? "ok" : "unknown"))
-      .catch(() => setState("unknown"));
+      .catch(() => setState("error"));
   }, [token, unsub]);
 
   return (
@@ -34,12 +34,15 @@ function UnsubscribePage() {
         <h1 className="mt-4 font-serif text-3xl">
           {state === "loading" && "İşleniyor…"}
           {state === "ok" && "E-posta listemizden ayrıldınız."}
-          {state === "unknown" && "İsteğiniz alındı."}
+          {state === "unknown" && "Bağlantı geçersiz."}
+          {state === "error" && "İşlem tamamlanamadı."}
         </h1>
         <p className="mt-4 text-sm text-foreground/75">
           {state === "ok"
             ? "Bundan sonra bülten göndermeyeceğiz. Fikriniz değişirse her zaman yeniden abone olabilirsiniz."
-            : "Bir sorun oluştuysa lütfen bize bildirin."}
+            : state === "loading"
+              ? "Lütfen bekleyin."
+              : "Bu ayrılma bağlantısı geçerli değil ya da süresi dolmuş. Lütfen info@psychofunctionalanalysis.com adresine yazın; kaydınızı biz kapatalım."}
         </p>
       </div>
     </div>

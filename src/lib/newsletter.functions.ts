@@ -33,6 +33,9 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const email = data.email.toLowerCase().trim();
 
+    // Explicit new opt-in lifts any previous global suppression for this address.
+    await supabaseAdmin.from("newsletter_suppressions").delete().eq("email", email);
+
     // upsert-like: check if exists
     const { data: existing } = await supabaseAdmin
       .from("newsletter_subscribers")
@@ -66,20 +69,28 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
   });
 
 // -------- PUBLIC: unsubscribe --------
+// Standalone, token-based, NO auth required. Global: opting out stops every
+// segment and every future send for that address.
 export const unsubscribeNewsletter = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ token: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row } = await supabaseAdmin
       .from("newsletter_subscribers")
-      .select("id")
+      .select("id, email")
       .eq("unsubscribe_token", data.token)
       .maybeSingle();
     if (!row) return { ok: false };
+    const email = row.email.toLowerCase().trim();
+    // 1) mark EVERY row for this address as unsubscribed (all segments)
     await supabaseAdmin
       .from("newsletter_subscribers")
       .update({ unsubscribed_at: new Date().toISOString() })
-      .eq("id", row.id);
+      .eq("email", email);
+    // 2) permanent global suppression, independent of subscriber rows
+    await supabaseAdmin
+      .from("newsletter_suppressions")
+      .upsert({ email, unsubscribed_at: new Date().toISOString(), source: "link" }, { onConflict: "email" });
     return { ok: true };
   });
 
@@ -180,8 +191,80 @@ export const getNewsletterConfigStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    return { emailConfigured: Boolean(process.env.RESEND_API_KEY) };
+    return {
+      emailConfigured: Boolean(process.env.RESEND_API_KEY_DIRECT || process.env.RESEND_API_KEY),
+    };
   });
+
+// -------- ADMIN: unsubscribed contacts --------
+export const listNewsletterUnsubscribed = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: subs }, { data: supp }] = await Promise.all([
+      supabaseAdmin
+        .from("newsletter_subscribers")
+        .select("email, segment, unsubscribed_at, created_at"),
+      supabaseAdmin
+        .from("newsletter_suppressions")
+        .select("email, unsubscribed_at, source"),
+    ]);
+
+    const byEmail = new Map<string, { email: string; segments: string[]; unsubscribed_at: string | null; source: string | null }>();
+    for (const s of supp ?? []) {
+      byEmail.set(s.email, { email: s.email, segments: [], unsubscribed_at: s.unsubscribed_at, source: s.source ?? null });
+    }
+    let active = 0;
+    for (const r of subs ?? []) {
+      const email = r.email.toLowerCase();
+      if (!r.unsubscribed_at && !byEmail.has(email)) { active += 1; continue; }
+      const cur = byEmail.get(email) ?? { email, segments: [], unsubscribed_at: r.unsubscribed_at, source: null };
+      if (!cur.segments.includes(r.segment)) cur.segments.push(r.segment);
+      if (!cur.unsubscribed_at) cur.unsubscribed_at = r.unsubscribed_at;
+      byEmail.set(email, cur);
+    }
+    const rows = [...byEmail.values()].sort((a, b) =>
+      (b.unsubscribed_at ?? "").localeCompare(a.unsubscribed_at ?? ""),
+    );
+    return { rows, activeCount: active, unsubscribedCount: rows.length };
+  });
+
+// Hard guard: never dispatch to an address that opted out, whatever the
+// recipient list says. Returns the allowed list plus how many were blocked.
+async function filterSuppressed<T extends { email: string }>(
+  supabaseAdmin: any,
+  recipients: T[],
+): Promise<{ allowed: T[]; suppressed: number }> {
+  if (recipients.length === 0) return { allowed: [], suppressed: 0 };
+  const emails = [...new Set(recipients.map((r) => r.email.toLowerCase().trim()))];
+  const blocked = new Set<string>();
+  const CHUNK = 200;
+  for (let i = 0; i < emails.length; i += CHUNK) {
+    const chunk = emails.slice(i, i + CHUNK);
+    const [{ data: supp }, { data: unsub }] = await Promise.all([
+      supabaseAdmin.from("newsletter_suppressions").select("email").in("email", chunk),
+      supabaseAdmin
+        .from("newsletter_subscribers")
+        .select("email, unsubscribed_at")
+        .in("email", chunk)
+        .not("unsubscribed_at", "is", null),
+    ]);
+    for (const r of supp ?? []) blocked.add(String(r.email).toLowerCase());
+    for (const r of unsub ?? []) blocked.add(String(r.email).toLowerCase());
+  }
+  const seen = new Set<string>();
+  const allowed: T[] = [];
+  let suppressed = 0;
+  for (const r of recipients) {
+    const e = r.email.toLowerCase().trim();
+    if (blocked.has(e)) { suppressed += 1; continue; }
+    if (seen.has(e)) continue;
+    seen.add(e);
+    allowed.push(r);
+  }
+  return { allowed, suppressed };
+}
 
 // Minimal, safe markdown -> HTML renderer for email bodies.
 function mdToHtml(md: string): string {
@@ -213,13 +296,54 @@ function inline(s: string): string {
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
-function wrapEmailHtml(bodyHtml: string, unsubscribeUrl: string): string {
+type Artwork = { url: string; side: "left" | "right" } | null;
+
+async function loadArtwork(supabaseAdmin: any): Promise<Artwork> {
+  try {
+    const { data } = await supabaseAdmin
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["newsletter_bg_image_url", "newsletter_bg_side"]);
+    const map: Record<string, string> = {};
+    for (const r of data ?? []) if (r.value) map[r.key] = String(r.value).trim();
+    const url = map["newsletter_bg_image_url"];
+    if (!url || !/^https?:\/\//i.test(url)) return null;
+    const side = map["newsletter_bg_side"] === "left" ? "left" : "right";
+    return { url, side };
+  } catch {
+    return null;
+  }
+}
+
+// Artwork is rendered as a real <img> inside a fixed-width side cell (never a
+// CSS background), flush to one edge of the layout. If the image fails to load
+// or is blocked, the cell collapses to a narrow empty strip — the letter stays
+// readable and never shows a broken banner or empty block.
+function artworkCell(art: Artwork): string {
+  if (!art) return "";
+  return `<td width="96" valign="top" style="width:96px;padding:0;line-height:0;font-size:0;background:#fffdf7">
+    <img src="${art.url}" width="96" alt="" border="0" style="display:block;width:96px;max-width:96px;height:auto;border:0;outline:none;text-decoration:none;opacity:0.5" />
+  </td>`;
+}
+
+function wrapEmailHtml(bodyHtml: string, unsubscribeUrl: string, art: Artwork = null): string {
+  const left = art?.side === "left" ? artworkCell(art) : "";
+  const right = art?.side === "right" ? artworkCell(art) : "";
+  const bodyRow = art
+    ? `<tr><td style="padding:0">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+          ${left}
+          <td valign="top" style="padding:28px 32px;font-size:15px;line-height:1.7">${bodyHtml}</td>
+          ${right}
+        </tr></table>
+      </td></tr>`
+    : `<tr><td style="padding:28px 32px;font-size:15px;line-height:1.7">${bodyHtml}</td></tr>`;
   return `<!doctype html><html><body style="margin:0;background:#f7f3ea;font-family:Inter,system-ui,sans-serif;color:#1a2a2e;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f3ea;padding:32px 12px;">
     <tr><td align="center">
       <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fffdf7;border:1px solid #e6dfcf;border-radius:8px;overflow:hidden">
         <tr><td style="padding:24px 32px;border-bottom:1px solid #eee5d0;text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:20px;letter-spacing:.14em;color:#0f766e">PFA — PSİKO-FONKSİYONEL ANALİZ</td></tr>
-        <tr><td style="padding:28px 32px;font-size:15px;line-height:1.7">${bodyHtml}</td></tr>
+        ${bodyRow}
         <tr><td style="padding:20px 32px;border-top:1px solid #eee5d0;font-size:11px;color:#6b6355;text-align:center">
           Bu e-postayı PFA bültenine abone olduğunuz için aldınız.<br/>
           <a href="${unsubscribeUrl}" style="color:#6b6355;text-decoration:underline">Abonelikten ayrıl</a>
@@ -229,10 +353,17 @@ function wrapEmailHtml(bodyHtml: string, unsubscribeUrl: string): string {
   </table></body></html>`;
 }
 
-async function sendResendEmail(_apiKey: string, to: string, subject: string, html: string) {
+async function sendResendEmail(to: string, subject: string, html: string) {
   const { sendEmail } = await import("@/lib/email/send.server");
   const r = await sendEmail({ to, subject, html });
-  if (!r.ok) throw new Error(r.error ?? "send_failed");
+  if (!r.ok) {
+    const reason = r.error ?? "send_failed";
+    throw new Error(
+      reason === "email_not_configured"
+        ? "E-posta gönderimi yapılandırılmamış (RESEND_API_KEY_DIRECT eksik)."
+        : `E-posta gönderilemedi: ${reason}`,
+    );
+  }
 }
 
 export const sendNewsletterTest = createServerFn({ method: "POST" })
@@ -240,8 +371,9 @@ export const sendNewsletterTest = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ issueId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) throw new Error("RESEND_API_KEY tanımlı değil.");
+    if (!process.env.RESEND_API_KEY_DIRECT) {
+      throw new Error("E-posta gönderimi yapılandırılmamış (RESEND_API_KEY_DIRECT eksik).");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: issue, error } = await supabaseAdmin
       .from("newsletter_issues")
@@ -253,9 +385,19 @@ export const sendNewsletterTest = createServerFn({ method: "POST" })
     const email = userRes.user?.email;
     if (!email) throw new Error("Yönetici e-postası bulunamadı.");
     const base = process.env.SITE_URL || "https://psychofunctionalanalysis.com";
-    const unsubUrl = `${base}/bulten/ayril?token=00000000-0000-0000-0000-000000000000`;
-    const html = wrapEmailHtml(mdToHtml(issue.content_md).replace(/{{unsubscribe_url}}/g, unsubUrl), unsubUrl);
-    await sendResendEmail(apiKey, email, `[TEST] ${issue.title}`, html);
+    // Use the admin's OWN real token when they are a subscriber, so the test
+    // mail's unsubscribe link actually works instead of being a dead dummy.
+    const { data: own } = await supabaseAdmin
+      .from("newsletter_subscribers")
+      .select("unsubscribe_token")
+      .eq("email", email.toLowerCase())
+      .maybeSingle();
+    const unsubUrl = own?.unsubscribe_token
+      ? `${base}/bulten/ayril?token=${own.unsubscribe_token}`
+      : `${base}/bulten/ayril`;
+    const art = await loadArtwork(supabaseAdmin);
+    const html = wrapEmailHtml(mdToHtml(issue.content_md).replace(/{{unsubscribe_url}}/g, unsubUrl), unsubUrl, art);
+    await sendResendEmail(email, `[TEST] ${issue.title}`, html);
     return { ok: true, sentTo: email };
   });
 
@@ -264,8 +406,9 @@ export const sendNewsletterIssue = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ issueId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) throw new Error("RESEND_API_KEY tanımlı değil.");
+    if (!process.env.RESEND_API_KEY_DIRECT) {
+      throw new Error("E-posta gönderimi yapılandırılmamış (RESEND_API_KEY_DIRECT eksik).");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: issue, error } = await supabaseAdmin
       .from("newsletter_issues")
@@ -282,23 +425,28 @@ export const sendNewsletterIssue = createServerFn({ method: "POST" })
       .from("newsletter_subscribers")
       .select("email, unsubscribe_token, segment")
       .eq("consent", true)
-      .eq("confirmed", true)
       .is("unsubscribed_at", null);
     if (issue.segment !== "tumu") q = q.eq("segment", issue.segment);
     const { data: subs, error: subsErr } = await q;
     if (subsErr) throw new Error(subsErr.message);
-    const recipients = subs ?? [];
+    // HARD GUARD immediately before dispatch: drop anyone globally suppressed
+    // or unsubscribed on any row, plus duplicates.
+    const { allowed: recipients, suppressed } = await filterSuppressed(supabaseAdmin, subs ?? []);
+    console.log(
+      `[newsletter] issue=${data.issueId} candidates=${(subs ?? []).length} suppressed=${suppressed} recipients=${recipients.length}`,
+    );
 
     const base = process.env.SITE_URL || "https://psychofunctionalanalysis.com";
+    const art = await loadArtwork(supabaseAdmin);
     let sent = 0;
     const BATCH = 50;
     for (let i = 0; i < recipients.length; i += BATCH) {
       const batch = recipients.slice(i, i + BATCH);
       await Promise.all(batch.map(async (s) => {
         const unsubUrl = `${base}/bulten/ayril?token=${s.unsubscribe_token}`;
-        const html = wrapEmailHtml(mdToHtml(issue.content_md).replace(/{{unsubscribe_url}}/g, unsubUrl), unsubUrl);
+        const html = wrapEmailHtml(mdToHtml(issue.content_md).replace(/{{unsubscribe_url}}/g, unsubUrl), unsubUrl, art);
         try {
-          await sendResendEmail(apiKey, s.email, issue.title, html);
+          await sendResendEmail(s.email, issue.title, html);
           sent += 1;
         } catch (e) {
           console.error("[newsletter] send failed", s.email, e);
@@ -314,5 +462,5 @@ export const sendNewsletterIssue = createServerFn({ method: "POST" })
       .update({ status: "gonderildi", sent_at: new Date().toISOString(), sent_count: sent })
       .eq("id", data.issueId);
 
-    return { ok: true, sent, total: recipients.length };
+    return { ok: true, sent, total: recipients.length, suppressed };
   });
