@@ -554,6 +554,24 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter_suppressions: {
+        Row: {
+          email: string
+          source: string | null
+          unsubscribed_at: string
+        }
+        Insert: {
+          email: string
+          source?: string | null
+          unsubscribed_at?: string
+        }
+        Update: {
+          email?: string
+          source?: string | null
+          unsubscribed_at?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           amount_cents: number
