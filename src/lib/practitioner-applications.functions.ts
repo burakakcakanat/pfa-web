@@ -20,16 +20,15 @@ async function assertAdmin(supabase: any, userId: string) {
   if (!data) throw new Error("Forbidden");
 }
 
-// -------- PUBLIC SUBMIT (FormData) --------
+// -------- AUTHENTICATED SUBMIT (FormData) --------
 export const submitPractitionerApplication = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => {
     if (!(data instanceof FormData)) {
       throw new Error("FormData bekleniyor");
     }
-    const website_hp = String(data.get("website_hp") ?? "");
     const applicationSchema = z.object({
         full_name: z.string().trim().min(2).max(200),
-        email: z.string().trim().toLowerCase().email().max(200),
         phone: z.string().trim().max(60).optional().default(""),
         city: z.string().trim().max(120).optional().default(""),
         category: CATEGORY,
@@ -40,7 +39,6 @@ export const submitPractitionerApplication = createServerFn({ method: "POST" })
       });
     const parsed = parseFriendly(applicationSchema, {
         full_name: data.get("full_name"),
-        email: data.get("email"),
         phone: data.get("phone") ?? "",
         city: data.get("city") ?? "",
         category: data.get("category"),
@@ -52,13 +50,12 @@ export const submitPractitionerApplication = createServerFn({ method: "POST" })
 
     const cv = data.get("cv");
     const diploma = data.get("diploma");
-    return { parsed, cv, diploma, website_hp };
+    return { parsed, cv, diploma };
   })
-  .handler(async ({ data }) => {
-    const { parsed, cv, diploma, website_hp } = data as {
+  .handler(async ({ data, context }) => {
+    const { parsed: base, cv, diploma } = data as {
       parsed: {
         full_name: string;
-        email: string;
         phone: string;
         city: string;
         category: PractitionerCategory;
@@ -69,39 +66,38 @@ export const submitPractitionerApplication = createServerFn({ method: "POST" })
       };
       cv: FormDataEntryValue | null;
       diploma: FormDataEntryValue | null;
-      website_hp: string;
     };
-
-    // Honeypot: sessizce başarı döndür
-    if (website_hp && website_hp.length > 0) {
-      return { ok: true };
-    }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Basit rate limit: son 10 dakikada aynı e-posta ile başvuru varsa reddet.
-    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-    const { data: recent, error: recentErr } = await supabaseAdmin
-      .from("practitioner_applications")
-      .select("id")
-      .eq("email", parsed.email)
-      .gte("created_at", tenMinAgo)
-      .limit(1);
-    if (recentErr) throw new Error(recentErr.message);
-    if (recent && recent.length > 0) {
-      throw new Error(
-        "Bu e-posta ile kısa süre önce bir başvuru alındı. Lütfen bir süre sonra tekrar deneyin.",
-      );
+    // E-posta oturumdan alınır, form gövdesinden değil.
+    const authEmail = String(
+      (context.claims as { email?: string } | null)?.email ?? "",
+    ).trim().toLowerCase();
+    let resolvedEmail = authEmail;
+    if (!resolvedEmail) {
+      const { data: prof } = await supabaseAdmin
+        .from("profiles")
+        .select("email")
+        .eq("id", context.userId)
+        .maybeSingle();
+      resolvedEmail = String(prof?.email ?? "").trim().toLowerCase();
     }
-    // Günlük tavan: aynı e-posta ile 24 saatte 3
-    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const { data: daily } = await supabaseAdmin
+    if (!resolvedEmail) throw new Error("Hesabınızda kayıtlı e-posta bulunamadı.");
+    const parsed = { ...base, email: resolvedEmail };
+
+    // Aynı kullanıcı için reddedilmemiş başvuru varsa engelle.
+    const { data: existing, error: existingErr } = await supabaseAdmin
       .from("practitioner_applications")
-      .select("id")
-      .eq("email", parsed.email)
-      .gte("created_at", dayAgo);
-    if ((daily?.length ?? 0) >= 3) {
-      throw new Error("Bu e-posta için günlük başvuru sınırına ulaşıldı.");
+      .select("id, status")
+      .eq("user_id", context.userId)
+      .neq("status", "red")
+      .limit(1);
+    if (existingErr) throw new Error(existingErr.message);
+    if (existing && existing.length > 0) {
+      throw new Error(
+        "Hesabınıza bağlı bir başvuru zaten var. Başvurunuzun durumunu Hesabım → Uygulayıcı sekmesinden takip edebilirsiniz.",
+      );
     }
 
     // Dosyaları doğrula ve yükle
@@ -141,6 +137,7 @@ export const submitPractitionerApplication = createServerFn({ method: "POST" })
     const { error: insErr } = await supabaseAdmin
       .from("practitioner_applications")
       .insert({
+        user_id: context.userId,
         full_name: parsed.full_name,
         email: parsed.email,
         phone: parsed.phone || null,
@@ -218,6 +215,7 @@ export const submitPractitionerApplication = createServerFn({ method: "POST" })
 // -------- ADMIN --------
 export type AdminApplicationRow = {
   id: string;
+  user_id: string | null;
   full_name: string;
   email: string;
   phone: string | null;
@@ -241,7 +239,7 @@ export const listAdminApplications = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("practitioner_applications")
       .select(
-        "id, full_name, email, phone, city, category, profession_title, experience_years, motivation, cv_path, diploma_path, status, admin_note, created_at",
+        "id, user_id, full_name, email, phone, city, category, profession_title, experience_years, motivation, cv_path, diploma_path, status, admin_note, created_at",
       )
       .order("created_at", { ascending: false })
       .limit(500);
@@ -288,4 +286,161 @@ export const updateAdminApplication = createServerFn({ method: "POST" })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+// -------- KULLANICI DURUMU (Hesabım → Uygulayıcı) --------
+export type MyPractitionerState = {
+  isPro: boolean;
+  application: {
+    id: string;
+    status: ApplicationStatus;
+    category: PractitionerCategory;
+    created_at: string;
+  } | null;
+  practitioner: { id: string; published: boolean } | null;
+  profile: { full_name: string | null; email: string | null };
+};
+
+export const getMyPractitionerState = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<MyPractitionerState> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const uid = context.userId;
+    const [appRes, practRes, rolesRes, profRes] = await Promise.all([
+      supabaseAdmin
+        .from("practitioner_applications")
+        .select("id, status, category, created_at")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(1),
+      supabaseAdmin.from("practitioners").select("id, published").eq("user_id", uid).maybeSingle(),
+      supabaseAdmin.from("user_roles").select("role").eq("user_id", uid),
+      supabaseAdmin.from("profiles").select("full_name, email").eq("id", uid).maybeSingle(),
+    ]);
+    const roles = ((rolesRes.data ?? []) as Array<{ role: string }>).map((r) => r.role);
+    return {
+      isPro: roles.includes("pro") || roles.includes("admin"),
+      application: (appRes.data?.[0] ?? null) as MyPractitionerState["application"],
+      practitioner: (practRes.data ?? null) as MyPractitionerState["practitioner"],
+      profile: {
+        full_name: profRes.data?.full_name ?? null,
+        email: profRes.data?.email ?? (context.claims as { email?: string } | null)?.email ?? null,
+      },
+    };
+  });
+
+// -------- ADMIN: kullanıcıyı uygulayıcı yap --------
+async function promoteToPractitioner(
+  supabaseAdmin: any,
+  input: {
+    userId: string;
+    full_name: string;
+    email: string | null;
+    city: string | null;
+    category: PractitionerCategory;
+    title?: string | null;
+  },
+): Promise<{ practitionerId: string; created: boolean }> {
+  // pro rolü (idempotent)
+  const { error: roleErr } = await supabaseAdmin
+    .from("user_roles")
+    .upsert({ user_id: input.userId, role: "pro" }, { onConflict: "user_id,role", ignoreDuplicates: true });
+  if (roleErr) throw new Error(roleErr.message);
+
+  const { data: existing, error: exErr } = await supabaseAdmin
+    .from("practitioners")
+    .select("id")
+    .eq("user_id", input.userId)
+    .maybeSingle();
+  if (exErr) throw new Error(exErr.message);
+  if (existing?.id) return { practitionerId: existing.id as string, created: false };
+
+  const { data: inserted, error: insErr } = await supabaseAdmin
+    .from("practitioners")
+    .insert({
+      user_id: input.userId,
+      full_name: input.full_name,
+      category: input.category,
+      title: input.title || null,
+      city: input.city || null,
+      country: "Türkiye",
+      mode: "online",
+      email: input.email,
+      specializations: [],
+      languages: [],
+      published: false,
+      sort_order: 0,
+    })
+    .select("id")
+    .single();
+  if (insErr) throw new Error(insErr.message);
+  return { practitionerId: inserted.id as string, created: true };
+}
+
+export const acceptApplicationAsPractitioner = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: app, error } = await supabaseAdmin
+      .from("practitioner_applications")
+      .select("id, user_id, full_name, email, city, category, profession_title")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!app) throw new Error("Başvuru bulunamadı");
+    if (!app.user_id) {
+      throw new Error(
+        "Bu başvuru bir hesaba bağlı değil (eski kayıt). 'Bu kullanıcıyı uygulayıcı yap' ile e-posta üzerinden ilerleyin.",
+      );
+    }
+
+    const { error: upErr } = await supabaseAdmin
+      .from("practitioner_applications")
+      .update({ status: "kabul" })
+      .eq("id", app.id);
+    if (upErr) throw new Error(upErr.message);
+
+    const res = await promoteToPractitioner(supabaseAdmin, {
+      userId: app.user_id,
+      full_name: app.full_name,
+      email: app.email,
+      city: app.city,
+      category: app.category as PractitionerCategory,
+      title: app.profession_title,
+    });
+    return { ok: true, ...res };
+  });
+
+export const makeUserPractitioner = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        email: z.string().trim().toLowerCase().email().max(200),
+        category: CATEGORY.default("kocluk"),
+        city: z.string().trim().max(120).optional().default(""),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: prof, error } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name, email")
+      .eq("email", data.email)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!prof) throw new Error("Bu e-posta ile bir hesap bulunamadı.");
+
+    const res = await promoteToPractitioner(supabaseAdmin, {
+      userId: prof.id,
+      full_name: prof.full_name || data.email,
+      email: prof.email ?? data.email,
+      city: data.city || null,
+      category: data.category as PractitionerCategory,
+    });
+    return { ok: true, ...res };
   });
