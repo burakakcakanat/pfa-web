@@ -14,7 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND_TAGLINE } from "@/lib/brand";
 import { NewsletterForm } from "@/components/newsletter-form";
-import { Instagram, Linkedin, Youtube, Twitter } from "lucide-react";
+import { Instagram, Linkedin, Youtube, Twitter, ChevronDown } from "lucide-react";
 
 function FooterNewsletter() {
   return <NewsletterForm variant="footer" source="footer" />;
@@ -146,18 +146,126 @@ function RootComponent() {
   );
 }
 
-const NAV_LINKS = [
-  { to: "/", label: "Ana Sayfa" },
+type NavItem = { to: string; label: string };
+
+const MEASURE_LINKS: NavItem[] = [
+  { to: "/degerlendirme", label: "PFA Ölçeği" },
+  { to: "/7q", label: "7Q Profili" },
+];
+
+const HEADER_NAV: (NavItem | { label: string; children: NavItem[] })[] = [
+  { to: "/kitaplar", label: "Kitaplar" },
+  { label: "Ölçümler", children: MEASURE_LINKS },
+  { to: "/blog", label: "Blog" },
+  { to: "/hakkinda", label: "Hakkında" },
+];
+
+const MOBILE_GROUPS: { label: string; links: NavItem[] }[] = [
+  {
+    label: "Keşfet",
+    links: [
+      { to: "/kitaplar", label: "Kitaplar" },
+      { to: "/degerlendirme", label: "PFA Ölçeği" },
+      { to: "/7q", label: "7Q Profili" },
+      { to: "/blog", label: "Blog" },
+    ],
+  },
+  {
+    label: "Çalışmalar",
+    links: [
+      { to: "/seanslar", label: "Seanslar" },
+      { to: "/webinarlar", label: "Webinarlar" },
+      { to: "/egitim", label: "Eğitim" },
+    ],
+  },
+  {
+    label: "Uygulayıcılar",
+    links: [
+      { to: "/uygulayicilar", label: "Uygulayıcı Bul" },
+      { to: "/uygulayici-olun", label: "Uygulayıcı Olun" },
+      { to: "/uygulayici-ekosistemi", label: "Uygulayıcı Ekosistemi" },
+    ],
+  },
+  {
+    label: "Kurumsal",
+    links: [
+      { to: "/hakkinda", label: "Hakkında" },
+      { to: "/iletisim", label: "İletişim" },
+    ],
+  },
+];
+
+const FOOTER_DISCOVER: NavItem[] = [
   { to: "/kitaplar", label: "Kitaplar" },
   { to: "/degerlendirme", label: "PFA Ölçeği" },
-  { to: "/7q", label: "7Q Profil" },
-  { to: "/seanslar", label: "Seanslar" },
-  { to: "/webinarlar", label: "Webinarlar" },
+  { to: "/7q", label: "7Q Profili" },
   { to: "/blog", label: "Blog" },
-  { to: "/uygulayici-olun", label: "Uygulayıcı Olun" },
   { to: "/hakkinda", label: "Hakkında" },
   { to: "/iletisim", label: "İletişim" },
-] as const;
+];
+
+const FOOTER_MORE: NavItem[] = [
+  { to: "/seanslar", label: "Seanslar" },
+  { to: "/webinarlar", label: "Webinarlar" },
+  { to: "/egitim", label: "Eğitim" },
+  { to: "/uygulayicilar", label: "Uygulayıcı Bul" },
+  { to: "/uygulayici-olun", label: "Uygulayıcı Olun" },
+  { to: "/uygulayici-ekosistemi", label: "Uygulayıcı Ekosistemi" },
+  { to: "/kullanim-kosullari", label: "Kullanım Koşulları" },
+  { to: "/iade-politikasi", label: "İade Politikası" },
+];
+
+function MeasuresDropdown() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (e: MouseEvent | TouchEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("touchstart", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("touchstart", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="true"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1 text-foreground/75 transition-colors hover:text-accent"
+      >
+        Ölçümler
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} strokeWidth={1.8} />
+      </button>
+      {open && (
+        <div className="absolute left-0 mt-2 flex w-44 flex-col rounded-md border border-border bg-background shadow-sm">
+          {MEASURE_LINKS.map((l, i) => (
+            <Link
+              key={l.to}
+              to={l.to}
+              onClick={() => setOpen(false)}
+              className={`px-4 py-2 text-sm hover:text-accent ${i < MEASURE_LINKS.length - 1 ? "border-b border-border/60" : ""}`}
+            >
+              {l.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SiteHeader() {
   const [email, setEmail] = useState<string | null>(null);
@@ -209,16 +317,20 @@ function SiteHeader() {
           </span>
         </Link>
         <nav className="hidden items-center gap-6 text-[0.82rem] tracking-wide lg:flex">
-          {NAV_LINKS.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              className="text-foreground/75 transition-colors hover:text-accent"
-              activeProps={{ className: "text-accent" }}
-            >
-              {l.label}
-            </Link>
-          ))}
+          {HEADER_NAV.map((item) =>
+            "children" in item ? (
+              <MeasuresDropdown key={item.label} />
+            ) : (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="text-foreground/75 transition-colors hover:text-accent"
+                activeProps={{ className: "text-accent" }}
+              >
+                {item.label}
+              </Link>
+            ),
+          )}
           {email ? (
             <details className="relative">
               <summary className="cursor-pointer list-none rounded-md border border-border px-3 py-1.5 text-xs tracking-wide">
@@ -237,13 +349,14 @@ function SiteHeader() {
               Giriş Yap
             </Link>
           )}
+          <Link
+            to="/degerlendirme/mini"
+            className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium tracking-wide text-accent-foreground transition-opacity hover:opacity-90"
+          >
+            Ücretsiz Ölçek
+          </Link>
         </nav>
-        <MobileMenu
-          email={email}
-          isAdmin={isAdmin}
-          onSignOut={signOut}
-          navLinks={NAV_LINKS}
-        />
+        <MobileMenu email={email} isAdmin={isAdmin} onSignOut={signOut} />
       </div>
     </header>
   );
@@ -253,12 +366,10 @@ function MobileMenu({
   email,
   isAdmin,
   onSignOut,
-  navLinks,
 }: {
   email: string | null;
   isAdmin: boolean;
   onSignOut: () => void;
-  navLinks: readonly { to: string; label: string }[];
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -312,17 +423,33 @@ function MobileMenu({
         <div
           id="mobile-nav-menu"
           ref={menuRef}
-          className="absolute right-4 mt-2 flex w-56 flex-col rounded-md border border-border bg-background shadow-sm"
+          className="absolute right-4 mt-2 flex w-72 flex-col rounded-md border border-border bg-background shadow-sm"
         >
-          {navLinks.map((l) => (
+          <div className="border-b border-border/60 p-3">
             <Link
-              key={l.to}
-              to={l.to}
-              className="border-b border-border/60 px-4 py-2.5 text-sm last:border-b-0"
+              to="/degerlendirme/mini"
               onClick={() => setOpen(false)}
+              className="block rounded-md bg-accent px-4 py-2.5 text-center text-sm font-medium text-accent-foreground"
             >
-              {l.label}
+              Ücretsiz Ölçek
             </Link>
+          </div>
+          {MOBILE_GROUPS.map((g) => (
+            <div key={g.label} className="border-b border-border/60 py-2">
+              <div className="px-4 pb-1 pt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                {g.label}
+              </div>
+              {g.links.map((l) => (
+                <Link
+                  key={l.to}
+                  to={l.to}
+                  className="block whitespace-nowrap px-4 py-2 text-sm"
+                  onClick={() => setOpen(false)}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </div>
           ))}
           {email ? (
             <>
@@ -411,7 +538,7 @@ function SiteFooter() {
         <div>
           <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Keşfet</div>
           <ul className="mt-4 space-y-2 text-sm">
-            {NAV_LINKS.slice(1, 5).map((l) => (
+            {FOOTER_DISCOVER.map((l) => (
               <li key={l.to}>
                 <Link to={l.to} className="hover:text-accent">
                   {l.label}
@@ -423,23 +550,13 @@ function SiteFooter() {
         <div>
           <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Daha</div>
           <ul className="mt-4 space-y-2 text-sm">
-            {NAV_LINKS.slice(5).map((l) => (
+            {FOOTER_MORE.map((l) => (
               <li key={l.to}>
                 <Link to={l.to} className="hover:text-accent">
                   {l.label}
                 </Link>
               </li>
             ))}
-            <li>
-              <Link to="/kullanim-kosullari" className="hover:text-accent">
-                Kullanım Koşulları
-              </Link>
-            </li>
-            <li>
-              <Link to="/iade-politikasi" className="hover:text-accent">
-                İade Politikası
-              </Link>
-            </li>
           </ul>
         </div>
         <div>
