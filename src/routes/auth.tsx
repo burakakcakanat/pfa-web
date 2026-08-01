@@ -42,7 +42,7 @@ function AuthPage() {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         const target = isSafeRedirect(redirect) ? redirect! : "/hesabim";
-        navigate({ to: target, replace: true });
+        navigate({ href: target, replace: true });
       }
     });
   }, [navigate, redirect]);
@@ -67,7 +67,7 @@ function AuthPage() {
         if (error) throw error;
       }
       const target = isSafeRedirect(redirect) ? redirect! : "/hesabim";
-      navigate({ to: target, replace: true });
+      navigate({ href: target, replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Bir hata oluştu.");
     } finally {
