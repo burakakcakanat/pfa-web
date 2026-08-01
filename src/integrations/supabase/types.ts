@@ -220,6 +220,7 @@ export type Database = {
           external_url: string | null
           format: string
           id: string
+          language: string
           marketplaces: string[]
           overrides: Json
           sort_order: number
@@ -233,6 +234,7 @@ export type Database = {
           external_url?: string | null
           format: string
           id?: string
+          language?: string
           marketplaces?: string[]
           overrides?: Json
           sort_order?: number
@@ -246,6 +248,7 @@ export type Database = {
           external_url?: string | null
           format?: string
           id?: string
+          language?: string
           marketplaces?: string[]
           overrides?: Json
           sort_order?: number
