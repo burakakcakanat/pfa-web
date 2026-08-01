@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/7q/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    invite: typeof search.invite === "string" ? search.invite : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { invite?: string } =>
+    typeof search.invite === "string" ? { invite: search.invite } : {},
   head: () => ({
     meta: [
       { title: "7Q Profili | Yedi Seviyede Kapasite Envanteri" },

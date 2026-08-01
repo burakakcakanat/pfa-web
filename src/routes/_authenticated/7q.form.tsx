@@ -6,9 +6,8 @@ import { BuyButton } from "@/components/buy-button";
 import { getSevenqAccess, startSevenqSession, completeSevenqSession } from "@/lib/sevenq.functions";
 
 export const Route = createFileRoute("/_authenticated/7q/form")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    invite: typeof search.invite === "string" ? search.invite : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { invite?: string } =>
+    typeof search.invite === "string" ? { invite: search.invite } : {},
   head: () => ({
     meta: [
       { title: "7Q Profili Formu — PFA" },
