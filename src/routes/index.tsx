@@ -290,7 +290,7 @@ function IntelligencesStrip() {
     Icon: INTELLIGENCE_ICON[lvl],
   }));
   return (
-    <section className="container-page -mt-[22vw] pb-10 pt-0 md:-mt-[16vw] md:pb-12">
+    <section className="container-page pb-10 pt-8 md:pb-12 md:pt-10">
       <div className="mx-auto max-w-6xl text-center">
         <div className="text-xs uppercase tracking-[0.3em] text-accent">
           Yedi Seviye, Yedi Zekâ
