@@ -296,13 +296,54 @@ function inline(s: string): string {
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
-function wrapEmailHtml(bodyHtml: string, unsubscribeUrl: string): string {
+type Artwork = { url: string; side: "left" | "right" } | null;
+
+async function loadArtwork(supabaseAdmin: any): Promise<Artwork> {
+  try {
+    const { data } = await supabaseAdmin
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["newsletter_bg_image_url", "newsletter_bg_side"]);
+    const map: Record<string, string> = {};
+    for (const r of data ?? []) if (r.value) map[r.key] = String(r.value).trim();
+    const url = map["newsletter_bg_image_url"];
+    if (!url || !/^https?:\/\//i.test(url)) return null;
+    const side = map["newsletter_bg_side"] === "left" ? "left" : "right";
+    return { url, side };
+  } catch {
+    return null;
+  }
+}
+
+// Artwork is rendered as a real <img> inside a fixed-width side cell (never a
+// CSS background), flush to one edge of the layout. If the image fails to load
+// or is blocked, the cell collapses to a narrow empty strip — the letter stays
+// readable and never shows a broken banner or empty block.
+function artworkCell(art: Artwork): string {
+  if (!art) return "";
+  return `<td width="96" valign="top" style="width:96px;padding:0;line-height:0;font-size:0;background:#fffdf7">
+    <img src="${art.url}" width="96" alt="" border="0" style="display:block;width:96px;max-width:96px;height:auto;border:0;outline:none;text-decoration:none;opacity:0.5" />
+  </td>`;
+}
+
+function wrapEmailHtml(bodyHtml: string, unsubscribeUrl: string, art: Artwork = null): string {
+  const left = art?.side === "left" ? artworkCell(art) : "";
+  const right = art?.side === "right" ? artworkCell(art) : "";
+  const bodyRow = art
+    ? `<tr><td style="padding:0">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+          ${left}
+          <td valign="top" style="padding:28px 32px;font-size:15px;line-height:1.7">${bodyHtml}</td>
+          ${right}
+        </tr></table>
+      </td></tr>`
+    : `<tr><td style="padding:28px 32px;font-size:15px;line-height:1.7">${bodyHtml}</td></tr>`;
   return `<!doctype html><html><body style="margin:0;background:#f7f3ea;font-family:Inter,system-ui,sans-serif;color:#1a2a2e;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f3ea;padding:32px 12px;">
     <tr><td align="center">
       <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fffdf7;border:1px solid #e6dfcf;border-radius:8px;overflow:hidden">
         <tr><td style="padding:24px 32px;border-bottom:1px solid #eee5d0;text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:20px;letter-spacing:.14em;color:#0f766e">PFA — PSİKO-FONKSİYONEL ANALİZ</td></tr>
-        <tr><td style="padding:28px 32px;font-size:15px;line-height:1.7">${bodyHtml}</td></tr>
+        ${bodyRow}
         <tr><td style="padding:20px 32px;border-top:1px solid #eee5d0;font-size:11px;color:#6b6355;text-align:center">
           Bu e-postayı PFA bültenine abone olduğunuz için aldınız.<br/>
           <a href="${unsubscribeUrl}" style="color:#6b6355;text-decoration:underline">Abonelikten ayrıl</a>
