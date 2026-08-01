@@ -114,6 +114,7 @@ import {
   type AdminApplicationRow,
   type ApplicationStatus,
 } from "@/lib/practitioner-applications.functions";
+import { AdminLicenseInquiries } from "@/components/admin-license-inquiries";
 import {
   listNewsletterSubscribers,
   deleteNewsletterSubscriber,
@@ -177,6 +178,7 @@ function AdminPage() {
             <TabsTrigger value="practitioners">Uygulayıcılar</TabsTrigger>
             <TabsTrigger value="newsletter">Bülten</TabsTrigger>
             <TabsTrigger value="messages">Mesajlar</TabsTrigger>
+            <TabsTrigger value="licenses">Lisans Başvuruları</TabsTrigger>
           </TabsList>
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
@@ -196,6 +198,7 @@ function AdminPage() {
             <TabsContent value="practitioners"><PractitionersTab /></TabsContent>
             <TabsContent value="newsletter"><NewsletterTab /></TabsContent>
             <TabsContent value="messages"><MessagesTab /></TabsContent>
+            <TabsContent value="licenses"><AdminLicenseInquiries /></TabsContent>
           </div>
         </Tabs>
       </div>
