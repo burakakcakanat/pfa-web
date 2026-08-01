@@ -366,6 +366,8 @@ function OverviewTab() {
 function ProductsTab() {
   const fetchList = useServerFn(listAdminProducts);
   const update = useServerFn(updateAdminProduct);
+  const fetchBundles = useServerFn(listAdminBundles);
+  const upsertBundle = useServerFn(upsertAdminBundle);
   const createCoverUpload = useServerFn(createProductCoverUploadUrl);
   const createMasterUpload = useServerFn(createProductMasterUploadUrl);
   const queryClient = useQueryClient();
@@ -374,6 +376,8 @@ function ProductsTab() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [bundleData, setBundleData] = useState<{ bundles: any[]; products: any[] }>({ bundles: [], products: [] });
+  const [bundleDrafts, setBundleDrafts] = useState<Record<string, any>>({});
 
   const reload = useCallback(async () => {
     const list = await fetchList();
@@ -382,16 +386,44 @@ function ProductsTab() {
   }, [fetchList]);
   useEffect(() => { reload(); }, [reload]);
 
+  const reloadBundles = useCallback(async () => {
+    const d = await fetchBundles();
+    setBundleData(d);
+    setBundleDrafts({});
+  }, [fetchBundles]);
+  useEffect(() => { reloadBundles(); }, [reloadBundles]);
+
+  const bundlePriceMap = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const p of bundleData.products) m[p.slug] = p.price_cents;
+    return m;
+  }, [bundleData.products]);
+
   const dirtyIds = useMemo(() => Object.keys(drafts).filter((id) => {
     const d = drafts[id]; const orig = rows.find((r) => r.id === id);
     if (!orig || !d) return false;
     return Object.keys(d).some((k) => (d[k] ?? null) !== (orig[k] ?? null));
   }), [drafts, rows]);
-  const dirty = dirtyIds.length > 0;
+  const bundleDirtyIds = useMemo(() => Object.keys(bundleDrafts).filter((id) => {
+    const d = bundleDrafts[id]; const orig = bundleData.bundles.find((r) => r.id === id);
+    if (!orig || !d) return false;
+    return Object.keys(d).some((k) => (d[k] ?? null) !== (orig[k] ?? null));
+  }), [bundleDrafts, bundleData.bundles]);
+  const dirtyCount = dirtyIds.length + bundleDirtyIds.length;
+  const dirty = dirtyCount > 0;
 
   const patch = (id: string, k: string, v: any) => {
     setDrafts((prev) => {
       const orig = rows.find((r) => r.id === id);
+      const base = prev[id] ?? { ...orig };
+      return { ...prev, [id]: { ...base, [k]: v } };
+    });
+    setMsg(null);
+  };
+
+  const bundlePatch = (id: string, k: string, v: any) => {
+    setBundleDrafts((prev) => {
+      const orig = bundleData.bundles.find((r) => r.id === id);
       const base = prev[id] ?? { ...orig };
       return { ...prev, [id]: { ...base, [k]: v } };
     });
@@ -409,10 +441,19 @@ function ProductsTab() {
         }
         await update({ data: changed });
       }
-      await reload();
+      for (const id of bundleDirtyIds) {
+        const d = bundleDrafts[id]; const orig = bundleData.bundles.find((r) => r.id === id);
+        const changed: any = { id };
+        for (const k of ["active","activate_at","sort_order","price_override_cents","discount_percent","name_tr","description_tr"]) {
+          if ((d[k] ?? null) !== (orig?.[k] ?? null)) changed[k] = d[k];
+        }
+        await upsertBundle({ data: changed });
+      }
+      if (dirtyIds.length) await reload();
+      if (bundleDirtyIds.length) await reloadBundles();
       await queryClient.invalidateQueries({ queryKey: ["books-data"] });
       setMsg("Kaydedildi.");
-      toast.success("Ürünler kaydedildi");
+      toast.success("Kaydedildi");
     } catch (e: any) {
       const m = e?.message ?? "bilinmiyor";
       setMsg("Hata: " + m);
@@ -421,6 +462,7 @@ function ProductsTab() {
   };
 
   const currentValue = (p: any, k: string) => (drafts[p.id] ? drafts[p.id][k] : p[k]);
+  const bundleValue = (b: any, k: string) => (bundleDrafts[b.id] ? bundleDrafts[b.id][k] : b[k]);
 
   const uploadCover = async (p: any, file: File) => {
     if (file.size > 35 * 1024 * 1024) { alert("Kapak 35 MB'ı aşamaz."); return; }
