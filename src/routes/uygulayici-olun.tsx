@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useState, type FormEvent } from "react";
-import { submitPractitionerApplication } from "@/lib/practitioner-applications.functions";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/uygulayici-olun")({
   head: () => ({
@@ -231,8 +230,12 @@ function BecomePractitionerPage() {
               <p className="mt-4 text-sm text-foreground/70">
                 Değerlendirme yaklaşık 1–2 hafta içinde e-posta ile iletilir.
               </p>
+              <p className="mt-2 text-sm text-foreground/70">
+                Başvuru, PFA hesabınız üzerinden yapılır; böylece durumunuzu her an takip
+                edebilirsiniz.
+              </p>
             </div>
-            <ApplicationForm />
+            <ApplicationCta />
           </div>
         </div>
       </section>
