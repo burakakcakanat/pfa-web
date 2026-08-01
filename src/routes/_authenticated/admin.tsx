@@ -125,6 +125,7 @@ import {
   getNewsletterConfigStatus,
   listNewsletterUnsubscribed,
 } from "@/lib/newsletter.functions";
+import { MediaLibraryManager, MediaPickerButton } from "@/components/media-library";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -168,6 +169,7 @@ function AdminPage() {
             <TabsTrigger value="questions">PFA Ölçeği</TabsTrigger>
             <TabsTrigger value="webinars">Webinarlar</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
+            <TabsTrigger value="media">Görseller</TabsTrigger>
             <TabsTrigger value="podcasts">Podcastler</TabsTrigger>
             <TabsTrigger value="ebooks">E-Kitaplar</TabsTrigger>
             <TabsTrigger value="orders">Siparişler</TabsTrigger>
@@ -186,6 +188,7 @@ function AdminPage() {
             <TabsContent value="questions"><QuestionsTab /></TabsContent>
             <TabsContent value="webinars"><WebinarsTab /></TabsContent>
             <TabsContent value="blog"><BlogTab /></TabsContent>
+            <TabsContent value="media"><MediaLibraryManager /></TabsContent>
             <TabsContent value="podcasts"><PodcastsTab /></TabsContent>
             <TabsContent value="ebooks"><EbooksTab /></TabsContent>
             <TabsContent value="orders"><OrdersTab /></TabsContent>
