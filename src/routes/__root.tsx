@@ -162,7 +162,7 @@ const WORKSPACE_LINKS: NavItem[] = [
 
 const HEADER_NAV: (NavItem | { label: string; children: NavItem[] })[] = [
   { to: "/kitaplar", label: "Kitaplar" },
-  { label: "Ölçümler", children: MEASURE_LINKS },
+  { label: "Ölçme Araçları", children: MEASURE_LINKS },
   { label: "Çalışma Alanı", children: WORKSPACE_LINKS },
   { to: "/uygulayici-olun", label: "Uygulayıcı Programı" },
   { to: "/blog", label: "Blog" },
@@ -327,7 +327,7 @@ function SiteHeader() {
             {BRAND_TAGLINE.tr}
           </span>
         </Link>
-        <nav className="hidden items-center gap-6 text-[0.82rem] tracking-wide lg:flex">
+        <nav className="hidden items-center gap-5 text-[0.82rem] tracking-wide lg:flex">
           {HEADER_NAV.map((item) =>
             "children" in item ? (
               <NavDropdown key={item.label} label={item.label} links={item.children} />
