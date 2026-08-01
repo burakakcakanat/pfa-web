@@ -15,7 +15,7 @@ const BOOKS = [
       "Bir Bilinç Haritası — Bekadan Aydınlanmaya. Terapistler, koçlar, eğitimciler ve kendini anlamaya yola çıkmış herkes için bir yol bulma aracı.",
     purchaseUrl: null,
     available: false,
-    note: "Google Play'de yakında",
+    note: "Google Books'ta yakında",
   },
   {
     title: "Human Consciousness Decoded",

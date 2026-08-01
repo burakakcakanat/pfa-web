@@ -787,12 +787,12 @@ function EditionForm({ initial, marketOptions, onSave, onCancel }: { initial: an
           <SelectContent>
             <SelectItem value="kindle">Kindle</SelectItem>
             <SelectItem value="paperback">Karton Kapak</SelectItem>
-            <SelectItem value="google_play">Google Play</SelectItem>
+            <SelectItem value="google_play">Google Books</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div><Label>ASIN</Label><Input value={d.asin ?? ""} onChange={(e) => upd("asin", e.target.value || null)} /></div>
-      <div><Label>Harici URL (Google Play vs.)</Label><Input value={d.external_url ?? ""} onChange={(e) => upd("external_url", e.target.value || null)} /></div>
+      <div><Label>Harici URL (Google Books vs.)</Label><Input value={d.external_url ?? ""} onChange={(e) => upd("external_url", e.target.value || null)} /></div>
       <div className="md:col-span-2">
         <Label>Ülkeler</Label>
         <div className="mt-2 flex flex-wrap gap-2">

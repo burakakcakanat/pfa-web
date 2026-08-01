@@ -210,7 +210,7 @@ function BookBlock({
           </div>
         )}
 
-        {/* C — Google Play (yalnız PFA · Türkçe) */}
+        {/* C — Google Books (yalnız PFA · Türkçe) */}
         {showGooglePlay && (
           <div className="mt-4">
             {googlePlayRow && googlePlayRow.active && googlePlayRow.external_url ? (
@@ -220,11 +220,11 @@ function BookBlock({
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-xs underline decoration-accent decoration-2 underline-offset-4 hover:text-accent"
               >
-                Google Play Books'ta gör →
+                Google Books'ta gör →
               </a>
             ) : (
               <span className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-[0.7rem] uppercase tracking-[0.2em] text-muted-foreground/70">
-                Google Play · Yakında
+                Google Books · Yakında
               </span>
             )}
           </div>
