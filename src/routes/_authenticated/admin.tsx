@@ -439,13 +439,23 @@ function ProductsTab() {
     patch(p.id, format === "pdf" ? "master_pdf_path" : "master_epub_path", path);
   };
 
-  return (
-    <div className="space-y-3 pb-24">
-      {rows.map((p) => {
-        const isBook = p.type === "ebook";
-        return (
-          <Card key={p.id} title={`${p.name_tr} — ${p.slug}`}>
-            <div className="grid gap-3 md:grid-cols-2">
+  const renderForm = (p: any) => {
+    const isBook = p.type === "ebook";
+    return (
+      <div className="border-t border-border bg-muted/20 px-3 py-4">
+        <div className="grid gap-3 md:grid-cols-2">
+              <div>
+                <Label>Kategori</Label>
+                <Select value={currentValue(p, "category") ?? "diger"} onValueChange={(v) => patch(p.id, "category", v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PRODUCT_CATEGORIES.map((c) => (
+                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="hidden md:block" />
               <div>
                 <Label>Ad (TR)</Label>
                 <Input value={currentValue(p, "name_tr") ?? ""} onChange={(e) => patch(p.id, "name_tr", e.target.value)} />
