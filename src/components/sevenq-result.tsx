@@ -176,7 +176,7 @@ export function SevenqResult({ levelScores, capacityScores, totalScore, akort, a
       </section>
 
       <section className="rounded-lg border border-border bg-card p-6 md:p-8">
-        <div className="text-xs uppercase tracking-[0.25em] text-accent">Farkındalık Göstergesi</div>
+        <div className="text-xs tracking-[0.25em] text-accent">FARKINDALIK GÖSTERGESİ</div>
         <div className="mt-2 font-serif text-4xl">
           {awarenessScore}
           <span className="text-lg text-muted-foreground">/100</span>

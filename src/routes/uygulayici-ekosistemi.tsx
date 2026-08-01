@@ -198,8 +198,8 @@ function EcosystemPage() {
       {/* 1. Hero */}
       <section className="container-page py-16 md:py-24">
         <div className="mx-auto max-w-3xl text-center">
-          <div className="text-xs uppercase tracking-[0.3em] text-accent">
-            PFA Uygulayıcı Ekosistemi
+          <div className="text-xs tracking-[0.3em] text-accent">
+            PFA UYGULAYICI EKOSİSTEMİ
           </div>
           <h1 className="mt-4 font-serif text-4xl leading-tight text-primary md:text-5xl">
             PFA uygulayıcısı olmak, bir rehberde listelenmekten fazlasıdır.
@@ -230,8 +230,8 @@ function EcosystemPage() {
       <section className="border-t border-border bg-muted/30">
         <div className="container-page py-16 md:py-20">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="text-xs uppercase tracking-[0.3em] text-accent">
-              Önizleme
+            <div className="text-xs tracking-[0.3em] text-accent">
+              ÖNİZLEME
             </div>
             <h2 className="mt-3 font-serif text-3xl text-primary md:text-4xl">
               Uygulayıcı Rehberi — Önizleme

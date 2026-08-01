@@ -81,9 +81,9 @@ function BecomePractitionerPage() {
           </p>
           <a
             href="#basvuru"
-            className="mt-9 inline-flex items-center justify-center rounded-none border border-primary bg-primary px-8 py-3 text-sm uppercase tracking-[0.2em] text-primary-foreground transition hover:bg-primary/90"
+            className="mt-9 inline-flex items-center justify-center rounded-none border border-primary bg-primary px-8 py-3 text-sm tracking-[0.2em] text-primary-foreground transition hover:bg-primary/90"
           >
-            Başvuru Formuna Git
+            BAŞVURU FORMUNA GİT
           </a>
         </div>
       </section>
@@ -92,8 +92,8 @@ function BecomePractitionerPage() {
       <section className="container-page pb-16 md:pb-24">
         <div className="mx-auto max-w-6xl">
           <div className="mb-10 text-center">
-            <div className="text-xs uppercase tracking-[0.3em] text-accent">
-              Kime uygun
+            <div className="text-xs tracking-[0.3em] text-accent">
+              KİME UYGUN
             </div>
             <h2 className="mt-3 font-serif text-3xl md:text-4xl">
               Dört uygulama alanı, ortak yol.
@@ -125,8 +125,8 @@ function BecomePractitionerPage() {
         <div className="container-page py-16 md:py-24">
           <div className="mx-auto max-w-4xl">
             <div className="mb-12 text-center">
-              <div className="text-xs uppercase tracking-[0.3em] text-accent">
-                Lisans Yolculuğu
+              <div className="text-xs tracking-[0.3em] text-accent">
+                LİSANS YOLCULUĞU
               </div>
               <h2 className="mt-3 font-serif text-3xl md:text-4xl">
                 Dört aşamalı program
@@ -182,8 +182,8 @@ function BecomePractitionerPage() {
       <section className="container-page py-16 md:py-24">
         <div className="mx-auto grid max-w-5xl gap-10 md:grid-cols-2">
           <div>
-            <div className="text-xs uppercase tracking-[0.3em] text-accent">
-              Kimler başvurabilir
+            <div className="text-xs tracking-[0.3em] text-accent">
+              KİMLER BAŞVURABİLİR
             </div>
             <h3 className="mt-3 font-serif text-2xl md:text-3xl">Ön koşullar</h3>
             <ul className="mt-5 space-y-3 text-sm leading-relaxed text-foreground/80">
@@ -247,9 +247,9 @@ function BecomePractitionerPage() {
         </p>
         <Link
           to="/uygulayicilar"
-          className="mt-6 inline-block text-xs uppercase tracking-[0.3em] text-accent underline underline-offset-4"
+          className="mt-6 inline-block text-xs tracking-[0.3em] text-accent underline underline-offset-4"
         >
-          Uygulayıcı Rehberi'ni görüntüle
+          UYGULAYICI REHBERİ'Nİ GÖRÜNTÜLE
         </Link>
       </section>
     </main>

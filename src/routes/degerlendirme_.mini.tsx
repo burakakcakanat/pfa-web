@@ -70,7 +70,7 @@ function MiniTestPage() {
     return (
       <div className="container-page py-16">
         <header className="mx-auto mb-10 max-w-2xl text-center">
-          <div className="text-xs uppercase tracking-[0.3em] text-accent">Mini Değerlendirme Sonucu</div>
+          <div className="text-xs tracking-[0.3em] text-accent">MİNİ DEĞERLENDİRME SONUCU</div>
           <h1 className="mt-3 font-serif text-3xl md:text-4xl">Yedi seviyedeki görünümünüz</h1>
         </header>
         <div className="mx-auto max-w-4xl">
@@ -82,7 +82,7 @@ function MiniTestPage() {
           />
 
           <div className="mt-12 rounded-lg border-2 border-accent/50 bg-accent/5 p-8 text-center">
-            <div className="text-xs uppercase tracking-[0.3em] text-accent">Ücretsiz Üyelik</div>
+            <div className="text-xs tracking-[0.3em] text-accent">ÜCRETSİZ ÜYELİK</div>
             <h3 className="mt-3 font-serif text-2xl">Ayrıntılı okumayı açın ve bu sonucu kaydedin</h3>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-foreground/80">
               Üyelik ücretsizdir. Hesap açtığınızda bu sonuç hesabınıza kaydedilir; Hesabım
@@ -105,7 +105,7 @@ function MiniTestPage() {
   return (
     <div className="container-page py-16">
       <header className="mx-auto mb-10 max-w-2xl text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">Mini Değerlendirme</div>
+        <div className="text-xs tracking-[0.3em] text-accent">MİNİ DEĞERLENDİRME</div>
         <h1 className="mt-3 font-serif text-3xl md:text-4xl">7 seviyede kısa bir bakış</h1>
         <p className="mt-3 text-sm text-muted-foreground">
           35 soru. 5-8 dakika. Üyelik gerekmez; sonucunuzu hemen görürsünüz.

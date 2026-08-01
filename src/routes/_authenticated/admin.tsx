@@ -487,7 +487,7 @@ function ProductsTab() {
               {isBook && (
                 <>
                   <div className="md:col-span-2 mt-2 border-t border-border pt-3">
-                    <div className="text-xs uppercase tracking-widest text-muted-foreground">Kitap Dosyaları</div>
+                    <div className="text-xs tracking-widest text-muted-foreground">KİTAP DOSYALARI</div>
                   </div>
                   <div>
                     <Label>Kapak görseli</Label>

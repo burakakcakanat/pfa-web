@@ -95,7 +95,7 @@ function SevenqFormPage() {
   return (
     <div className="container-page py-16">
       <header className="mx-auto mb-10 max-w-3xl text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">7Q Profili</div>
+        <div className="text-xs tracking-[0.3em] text-accent">7Q PROFİLİ</div>
         <h1 className="mt-3 font-serif text-3xl md:text-4xl">Kapasite Envanteri</h1>
         <p className="mt-3 text-sm text-muted-foreground">
           Doğru ya da yanlış cevap yoktur. Olmak istediğinizi değil, şu an olanı işaretleyin.

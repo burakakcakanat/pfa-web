@@ -31,7 +31,7 @@ function SevenqIntro() {
   return (
     <div className="container-page py-20">
       <header className="mx-auto max-w-3xl text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">7Q Profili</div>
+        <div className="text-xs tracking-[0.3em] text-accent">7Q PROFİLİ</div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">
           Meydan okumaları aşma kapasiteniz
         </h1>

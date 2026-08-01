@@ -37,8 +37,8 @@ function Page() {
             className="mb-10 w-full rounded-lg border border-border shadow-sm"
           />
         )}
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">
-          Profesyonel Uygulama İçin
+        <div className="text-xs tracking-[0.3em] text-accent">
+          PROFESYONEL UYGULAMA İÇİN
         </div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">
           PFA-Pro — Uygulayıcı Lisans Paketi

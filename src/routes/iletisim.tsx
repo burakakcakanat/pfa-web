@@ -27,7 +27,7 @@ function ContactPage() {
     <div className="container-page py-20">
       <div className="mx-auto grid max-w-5xl gap-14 md:grid-cols-2">
         <div>
-          <div className="text-xs uppercase tracking-[0.3em] text-accent">İletişim</div>
+          <div className="text-xs tracking-[0.3em] text-accent">İLETİŞİM</div>
           <h1 className="mt-4 font-serif text-4xl md:text-5xl">Bize yazın</h1>
           <p className="mt-6 text-base leading-relaxed text-foreground/80">
             Sorularınız, işbirliği önerileriniz veya basın talepleriniz için formu

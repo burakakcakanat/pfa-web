@@ -93,7 +93,7 @@ function PractitionersPage() {
   return (
     <div className="container-page py-16 md:py-20">
       <header className="mx-auto max-w-2xl text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">Uygulayıcı Rehberi</div>
+        <div className="text-xs tracking-[0.3em] text-accent">UYGULAYICI REHBERİ</div>
         <h1 className="mt-3 font-serif text-4xl text-primary md:text-5xl">
           PFA Uygulayıcı Rehberi
         </h1>
