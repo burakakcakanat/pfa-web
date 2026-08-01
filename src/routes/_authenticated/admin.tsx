@@ -538,6 +538,10 @@ function ProductsTab() {
                     <div className="mt-1 flex items-center gap-3">
                       {currentValue(p, "cover_image_url") && <img src={currentValue(p, "cover_image_url")} alt="kapak" className="h-20 w-auto rounded border border-border" />}
                       <input type="file" accept="image/*" className="text-xs" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadCover(p, f); }} />
+                      <MediaPickerButton onPick={(m) => patch(p.id, "cover_image_url", m.public_url)} />
+                    </div>
+                    <div className="mt-2">
+                      <Input placeholder="veya dış URL" value={currentValue(p, "cover_image_url") ?? ""} onChange={(e) => patch(p.id, "cover_image_url", e.target.value)} />
                     </div>
                   </div>
                   <div>
@@ -1383,7 +1387,13 @@ function BlogForm({ initial, onSave, onCancel }: { initial: any; onSave: (d: any
         <div><Label>Başlık</Label><Input value={d.title} onChange={(e) => upd("title", e.target.value)} /></div>
         <div><Label>Slug</Label><Input value={d.slug} onChange={(e) => upd("slug", e.target.value)} /></div>
         <div className="md:col-span-2"><Label>SEO açıklama</Label><Input value={d.seo_description} onChange={(e) => upd("seo_description", e.target.value)} /></div>
-        <div className="md:col-span-2"><Label>Kapak görseli URL</Label><Input value={d.cover_image_url ?? ""} onChange={(e) => upd("cover_image_url", e.target.value)} /></div>
+        <div className="md:col-span-2">
+          <Label>Kapak görseli URL</Label>
+          <div className="flex items-center gap-2">
+            <Input value={d.cover_image_url ?? ""} onChange={(e) => upd("cover_image_url", e.target.value)} />
+            <MediaPickerButton onPick={(m) => upd("cover_image_url", m.public_url)} />
+          </div>
+        </div>
         <div><Label>Sıra</Label><Input type="number" value={d.sort_order} onChange={(e) => upd("sort_order", parseInt(e.target.value) || 0)} /></div>
         <label className="flex items-end gap-2"><Switch checked={d.published} onCheckedChange={(v) => upd("published", v)} /> Yayında</label>
       </div>
