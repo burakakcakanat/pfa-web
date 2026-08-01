@@ -105,12 +105,12 @@ function HomePage() {
               bir gelişim aşamasıyla eşler.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-3">
-              <a href="#bilinc-haritasi" onClick={scrollToMap} className="btn-primary hover:btn-primary-hover">
-                Haritayı Keşfet
-              </a>
               <Link to="/degerlendirme/mini" className="btn-primary hover:btn-primary-hover">
                 Ücretsiz Ölçek
               </Link>
+              <a href="#bilinc-haritasi" onClick={scrollToMap} className="btn-outline hover:bg-foreground/5">
+                Haritayı Keşfet
+              </a>
               <Link to="/kitaplar" className="btn-outline hover:bg-foreground/5">
                 Kitapları İncele
               </Link>

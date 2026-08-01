@@ -20,9 +20,11 @@ type Props = {
   levelScores: Record<string, number>;
   intelligenceScores: Record<string, number>;
   variant: "mini" | "full";
+  /** When false, per-level interpretation copy and intelligence scores are hidden. */
+  detail?: boolean;
 };
 
-export function AssessmentResult({ levelScores, intelligenceScores, variant }: Props) {
+export function AssessmentResult({ levelScores, intelligenceScores, variant, detail = true }: Props) {
   const radarData = Array.from({ length: 7 }, (_, i) => {
     const lvl = i + 1;
     return {
@@ -65,6 +67,7 @@ export function AssessmentResult({ levelScores, intelligenceScores, variant }: P
         </div>
       </section>
 
+      {detail && (
       <section>
         <h3 className="font-serif text-2xl">Destek alınacak seviyeler</h3>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -87,10 +90,9 @@ export function AssessmentResult({ levelScores, intelligenceScores, variant }: P
           })}
         </div>
       </section>
+      )}
 
-      {variant === "full" && (
-        <>
-          <section>
+      <section>
             <h3 className="font-serif text-2xl">Seviye seviye görünüm</h3>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               {Array.from({ length: 7 }, (_, i) => i + 1).map((lvl) => {
@@ -106,13 +108,14 @@ export function AssessmentResult({ levelScores, intelligenceScores, variant }: P
                     <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                       <div className="h-full bg-accent" style={{ width: `${score}%` }} />
                     </div>
-                    <p className="mt-3 text-sm text-foreground/80">{BAND_COPY[b]}</p>
+                    {detail && <p className="mt-3 text-sm text-foreground/80">{BAND_COPY[b]}</p>}
                   </div>
                 );
               })}
             </div>
-          </section>
+      </section>
 
+      {variant === "full" && detail && (
           <section>
             <h3 className="font-serif text-2xl">Zeka türleri</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -131,7 +134,6 @@ export function AssessmentResult({ levelScores, intelligenceScores, variant }: P
               })}
             </div>
           </section>
-        </>
       )}
 
       <p className="text-center text-xs text-muted-foreground">

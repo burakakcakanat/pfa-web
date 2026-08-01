@@ -1,9 +1,12 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AssessmentRunner } from "@/components/assessment-runner";
+import { AssessmentResult } from "@/components/assessment-result";
+import { AssessmentNextSteps } from "@/components/assessment-next-steps";
 import { saveAssessment } from "@/lib/assessment.functions";
+import { computeScores } from "@/lib/assessment-scoring";
 
 const STORAGE_KEY = "pfa_pending_mini_answers";
 
@@ -17,22 +20,41 @@ export const Route = createFileRoute("/degerlendirme_/mini")({
   component: MiniTestPage,
 });
 
+type LocalResult = {
+  level_scores: Record<string, number>;
+  intelligence_scores: Record<string, number>;
+};
+
 function MiniTestPage() {
   const navigate = useNavigate();
   const save = useServerFn(saveAssessment);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [result, setResult] = useState<LocalResult | null>(null);
 
   async function onComplete(answers: { question_id: string; value: number }[]) {
     setErr(null);
     setSubmitting(true);
     try {
+      const { data: questions, error: qErr } = await supabase
+        .from("assessment_questions")
+        .select("id, level, reverse_coded")
+        .in("id", answers.map((a) => a.question_id));
+      if (qErr || !questions) throw new Error("Sorular yüklenemedi.");
+
+      const scores = computeScores(
+        answers,
+        questions.map((q) => ({ id: q.id, level: q.level, reverse_coded: q.reverse_coded })),
+      );
+
       const { data } = await supabase.auth.getUser();
       if (!data.user) {
+        // Keep answers so the result survives sign-up (/rapor-finalize picks them up).
         if (typeof window !== "undefined") {
           window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, ts: Date.now() }));
         }
-        await navigate({ to: "/auth", search: { redirect: "/rapor-finalize" } });
+        setResult({ level_scores: scores.level_scores, intelligence_scores: scores.intelligence_scores });
+        if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
       const res = await save({ data: { type: "mini", answers } });
@@ -44,13 +66,49 @@ function MiniTestPage() {
     }
   }
 
+  if (result) {
+    return (
+      <div className="container-page py-16">
+        <header className="mx-auto mb-10 max-w-2xl text-center">
+          <div className="text-xs uppercase tracking-[0.3em] text-accent">Mini Değerlendirme Sonucu</div>
+          <h1 className="mt-3 font-serif text-3xl md:text-4xl">Yedi seviyedeki görünümünüz</h1>
+        </header>
+        <div className="mx-auto max-w-4xl">
+          <AssessmentResult
+            levelScores={result.level_scores}
+            intelligenceScores={result.intelligence_scores}
+            variant="mini"
+            detail={false}
+          />
+
+          <div className="mt-12 rounded-lg border-2 border-accent/50 bg-accent/5 p-8 text-center">
+            <div className="text-xs uppercase tracking-[0.3em] text-accent">Ücretsiz Üyelik</div>
+            <h3 className="mt-3 font-serif text-2xl">Ayrıntılı okumayı açın ve bu sonucu kaydedin</h3>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-foreground/80">
+              Üyelik ücretsizdir. Hesap açtığınızda bu sonuç hesabınıza kaydedilir; Hesabım
+              sayfasından tekrar görebilir ve her seviye için ayrıntılı yorumu okuyabilirsiniz.
+              Cevaplarınız tarayıcınızda tutuluyor, kayıt olduğunuzda sonuç kaybolmaz.
+            </p>
+            <div className="mt-6">
+              <Link to="/auth" search={{ redirect: "/rapor-finalize" }} className="btn-primary hover:btn-primary-hover">
+                Ücretsiz Hesap Aç
+              </Link>
+            </div>
+          </div>
+
+          <AssessmentNextSteps />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container-page py-16">
       <header className="mx-auto mb-10 max-w-2xl text-center">
         <div className="text-xs uppercase tracking-[0.3em] text-accent">Mini Değerlendirme</div>
         <h1 className="mt-3 font-serif text-3xl md:text-4xl">7 seviyede kısa bir bakış</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          35 soru. 5-8 dakika. Sonucu görmek için ücretsiz üyelik gerekir.
+          35 soru. 5-8 dakika. Üyelik gerekmez; sonucunuzu hemen görürsünüz.
         </p>
       </header>
       <AssessmentRunner variant="mini" onComplete={onComplete} submitting={submitting} />
