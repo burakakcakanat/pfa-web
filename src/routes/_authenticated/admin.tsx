@@ -2724,7 +2724,7 @@ function PractitionerApplications({
       <p className="text-sm text-muted-foreground">
         {rows.length} başvuru — en yeni üstte.
       </p>
-      <Card className="space-y-3 p-4">
+      <div className="space-y-3 rounded-md border border-border bg-card p-4">
         <Label>Bu kullanıcıyı uygulayıcı yap (başvuru olmadan)</Label>
         <div className="flex flex-wrap items-center gap-2">
           <Input
@@ -2741,7 +2741,7 @@ function PractitionerApplications({
         <p className="text-xs text-muted-foreground">
           Var olan bir hesaba pro rolü verir ve yayınlanmamış taslak uygulayıcı kaydı oluşturur.
         </p>
-      </Card>
+      </div>
       <Card>
         <Table>
           <TableHeader>
