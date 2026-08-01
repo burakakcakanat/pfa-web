@@ -162,7 +162,7 @@ const WORKSPACE_LINKS: NavItem[] = [
 
 const HEADER_NAV: (NavItem | { label: string; children: NavItem[] })[] = [
   { to: "/kitaplar", label: "Kitaplar" },
-  { label: "Ölçümler", children: MEASURE_LINKS },
+  { label: "Ölçme Araçları", children: MEASURE_LINKS },
   { label: "Çalışma Alanı", children: WORKSPACE_LINKS },
   { to: "/uygulayici-olun", label: "Uygulayıcı Programı" },
   { to: "/blog", label: "Blog" },
