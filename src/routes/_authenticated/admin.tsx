@@ -2597,13 +2597,9 @@ const APP_STATUS_LABEL: Record<ApplicationStatus, string> = {
   red: "Red",
 };
 
-function PractitionerApplications({
-  onCreatePractitioner,
-}: {
-  onCreatePractitioner: (
-    row: Omit<PractitionerRow, "id" | "created_at"> & { id?: string },
-  ) => void;
-}) {
+type PromoteCategory = keyof typeof P_CATEGORY_LABEL;
+
+function PractitionerApplications() {
   const list = useServerFn(listAdminApplications);
   const getUrl = useServerFn(getAdminApplicationFileUrl);
   const update = useServerFn(updateAdminApplication);
@@ -2613,6 +2609,8 @@ function PractitionerApplications({
   const [openId, setOpenId] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [promoteEmail, setPromoteEmail] = useState("");
+  const [promoteCategory, setPromoteCategory] = useState<PromoteCategory>("kocluk");
+  const [promoteCity, setPromoteCity] = useState("");
   const [promoteBusy, setPromoteBusy] = useState(false);
   const [acceptBusy, setAcceptBusy] = useState(false);
 
@@ -2723,13 +2721,13 @@ function PractitionerApplications({
           />
           <Select
             value={promoteCategory}
-            onValueChange={(v) => setPromoteCategory(v as PractitionerCategory)}
+            onValueChange={(v) => setPromoteCategory(v as PromoteCategory)}
           >
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Kategori" />
             </SelectTrigger>
             <SelectContent>
-              {(Object.keys(P_CATEGORY_LABEL) as PractitionerCategory[]).map((c) => (
+              {(Object.keys(P_CATEGORY_LABEL) as PromoteCategory[]).map((c) => (
                 <SelectItem key={c} value={c}>
                   {P_CATEGORY_LABEL[c]}
                 </SelectItem>
