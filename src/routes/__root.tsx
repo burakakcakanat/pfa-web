@@ -327,7 +327,7 @@ function SiteHeader() {
             {BRAND_TAGLINE.tr}
           </span>
         </Link>
-        <nav className="hidden items-center gap-6 text-[0.82rem] tracking-wide lg:flex">
+        <nav className="hidden items-center gap-5 text-[0.82rem] tracking-wide lg:flex">
           {HEADER_NAV.map((item) =>
             "children" in item ? (
               <NavDropdown key={item.label} label={item.label} links={item.children} />
