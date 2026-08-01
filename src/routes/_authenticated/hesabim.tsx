@@ -9,9 +9,8 @@ import { listMyGifts } from "@/lib/gifts.functions";
 import { PractitionerAccountTab } from "@/components/practitioner-account";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    tab: typeof s.tab === "string" ? s.tab : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { tab?: string } =>
+    typeof s.tab === "string" ? { tab: s.tab } : {},
   head: () => ({
     meta: [
       { title: "Hesabım — PFA" },

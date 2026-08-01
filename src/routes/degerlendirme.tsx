@@ -59,6 +59,16 @@ function AssessmentPage() {
         </p>
       </header>
 
+      <div className="mx-auto mt-12 flex max-w-3xl flex-col items-center gap-4 rounded-lg border border-accent/40 bg-accent/5 p-6 text-center md:flex-row md:justify-between md:text-left">
+        <p className="text-sm leading-relaxed text-foreground/85">
+          Başlangıç noktası: Ücretsiz Mini Ölçek ile 7 seviyede kendinize ilk bakışı
+          atın, ardından dilerseniz tam ölçeğe geçin.
+        </p>
+        <Link to="/degerlendirme/mini" className="btn-primary shrink-0 whitespace-nowrap">
+          Ücretsiz Ölçek
+        </Link>
+      </div>
+
       <div className="mx-auto mt-14 grid max-w-4xl gap-6 md:grid-cols-2">
         <div className="rounded-lg border border-border bg-card p-8">
           <div className="text-xs uppercase tracking-[0.25em] text-accent">Ücretsiz</div>

@@ -108,6 +108,9 @@ function HomePage() {
               <a href="#bilinc-haritasi" onClick={scrollToMap} className="btn-primary hover:btn-primary-hover">
                 Haritayı Keşfet
               </a>
+              <Link to="/degerlendirme/mini" className="btn-primary hover:btn-primary-hover">
+                Ücretsiz Ölçek
+              </Link>
               <Link to="/kitaplar" className="btn-outline hover:bg-foreground/5">
                 Kitapları İncele
               </Link>
@@ -206,7 +209,7 @@ const AUDIENCES = [
     tag: "Profesyoneller",
     sub: "Psikolog · Koç · Terapist · Eğitimci",
     body: "Danışan ve öğrencilerinizle yapılandırılmış bir bilinç haritası üzerinden çalışın.",
-    cta: "Uygulayıcı Olun",
+    cta: "Uygulayıcı Programı",
     to: "/uygulayici-olun",
   },
   {

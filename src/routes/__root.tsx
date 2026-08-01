@@ -151,11 +151,20 @@ type NavItem = { to: string; label: string };
 const MEASURE_LINKS: NavItem[] = [
   { to: "/degerlendirme", label: "PFA Ölçeği" },
   { to: "/7q", label: "7Q Profili" },
+  { to: "/degerlendirme/mini", label: "Ücretsiz Ölçek" },
+];
+
+const WORKSPACE_LINKS: NavItem[] = [
+  { to: "/seanslar", label: "Seanslar" },
+  { to: "/webinarlar", label: "Webinarlar" },
+  { to: "/egitim", label: "Eğitimler" },
 ];
 
 const HEADER_NAV: (NavItem | { label: string; children: NavItem[] })[] = [
   { to: "/kitaplar", label: "Kitaplar" },
   { label: "Ölçümler", children: MEASURE_LINKS },
+  { label: "Çalışma Alanı", children: WORKSPACE_LINKS },
+  { to: "/uygulayici-olun", label: "Uygulayıcı Programı" },
   { to: "/blog", label: "Blog" },
   { to: "/hakkinda", label: "Hakkında" },
 ];
@@ -167,22 +176,23 @@ const MOBILE_GROUPS: { label: string; links: NavItem[] }[] = [
       { to: "/kitaplar", label: "Kitaplar" },
       { to: "/degerlendirme", label: "PFA Ölçeği" },
       { to: "/7q", label: "7Q Profili" },
+      { to: "/degerlendirme/mini", label: "Ücretsiz Ölçek" },
       { to: "/blog", label: "Blog" },
     ],
   },
   {
-    label: "Çalışmalar",
+    label: "Çalışma Alanı",
     links: [
       { to: "/seanslar", label: "Seanslar" },
       { to: "/webinarlar", label: "Webinarlar" },
-      { to: "/egitim", label: "Eğitim" },
+      { to: "/egitim", label: "Eğitimler" },
     ],
   },
   {
     label: "Uygulayıcılar",
     links: [
       { to: "/uygulayicilar", label: "Uygulayıcı Bul" },
-      { to: "/uygulayici-olun", label: "Uygulayıcı Olun" },
+      { to: "/uygulayici-olun", label: "Uygulayıcı Programı" },
       { to: "/uygulayici-ekosistemi", label: "Uygulayıcı Ekosistemi" },
     ],
   },
@@ -199,6 +209,7 @@ const FOOTER_DISCOVER: NavItem[] = [
   { to: "/kitaplar", label: "Kitaplar" },
   { to: "/degerlendirme", label: "PFA Ölçeği" },
   { to: "/7q", label: "7Q Profili" },
+  { to: "/degerlendirme/mini", label: "Ücretsiz Ölçek" },
   { to: "/blog", label: "Blog" },
   { to: "/hakkinda", label: "Hakkında" },
   { to: "/iletisim", label: "İletişim" },
@@ -209,13 +220,13 @@ const FOOTER_MORE: NavItem[] = [
   { to: "/webinarlar", label: "Webinarlar" },
   { to: "/egitim", label: "Eğitim" },
   { to: "/uygulayicilar", label: "Uygulayıcı Bul" },
-  { to: "/uygulayici-olun", label: "Uygulayıcı Olun" },
+  { to: "/uygulayici-olun", label: "Uygulayıcı Programı" },
   { to: "/uygulayici-ekosistemi", label: "Uygulayıcı Ekosistemi" },
   { to: "/kullanim-kosullari", label: "Kullanım Koşulları" },
   { to: "/iade-politikasi", label: "İade Politikası" },
 ];
 
-function MeasuresDropdown() {
+function NavDropdown({ label, links }: { label: string; links: NavItem[] }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -246,17 +257,17 @@ function MeasuresDropdown() {
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1 text-foreground/75 transition-colors hover:text-accent"
       >
-        Ölçümler
+        {label}
         <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} strokeWidth={1.8} />
       </button>
       {open && (
         <div className="absolute left-0 mt-2 flex w-44 flex-col rounded-md border border-border bg-background shadow-sm">
-          {MEASURE_LINKS.map((l, i) => (
+          {links.map((l, i) => (
             <Link
               key={l.to}
               to={l.to}
               onClick={() => setOpen(false)}
-              className={`px-4 py-2 text-sm hover:text-accent ${i < MEASURE_LINKS.length - 1 ? "border-b border-border/60" : ""}`}
+              className={`px-4 py-2 text-sm hover:text-accent ${i < links.length - 1 ? "border-b border-border/60" : ""}`}
             >
               {l.label}
             </Link>
@@ -319,7 +330,7 @@ function SiteHeader() {
         <nav className="hidden items-center gap-6 text-[0.82rem] tracking-wide lg:flex">
           {HEADER_NAV.map((item) =>
             "children" in item ? (
-              <MeasuresDropdown key={item.label} />
+              <NavDropdown key={item.label} label={item.label} links={item.children} />
             ) : (
               <Link
                 key={item.to}
@@ -349,12 +360,6 @@ function SiteHeader() {
               Giriş Yap
             </Link>
           )}
-          <Link
-            to="/degerlendirme/mini"
-            className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium tracking-wide text-accent-foreground transition-opacity hover:opacity-90"
-          >
-            Ücretsiz Ölçek
-          </Link>
         </nav>
         <MobileMenu email={email} isAdmin={isAdmin} onSignOut={signOut} />
       </div>
