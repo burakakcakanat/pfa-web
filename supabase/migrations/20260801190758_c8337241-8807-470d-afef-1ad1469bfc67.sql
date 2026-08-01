@@ -1,0 +1,1 @@
+DELETE FROM public.license_inquiries WHERE email = 'test.lic@example.com';
