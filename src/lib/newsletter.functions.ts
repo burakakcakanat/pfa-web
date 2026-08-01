@@ -353,10 +353,17 @@ function wrapEmailHtml(bodyHtml: string, unsubscribeUrl: string, art: Artwork = 
   </table></body></html>`;
 }
 
-async function sendResendEmail(_apiKey: string, to: string, subject: string, html: string) {
+async function sendResendEmail(to: string, subject: string, html: string) {
   const { sendEmail } = await import("@/lib/email/send.server");
   const r = await sendEmail({ to, subject, html });
-  if (!r.ok) throw new Error(r.error ?? "send_failed");
+  if (!r.ok) {
+    const reason = r.error ?? "send_failed";
+    throw new Error(
+      reason === "email_not_configured"
+        ? "E-posta gönderimi yapılandırılmamış (RESEND_API_KEY_DIRECT eksik)."
+        : `E-posta gönderilemedi: ${reason}`,
+    );
+  }
 }
 
 export const sendNewsletterTest = createServerFn({ method: "POST" })
@@ -364,8 +371,9 @@ export const sendNewsletterTest = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ issueId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) throw new Error("RESEND_API_KEY tanımlı değil.");
+    if (!process.env.RESEND_API_KEY_DIRECT) {
+      throw new Error("E-posta gönderimi yapılandırılmamış (RESEND_API_KEY_DIRECT eksik).");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: issue, error } = await supabaseAdmin
       .from("newsletter_issues")
@@ -377,9 +385,19 @@ export const sendNewsletterTest = createServerFn({ method: "POST" })
     const email = userRes.user?.email;
     if (!email) throw new Error("Yönetici e-postası bulunamadı.");
     const base = process.env.SITE_URL || "https://psychofunctionalanalysis.com";
-    const unsubUrl = `${base}/bulten/ayril?token=00000000-0000-0000-0000-000000000000`;
-    const html = wrapEmailHtml(mdToHtml(issue.content_md).replace(/{{unsubscribe_url}}/g, unsubUrl), unsubUrl);
-    await sendResendEmail(apiKey, email, `[TEST] ${issue.title}`, html);
+    // Use the admin's OWN real token when they are a subscriber, so the test
+    // mail's unsubscribe link actually works instead of being a dead dummy.
+    const { data: own } = await supabaseAdmin
+      .from("newsletter_subscribers")
+      .select("unsubscribe_token")
+      .eq("email", email.toLowerCase())
+      .maybeSingle();
+    const unsubUrl = own?.unsubscribe_token
+      ? `${base}/bulten/ayril?token=${own.unsubscribe_token}`
+      : `${base}/bulten/ayril`;
+    const art = await loadArtwork(supabaseAdmin);
+    const html = wrapEmailHtml(mdToHtml(issue.content_md).replace(/{{unsubscribe_url}}/g, unsubUrl), unsubUrl, art);
+    await sendResendEmail(email, `[TEST] ${issue.title}`, html);
     return { ok: true, sentTo: email };
   });
 
@@ -388,8 +406,9 @@ export const sendNewsletterIssue = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ issueId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) throw new Error("RESEND_API_KEY tanımlı değil.");
+    if (!process.env.RESEND_API_KEY_DIRECT) {
+      throw new Error("E-posta gönderimi yapılandırılmamış (RESEND_API_KEY_DIRECT eksik).");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: issue, error } = await supabaseAdmin
       .from("newsletter_issues")
@@ -406,23 +425,28 @@ export const sendNewsletterIssue = createServerFn({ method: "POST" })
       .from("newsletter_subscribers")
       .select("email, unsubscribe_token, segment")
       .eq("consent", true)
-      .eq("confirmed", true)
       .is("unsubscribed_at", null);
     if (issue.segment !== "tumu") q = q.eq("segment", issue.segment);
     const { data: subs, error: subsErr } = await q;
     if (subsErr) throw new Error(subsErr.message);
-    const recipients = subs ?? [];
+    // HARD GUARD immediately before dispatch: drop anyone globally suppressed
+    // or unsubscribed on any row, plus duplicates.
+    const { allowed: recipients, suppressed } = await filterSuppressed(supabaseAdmin, subs ?? []);
+    console.log(
+      `[newsletter] issue=${data.issueId} candidates=${(subs ?? []).length} suppressed=${suppressed} recipients=${recipients.length}`,
+    );
 
     const base = process.env.SITE_URL || "https://psychofunctionalanalysis.com";
+    const art = await loadArtwork(supabaseAdmin);
     let sent = 0;
     const BATCH = 50;
     for (let i = 0; i < recipients.length; i += BATCH) {
       const batch = recipients.slice(i, i + BATCH);
       await Promise.all(batch.map(async (s) => {
         const unsubUrl = `${base}/bulten/ayril?token=${s.unsubscribe_token}`;
-        const html = wrapEmailHtml(mdToHtml(issue.content_md).replace(/{{unsubscribe_url}}/g, unsubUrl), unsubUrl);
+        const html = wrapEmailHtml(mdToHtml(issue.content_md).replace(/{{unsubscribe_url}}/g, unsubUrl), unsubUrl, art);
         try {
-          await sendResendEmail(apiKey, s.email, issue.title, html);
+          await sendResendEmail(s.email, issue.title, html);
           sent += 1;
         } catch (e) {
           console.error("[newsletter] send failed", s.email, e);
@@ -438,5 +462,5 @@ export const sendNewsletterIssue = createServerFn({ method: "POST" })
       .update({ status: "gonderildi", sent_at: new Date().toISOString(), sent_count: sent })
       .eq("id", data.issueId);
 
-    return { ok: true, sent, total: recipients.length };
+    return { ok: true, sent, total: recipients.length, suppressed };
   });
