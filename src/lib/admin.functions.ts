@@ -122,6 +122,9 @@ export const updateAdminProduct = createServerFn({ method: "POST" })
         master_epub_path: z.string().nullable().optional(),
         language: z.string().max(10).optional(),
         book_key: z.string().max(20).nullable().optional(),
+        category: z
+          .enum(["kitap", "olcme", "seans", "paket", "program", "diger"])
+          .optional(),
       })
       .parse(d),
   )

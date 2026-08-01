@@ -849,6 +849,7 @@ export type Database = {
           activate_at: string | null
           active: boolean
           book_key: string | null
+          category: string
           cover_image_url: string | null
           created_at: string
           currency: string
@@ -869,6 +870,7 @@ export type Database = {
           activate_at?: string | null
           active?: boolean
           book_key?: string | null
+          category?: string
           cover_image_url?: string | null
           created_at?: string
           currency?: string
@@ -889,6 +891,7 @@ export type Database = {
           activate_at?: string | null
           active?: boolean
           book_key?: string | null
+          category?: string
           cover_image_url?: string | null
           created_at?: string
           currency?: string

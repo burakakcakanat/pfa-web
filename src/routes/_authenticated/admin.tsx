@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { isLive } from "@/lib/bundles";
+import { ChevronDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { listContactMessages, markContactMessageRead } from "@/lib/contact.functions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -373,6 +375,7 @@ function ProductsTab() {
   const [drafts, setDrafts] = useState<Record<string, any>>({});
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     const list = await fetchList();
@@ -403,7 +406,7 @@ function ProductsTab() {
       for (const id of dirtyIds) {
         const d = drafts[id]; const orig = rows.find((r) => r.id === id);
         const changed: any = { id };
-        for (const k of ["name_tr","name_en","description_tr","description_en","price_cents","active","activate_at","cover_image_url","master_pdf_path","master_epub_path","language","book_key"]) {
+        for (const k of ["name_tr","name_en","description_tr","description_en","price_cents","active","activate_at","cover_image_url","master_pdf_path","master_epub_path","language","book_key","category"]) {
           if ((d[k] ?? null) !== (orig?.[k] ?? null)) changed[k] = d[k];
         }
         await update({ data: changed });
@@ -436,13 +439,23 @@ function ProductsTab() {
     patch(p.id, format === "pdf" ? "master_pdf_path" : "master_epub_path", path);
   };
 
-  return (
-    <div className="space-y-3 pb-24">
-      {rows.map((p) => {
-        const isBook = p.type === "ebook";
-        return (
-          <Card key={p.id} title={`${p.name_tr} — ${p.slug}`}>
-            <div className="grid gap-3 md:grid-cols-2">
+  const renderForm = (p: any) => {
+    const isBook = p.type === "ebook";
+    return (
+      <div className="border-t border-border bg-muted/20 px-3 py-4">
+        <div className="grid gap-3 md:grid-cols-2">
+              <div>
+                <Label>Kategori</Label>
+                <Select value={currentValue(p, "category") ?? "diger"} onValueChange={(v) => patch(p.id, "category", v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PRODUCT_CATEGORIES.map((c) => (
+                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="hidden md:block" />
               <div>
                 <Label>Ad (TR)</Label>
                 <Input value={currentValue(p, "name_tr") ?? ""} onChange={(e) => patch(p.id, "name_tr", e.target.value)} />
@@ -509,14 +522,75 @@ function ProductsTab() {
                   </div>
                 </>
               )}
-            </div>
-          </Card>
-        );
-      })}
+        </div>
+      </div>
+    );
+  };
+
+  const grouped = useMemo(() => {
+    return PRODUCT_CATEGORIES.map((c) => ({
+      ...c,
+      items: rows
+        .filter((r) => (r.category ?? "diger") === c.value)
+        .slice()
+        .sort((a, b) => String(a.name_tr ?? "").localeCompare(String(b.name_tr ?? ""), "tr")),
+    })).filter((g) => g.items.length > 0);
+  }, [rows]);
+
+  return (
+    <div className="space-y-6 pb-24">
+      {grouped.map((g) => (
+        <section key={g.value}>
+          <h3 className="mb-1 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            {g.label} <span className="text-muted-foreground/60">({g.items.length})</span>
+          </h3>
+          <div className="overflow-hidden rounded-md border border-border">
+            {g.items.map((p, i) => {
+              const open = openId === p.id;
+              const live = isLive({ active: !!currentValue(p, "active"), activate_at: currentValue(p, "activate_at") });
+              const status = !currentValue(p, "active") ? "pasif" : live ? "live" : "taslak";
+              return (
+                <div key={p.id} className={i > 0 ? "border-t border-border" : undefined}>
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    onClick={() => setOpenId(open ? null : p.id)}
+                    className="flex w-full items-center gap-3 px-3 py-1.5 text-left text-sm transition hover:bg-muted/50"
+                  >
+                    <span className="min-w-0 flex-1 truncate font-medium">{currentValue(p, "name_tr")}</span>
+                    <span className="hidden truncate font-mono text-xs text-muted-foreground sm:block sm:w-56">{p.slug}</span>
+                    <span className="w-24 shrink-0 text-right tabular-nums">
+                      {((currentValue(p, "price_cents") ?? 0) / 100).toFixed(2)} {p.currency ?? "USD"}
+                    </span>
+                    <span
+                      className={`w-16 shrink-0 text-center text-[11px] uppercase tracking-wide ${
+                        status === "live" ? "text-accent" : status === "taslak" ? "text-muted-foreground" : "text-destructive"
+                      }`}
+                    >
+                      {status}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition ${open ? "rotate-180" : ""}`} />
+                  </button>
+                  {open && renderForm(p)}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ))}
       <StickySaveBar dirty={dirty} count={dirtyIds.length} busy={busy} msg={msg} onSave={saveAll} onReset={() => { setDrafts({}); setMsg(null); }} />
     </div>
   );
 }
+
+const PRODUCT_CATEGORIES = [
+  { value: "kitap", label: "Kitaplar" },
+  { value: "olcme", label: "Ölçme Araçları" },
+  { value: "seans", label: "Seans ve Webinar" },
+  { value: "paket", label: "Paketler" },
+  { value: "program", label: "Uygulayıcı Programı" },
+  { value: "diger", label: "Diğer" },
+] as const;
 
 function StickySaveBar({ dirty, count, busy, msg, onSave, onReset }: { dirty: boolean; count: number; busy: boolean; msg: string | null; onSave: () => void; onReset: () => void }) {
   return (
