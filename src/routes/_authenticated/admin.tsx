@@ -3340,7 +3340,10 @@ function NewsletterIssues() {
         if (!confirm("Bu bülteni hedef aboneler için göndermek istediğinize emin misiniz?")) return;
         try {
           const r: any = await sendFn({ data: { issueId: id } });
-          toast.success(`Gönderildi: ${r.sent}/${r.total}`);
+          toast.success(
+            `Gönderildi: ${r.sent}/${r.total}` +
+              (r.suppressed ? ` · ${r.suppressed} ayrılmış adres engellendi` : ""),
+          );
           reload(); setEditing(null);
         } catch (e: any) { toast.error(e?.message ?? "Gönderim başarısız"); }
       }}
@@ -3348,7 +3351,11 @@ function NewsletterIssues() {
         try {
           const r: any = await testFn({ data: { issueId: id } });
           toast.success(`Test gönderildi: ${r.sentTo}`);
-        } catch (e: any) { toast.error(e?.message ?? "Test başarısız"); }
+        } catch (e: any) {
+          const m = e?.message ?? "Test başarısız";
+          toast.error(m);
+          setTestError(m);
+        }
       }}
     />;
   }
