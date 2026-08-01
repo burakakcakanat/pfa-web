@@ -191,8 +191,80 @@ export const getNewsletterConfigStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    return { emailConfigured: Boolean(process.env.RESEND_API_KEY) };
+    return {
+      emailConfigured: Boolean(process.env.RESEND_API_KEY_DIRECT || process.env.RESEND_API_KEY),
+    };
   });
+
+// -------- ADMIN: unsubscribed contacts --------
+export const listNewsletterUnsubscribed = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: subs }, { data: supp }] = await Promise.all([
+      supabaseAdmin
+        .from("newsletter_subscribers")
+        .select("email, segment, unsubscribed_at, created_at"),
+      supabaseAdmin
+        .from("newsletter_suppressions")
+        .select("email, unsubscribed_at, source"),
+    ]);
+
+    const byEmail = new Map<string, { email: string; segments: string[]; unsubscribed_at: string | null; source: string | null }>();
+    for (const s of supp ?? []) {
+      byEmail.set(s.email, { email: s.email, segments: [], unsubscribed_at: s.unsubscribed_at, source: s.source ?? null });
+    }
+    let active = 0;
+    for (const r of subs ?? []) {
+      const email = r.email.toLowerCase();
+      if (!r.unsubscribed_at && !byEmail.has(email)) { active += 1; continue; }
+      const cur = byEmail.get(email) ?? { email, segments: [], unsubscribed_at: r.unsubscribed_at, source: null };
+      if (!cur.segments.includes(r.segment)) cur.segments.push(r.segment);
+      if (!cur.unsubscribed_at) cur.unsubscribed_at = r.unsubscribed_at;
+      byEmail.set(email, cur);
+    }
+    const rows = [...byEmail.values()].sort((a, b) =>
+      (b.unsubscribed_at ?? "").localeCompare(a.unsubscribed_at ?? ""),
+    );
+    return { rows, activeCount: active, unsubscribedCount: rows.length };
+  });
+
+// Hard guard: never dispatch to an address that opted out, whatever the
+// recipient list says. Returns the allowed list plus how many were blocked.
+async function filterSuppressed<T extends { email: string }>(
+  supabaseAdmin: any,
+  recipients: T[],
+): Promise<{ allowed: T[]; suppressed: number }> {
+  if (recipients.length === 0) return { allowed: [], suppressed: 0 };
+  const emails = [...new Set(recipients.map((r) => r.email.toLowerCase().trim()))];
+  const blocked = new Set<string>();
+  const CHUNK = 200;
+  for (let i = 0; i < emails.length; i += CHUNK) {
+    const chunk = emails.slice(i, i + CHUNK);
+    const [{ data: supp }, { data: unsub }] = await Promise.all([
+      supabaseAdmin.from("newsletter_suppressions").select("email").in("email", chunk),
+      supabaseAdmin
+        .from("newsletter_subscribers")
+        .select("email, unsubscribed_at")
+        .in("email", chunk)
+        .not("unsubscribed_at", "is", null),
+    ]);
+    for (const r of supp ?? []) blocked.add(String(r.email).toLowerCase());
+    for (const r of unsub ?? []) blocked.add(String(r.email).toLowerCase());
+  }
+  const seen = new Set<string>();
+  const allowed: T[] = [];
+  let suppressed = 0;
+  for (const r of recipients) {
+    const e = r.email.toLowerCase().trim();
+    if (blocked.has(e)) { suppressed += 1; continue; }
+    if (seen.has(e)) continue;
+    seen.add(e);
+    allowed.push(r);
+  }
+  return { allowed, suppressed };
+}
 
 // Minimal, safe markdown -> HTML renderer for email bodies.
 function mdToHtml(md: string): string {
