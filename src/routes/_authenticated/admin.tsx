@@ -2651,7 +2651,14 @@ function PractitionerList({
                 }}
                 disabled={uploading}
               />
+              <MediaPickerButton onPick={(m) => setEditing({ ...editing, photo_url: m.public_url })} />
             </div>
+            <Input
+              className="mt-2"
+              placeholder="veya dış fotoğraf URL'si"
+              value={editing.photo_url ?? ""}
+              onChange={(e) => setEditing({ ...editing, photo_url: e.target.value })}
+            />
           </div>
 
           <div className="mt-4">
