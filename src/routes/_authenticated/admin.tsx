@@ -3317,6 +3317,7 @@ function NewsletterIssues() {
   const [issues, setIssues] = useState<any[]>([]);
   const [emailConfigured, setEmailConfigured] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     const [rows, cfg] = await Promise.all([listFn(), cfgFn()]);
@@ -3329,6 +3330,7 @@ function NewsletterIssues() {
     return <IssueEditor
       initial={editing}
       emailConfigured={emailConfigured}
+      error={sendError}
       onCancel={() => setEditing(null)}
       onSave={async (v) => {
         const r = await upsertFn({ data: v });
@@ -3338,6 +3340,7 @@ function NewsletterIssues() {
       }}
       onSend={async (id) => {
         if (!confirm("Bu bülteni hedef aboneler için göndermek istediğinize emin misiniz?")) return;
+        setSendError(null);
         try {
           const r: any = await sendFn({ data: { issueId: id } });
           toast.success(
@@ -3345,16 +3348,21 @@ function NewsletterIssues() {
               (r.suppressed ? ` · ${r.suppressed} ayrılmış adres engellendi` : ""),
           );
           reload(); setEditing(null);
-        } catch (e: any) { toast.error(e?.message ?? "Gönderim başarısız"); }
+        } catch (e: any) {
+          const m = e?.message ?? "Gönderim başarısız";
+          toast.error(m);
+          setSendError(m);
+        }
       }}
       onTest={async (id) => {
+        setSendError(null);
         try {
           const r: any = await testFn({ data: { issueId: id } });
           toast.success(`Test gönderildi: ${r.sentTo}`);
         } catch (e: any) {
           const m = e?.message ?? "Test başarısız";
           toast.error(m);
-          setTestError(m);
+          setSendError(m);
         }
       }}
     />;
@@ -3397,9 +3405,10 @@ function NewsletterIssues() {
   );
 }
 
-function IssueEditor({ initial, emailConfigured, onCancel, onSave, onSend, onTest }: {
+function IssueEditor({ initial, emailConfigured, error, onCancel, onSave, onSend, onTest }: {
   initial: any;
   emailConfigured: boolean;
+  error?: string | null;
   onCancel: () => void;
   onSave: (v: any) => Promise<void>;
   onSend: (id: string) => Promise<void>;
