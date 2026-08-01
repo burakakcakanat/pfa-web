@@ -70,8 +70,8 @@ function SevenqReportPage() {
   return (
     <div className="container-page py-16">
       <header className="mx-auto mb-10 max-w-3xl text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">
-          {!isOwner ? "Danışan Raporu · " : ""}7Q Profili
+        <div className="text-xs tracking-[0.3em] text-accent">
+          {!isOwner ? "DANIŞAN RAPORU · " : ""}7Q PROFİLİ
         </div>
         <h1 className="mt-3 font-serif text-3xl md:text-4xl">Kapasite Profiliniz</h1>
         <p className="mt-2 text-xs text-muted-foreground">
