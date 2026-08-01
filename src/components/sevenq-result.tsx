@@ -198,8 +198,8 @@ export function SevenqResult({ levelScores, capacityScores, totalScore, akort, a
                 key={`${cell.level}-${cell.capacity}`}
                 className="rounded-lg border border-accent/40 bg-accent/5 p-5 text-sm text-foreground/80"
               >
-                <div className="text-xs uppercase tracking-wider text-accent">
-                  {SEVENQ_LEVEL_SHORT[cell.level]} · {CAPACITY_LABEL[cell.capacity]} · {cell.score}/100
+                <div className="text-xs tracking-wider text-accent">
+                  {SEVENQ_LEVEL_SHORT[cell.level].toLocaleUpperCase("tr-TR")} · {CAPACITY_LABEL[cell.capacity].toLocaleUpperCase("tr-TR")} · {cell.score}/100
                 </div>
                 <p className="mt-2">{developmentSuggestion(cell)}</p>
               </div>

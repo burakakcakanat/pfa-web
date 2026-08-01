@@ -259,8 +259,8 @@ function AudienceSection() {
               >
                 <div className="flex items-baseline justify-between gap-3">
                   <div className="font-serif text-xl text-foreground">{a.tag}</div>
-                  <div className="text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
-                    {a.sub}
+                  <div className="text-[0.7rem] tracking-[0.25em] text-muted-foreground">
+                    {a.sub.toLocaleUpperCase("tr-TR")}
                   </div>
                 </div>
                 <p className="mt-3 text-[0.95rem] leading-relaxed text-foreground/80">

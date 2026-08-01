@@ -405,8 +405,8 @@ function DemoPractitionerCard({ p }: { p: DemoPractitioner }) {
           {initial}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[0.65rem] uppercase tracking-[0.2em] text-accent">
-            {CATEGORY_LABEL[p.category]}
+          <div className="text-[0.65rem] tracking-[0.2em] text-accent">
+            {CATEGORY_LABEL[p.category].toLocaleUpperCase("tr-TR")}
           </div>
           <h3 className="mt-1 font-serif text-xl text-primary">{p.full_name}</h3>
           <p className="mt-1 text-xs text-muted-foreground">{p.title}</p>

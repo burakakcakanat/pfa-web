@@ -57,7 +57,7 @@ function WebinarsPage() {
             key={b.title}
             className="flex flex-col rounded-lg border border-border bg-card p-8"
           >
-            <div className="text-xs uppercase tracking-[0.25em] text-accent">{b.badge}</div>
+            <div className="text-xs tracking-[0.25em] text-accent">{b.badge.toLocaleUpperCase("tr-TR")}</div>
             <h2 className="mt-4 font-serif text-2xl">{b.title}</h2>
             <p className="mt-2 text-sm italic text-foreground/70">{b.subtitle}</p>
             <p className="mt-4 text-sm leading-relaxed text-foreground/80">{b.desc}</p>

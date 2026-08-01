@@ -105,8 +105,8 @@ function BecomePractitionerPage() {
                 key={c.key}
                 className="flex h-full flex-col border border-border bg-card p-7"
               >
-                <div className="text-[11px] uppercase tracking-[0.28em] text-accent">
-                  {c.title}
+                <div className="text-[11px] tracking-[0.28em] text-accent">
+                  {c.title.toLocaleUpperCase("tr-TR")}
                 </div>
                 <div className="mt-4 font-serif text-lg text-foreground">
                   {c.audience}

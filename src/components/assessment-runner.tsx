@@ -117,8 +117,8 @@ export function AssessmentRunner({ variant, onComplete, submitting }: Props) {
       </div>
 
       <div className="rounded-lg border border-border bg-card p-6 md:p-8">
-        <div className="text-xs uppercase tracking-[0.25em] text-accent">
-          {LEVEL_LABEL_TR[current.level]}
+        <div className="text-xs tracking-[0.25em] text-accent">
+          {LEVEL_LABEL_TR[current.level].toLocaleUpperCase("tr-TR")}
         </div>
         <h2 className="mt-3 font-serif text-2xl md:text-3xl leading-snug">{current.text_tr}</h2>
 

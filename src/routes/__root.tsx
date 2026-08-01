@@ -440,9 +440,9 @@ function MobileMenu({
             </Link>
           </div>
           {MOBILE_GROUPS.map((g) => (
-            <div key={g.label} className="border-b border-border/60 py-2">
-              <div className="px-4 pb-1 pt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                {g.label}
+            <div key={g.label.toLocaleUpperCase("tr-TR")} className="border-b border-border/60 py-2">
+              <div className="px-4 pb-1 pt-1 text-xs tracking-[0.2em] text-muted-foreground">
+                {g.label.toLocaleUpperCase("tr-TR")}
               </div>
               {g.links.map((l) => (
                 <Link

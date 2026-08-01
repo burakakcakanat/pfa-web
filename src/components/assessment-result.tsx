@@ -79,7 +79,7 @@ export function AssessmentResult({ levelScores, intelligenceScores, variant, det
             const b = bandFor(score);
             return (
               <div key={lvl} className="rounded-lg border border-accent/40 bg-accent/5 p-5">
-                <div className="text-xs uppercase tracking-wider text-accent">{LEVEL_LABEL_TR[lvl]}</div>
+                <div className="text-xs tracking-wider text-accent">{LEVEL_LABEL_TR[lvl].toLocaleUpperCase("tr-TR")}</div>
                 <div className="mt-2 flex items-baseline justify-between">
                   <div className="font-serif text-3xl">{score}<span className="text-lg text-muted-foreground">/100</span></div>
                   <div className="text-xs text-muted-foreground">{BAND_LABEL[b]}</div>
@@ -101,7 +101,7 @@ export function AssessmentResult({ levelScores, intelligenceScores, variant, det
                 return (
                   <div key={lvl} className="rounded-lg border border-border bg-card p-5">
                     <div className="flex items-baseline justify-between">
-                      <div className="text-xs uppercase tracking-wider text-accent">{LEVEL_LABEL_TR[lvl]}</div>
+                      <div className="text-xs tracking-wider text-accent">{LEVEL_LABEL_TR[lvl].toLocaleUpperCase("tr-TR")}</div>
                       <div className="text-xs text-muted-foreground">{BAND_LABEL[b]}</div>
                     </div>
                     <div className="mt-2 font-serif text-2xl">{score}<span className="text-lg text-muted-foreground">/100</span></div>
