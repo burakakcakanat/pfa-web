@@ -3166,6 +3166,9 @@ function NewsletterTemplateSettings() {
   const save = useServerFn(upsertSiteSetting);
   const [url, setUrl] = useState("");
   const [side, setSide] = useState("right");
+  const [width, setWidth] = useState(96);
+  const [opacity, setOpacity] = useState(50);
+  const [alt, setAlt] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   useEffect(() => {
@@ -3173,25 +3176,60 @@ function NewsletterTemplateSettings() {
       for (const r of data as any[]) {
         if (r.key === "newsletter_bg_image_url") setUrl(r.value ?? "");
         if (r.key === "newsletter_bg_side") setSide(r.value || "right");
+        if (r.key === "newsletter_bg_width") setWidth(Number(r.value) || 96);
+        if (r.key === "newsletter_bg_opacity") setOpacity(Number(r.value) || 50);
+        if (r.key === "newsletter_bg_alt") setAlt(r.value ?? "");
       }
     });
   }, [fetchList]);
+
+  // Seçilen görselin ölçülerinden otomatik yerleşim türetilir; hepsi
+  // düzenlenebilir öneri olarak doldurulur.
+  const applyAsset = (m: { public_url: string; width: number; height: number; has_transparency: boolean; label: string | null; original_filename: string }) => {
+    setUrl(m.public_url);
+    setAlt(m.label || "");
+    const ratio = m.height > 0 ? m.width / m.height : 1;
+    const wideLandscape = ratio >= 1.6;
+    if (wideLandscape) {
+      setSide("top");
+      setWidth(Math.min(560, m.width || 560));
+    } else {
+      setSide("right");
+      // e-posta genişliğinin ~1/3'ü (560px), doğal genişliğin üstüne çıkmadan
+      setWidth(Math.max(48, Math.min(187, m.width || 187)));
+    }
+    setOpacity(m.has_transparency ? 85 : 35);
+  };
+
   const submit = async () => {
     setBusy(true); setMsg(null);
     try {
       await save({ data: { key: "newsletter_bg_image_url", value: url.trim() } });
       await save({ data: { key: "newsletter_bg_side", value: side } });
+      await save({ data: { key: "newsletter_bg_width", value: String(Math.round(width)) } });
+      await save({ data: { key: "newsletter_bg_opacity", value: String(Math.round(opacity)) } });
+      await save({ data: { key: "newsletter_bg_alt", value: alt.trim() } });
       setMsg("Kaydedildi.");
     } catch (e: any) {
       setMsg("Hata: " + (e?.message ?? "bilinmiyor"));
     } finally { setBusy(false); }
   };
+
+  const sideArt = side === "left" || side === "right";
   return (
     <Card title="Bülten Şablonu — Kenar Görseli">
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="md:col-span-2">
-          <Label>Görsel URL (boş bırakılırsa şablon bugünkü haliyle gönderilir)</Label>
-          <Input placeholder="https://…/pfa-torus.png" value={url} onChange={(e) => setUrl(e.target.value)} />
+        <div className="md:col-span-2 space-y-2">
+          <Label>Görsel (boş bırakılırsa şablon bugünkü haliyle gönderilir)</Label>
+          <div className="flex flex-wrap items-center gap-3">
+            {url ? (
+              <img src={url} alt={alt || "seçili görsel"} className="h-16 w-auto rounded border border-border bg-muted/30 object-contain" />
+            ) : (
+              <span className="text-xs text-muted-foreground">Görsel seçilmedi</span>
+            )}
+            <MediaPickerButton onPick={applyAsset} label="Kütüphaneden Seç" />
+            {url && <Button variant="outline" size="sm" onClick={() => setUrl("")}>Kaldır</Button>}
+          </div>
         </div>
         <div>
           <Label>Konum</Label>
@@ -3200,17 +3238,58 @@ function NewsletterTemplateSettings() {
             <SelectContent>
               <SelectItem value="right">Sağ kenar</SelectItem>
               <SelectItem value="left">Sol kenar</SelectItem>
+              <SelectItem value="top">Üst şerit</SelectItem>
+              <SelectItem value="bottom">Alt şerit</SelectItem>
             </SelectContent>
           </Select>
         </div>
+        <div>
+          <Label>Genişlik (px, {sideArt ? "kenar şeridi" : "tam şerit"})</Label>
+          <Input type="number" min={40} max={560} value={width} onChange={(e) => setWidth(Number(e.target.value) || 0)} />
+        </div>
+        <div>
+          <Label>Opaklık (%)</Label>
+          <Input type="number" min={5} max={100} value={opacity} onChange={(e) => setOpacity(Number(e.target.value) || 0)} />
+        </div>
+        <div>
+          <Label>Alternatif metin</Label>
+          <Input value={alt} onChange={(e) => setAlt(e.target.value)} placeholder="Görsel açıklaması" />
+        </div>
       </div>
+
+      {url && (
+        <div className="mt-4">
+          <Label>Önizleme (e-posta başlık alanı)</Label>
+          <div className="mt-2 overflow-hidden rounded border border-[#e6dfcf] bg-[#fffdf7]" style={{ maxWidth: 560 }}>
+            <div className="border-b border-[#eee5d0] px-6 py-4 text-center font-serif text-[15px] tracking-[0.14em] text-[#0f766e]">
+              PFA — PSİKO-FONKSİYONEL ANALİZ
+            </div>
+            {side === "top" && (
+              <img src={url} alt={alt} style={{ width: Math.min(560, width), opacity: opacity / 100, display: "block", margin: "0 auto" }} />
+            )}
+            <div className="flex">
+              {side === "left" && <img src={url} alt={alt} style={{ width, opacity: opacity / 100, alignSelf: "flex-start" }} />}
+              <div className="px-6 py-5 text-[13px] leading-relaxed text-[#1a2a2e]">
+                <strong>Bülten başlığı</strong>
+                <p className="mt-1">Bu alan bülten metninizin görüneceği yerdir. Görsel kenarda ya da şerit olarak yer alır.</p>
+              </div>
+              {side === "right" && <img src={url} alt={alt} style={{ width, opacity: opacity / 100, alignSelf: "flex-start" }} />}
+            </div>
+            {side === "bottom" && (
+              <img src={url} alt={alt} style={{ width: Math.min(560, width), opacity: opacity / 100, display: "block", margin: "0 auto" }} />
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="mt-4 flex items-center gap-3">
         <Button onClick={submit} disabled={busy}>{busy ? "Kaydediliyor…" : "Kaydet"}</Button>
         {msg && <span className="text-sm text-muted-foreground">{msg}</span>}
       </div>
       <p className="mt-3 text-xs text-muted-foreground">
         Görsel, e-postada gerçek bir resim olarak dar bir kenar şeridinde yer alır (CSS arka planı kullanılmaz).
-        Görsel engellenirse metin bozulmaz. Dikey, düşük kontrastlı ve kırpılmış bir görsel önerilir.
+        Görsel engellenirse metin bozulmaz. Yine de e-posta istemcileri (Outlook, bazı webmail'ler) görselleri
+        ve arka planları farklı işler: gerçek gönderimden önce mutlaka “Önce bana gönder” ile test edin.
       </p>
     </Card>
   );
