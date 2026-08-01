@@ -123,6 +123,7 @@ import {
   sendNewsletterIssue,
   sendNewsletterTest,
   getNewsletterConfigStatus,
+  listNewsletterUnsubscribed,
 } from "@/lib/newsletter.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -3069,7 +3070,7 @@ function PractitionerInquiries() {
 
 // -------------------- Newsletter Tab --------------------
 function NewsletterTab() {
-  const [sub, setSub] = useState<"aboneler" | "sayilar">("aboneler");
+  const [sub, setSub] = useState<"aboneler" | "ayrilanlar" | "sayilar" | "sablon">("aboneler");
   return (
     <div className="space-y-6">
       <div className="flex gap-2 border-b border-border">
@@ -3078,12 +3079,137 @@ function NewsletterTab() {
           className={`-mb-px border-b-2 px-4 py-2 text-sm ${sub === "aboneler" ? "border-accent text-accent" : "border-transparent text-muted-foreground"}`}
         >Aboneler</button>
         <button
+          onClick={() => setSub("ayrilanlar")}
+          className={`-mb-px border-b-2 px-4 py-2 text-sm ${sub === "ayrilanlar" ? "border-accent text-accent" : "border-transparent text-muted-foreground"}`}
+        >Ayrılanlar</button>
+        <button
           onClick={() => setSub("sayilar")}
           className={`-mb-px border-b-2 px-4 py-2 text-sm ${sub === "sayilar" ? "border-accent text-accent" : "border-transparent text-muted-foreground"}`}
         >Bülten Sayıları</button>
+        <button
+          onClick={() => setSub("sablon")}
+          className={`-mb-px border-b-2 px-4 py-2 text-sm ${sub === "sablon" ? "border-accent text-accent" : "border-transparent text-muted-foreground"}`}
+        >Şablon</button>
       </div>
-      {sub === "aboneler" ? <NewsletterSubscribers /> : <NewsletterIssues />}
+      {sub === "aboneler" && <NewsletterSubscribers />}
+      {sub === "ayrilanlar" && <NewsletterUnsubscribed />}
+      {sub === "sayilar" && <NewsletterIssues />}
+      {sub === "sablon" && <NewsletterTemplateSettings />}
     </div>
+  );
+}
+
+function NewsletterUnsubscribed() {
+  const listFn = useServerFn(listNewsletterUnsubscribed);
+  const [rows, setRows] = useState<any[]>([]);
+  const [counts, setCounts] = useState({ active: 0, unsub: 0 });
+  const [loading, setLoading] = useState(true);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r: any = await listFn();
+      setRows(r.rows as any[]);
+      setCounts({ active: r.activeCount, unsub: r.unsubscribedCount });
+    } finally { setLoading(false); }
+  }, [listFn]);
+  useEffect(() => { reload(); }, [reload]);
+
+  function exportCsv() {
+    const lines = ["email,unsubscribed_at,segments"];
+    for (const r of rows) {
+      lines.push([r.email, r.unsubscribed_at ?? "", (r.segments ?? []).join("|")].map((v: string) => JSON.stringify(v)).join(","));
+    }
+    const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "ayrilanlar.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="rounded-md border border-border p-3 text-sm"><div className="text-xs text-muted-foreground">Aktif abone</div><div className="text-2xl font-semibold">{counts.active}</div></div>
+        <div className="rounded-md border border-border p-3 text-sm"><div className="text-xs text-muted-foreground">Ayrılan</div><div className="text-2xl font-semibold">{counts.unsub}</div></div>
+      </div>
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={exportCsv} disabled={rows.length === 0}>CSV Dışa Aktar</Button>
+        <Button variant="outline" onClick={reload}>Yenile</Button>
+      </div>
+      {loading ? <p className="text-sm text-muted-foreground">Yükleniyor…</p> : rows.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Ayrılan kayıt yok.</p>
+      ) : (
+        <Table>
+          <TableHeader><TableRow><TableHead>E-posta</TableHead><TableHead>Segment(ler)</TableHead><TableHead>Ayrılma Tarihi</TableHead></TableRow></TableHeader>
+          <TableBody>
+            {rows.map((r) => (
+              <TableRow key={r.email}>
+                <TableCell className="font-mono text-xs">{r.email}</TableCell>
+                <TableCell className="text-xs">{(r.segments ?? []).join(", ") || "—"}</TableCell>
+                <TableCell className="text-xs">{r.unsubscribed_at ? fmtDate(r.unsubscribed_at) : "—"}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+      <p className="text-xs text-muted-foreground">Ayrılma küresel geçerlidir: bu adresler hiçbir segmentte gönderim almaz.</p>
+    </div>
+  );
+}
+
+function NewsletterTemplateSettings() {
+  const fetchList = useServerFn(listSiteSettings);
+  const save = useServerFn(upsertSiteSetting);
+  const [url, setUrl] = useState("");
+  const [side, setSide] = useState("right");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  useEffect(() => {
+    fetchList().then((data) => {
+      for (const r of data as any[]) {
+        if (r.key === "newsletter_bg_image_url") setUrl(r.value ?? "");
+        if (r.key === "newsletter_bg_side") setSide(r.value || "right");
+      }
+    });
+  }, [fetchList]);
+  const submit = async () => {
+    setBusy(true); setMsg(null);
+    try {
+      await save({ data: { key: "newsletter_bg_image_url", value: url.trim() } });
+      await save({ data: { key: "newsletter_bg_side", value: side } });
+      setMsg("Kaydedildi.");
+    } catch (e: any) {
+      setMsg("Hata: " + (e?.message ?? "bilinmiyor"));
+    } finally { setBusy(false); }
+  };
+  return (
+    <Card title="Bülten Şablonu — Kenar Görseli">
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="md:col-span-2">
+          <Label>Görsel URL (boş bırakılırsa şablon bugünkü haliyle gönderilir)</Label>
+          <Input placeholder="https://…/pfa-torus.png" value={url} onChange={(e) => setUrl(e.target.value)} />
+        </div>
+        <div>
+          <Label>Konum</Label>
+          <Select value={side} onValueChange={setSide}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="right">Sağ kenar</SelectItem>
+              <SelectItem value="left">Sol kenar</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="mt-4 flex items-center gap-3">
+        <Button onClick={submit} disabled={busy}>{busy ? "Kaydediliyor…" : "Kaydet"}</Button>
+        {msg && <span className="text-sm text-muted-foreground">{msg}</span>}
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">
+        Görsel, e-postada gerçek bir resim olarak dar bir kenar şeridinde yer alır (CSS arka planı kullanılmaz).
+        Görsel engellenirse metin bozulmaz. Dikey, düşük kontrastlı ve kırpılmış bir görsel önerilir.
+      </p>
+    </Card>
   );
 }
 
