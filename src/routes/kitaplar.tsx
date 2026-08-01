@@ -79,6 +79,11 @@ const PFA_META = {
   } as Record<"tr" | "en", string>,
 } as const;
 
+const PFA_TR_META = {
+  ...PFA_META,
+  title: "Psiko-Fonksiyonel Analiz",
+} as const;
+
 const HCD_META = {
   key: "hcd",
   title: "Human Consciousness Decoded",
@@ -115,8 +120,9 @@ function BooksContent() {
 
   return (
     <div className="mt-16 space-y-24">
-      <BookBlock meta={PFA_META} data={data} productBySlug={productBySlug} />
-      <BookBlock meta={HCD_META} data={data} productBySlug={productBySlug} />
+      <BookBlock meta={PFA_TR_META} lang="tr" data={data} productBySlug={productBySlug} />
+      <BookBlock meta={PFA_META} lang="en" data={data} productBySlug={productBySlug} />
+      <BookBlock meta={HCD_META} lang="en" data={data} productBySlug={productBySlug} />
       <BundlesSection data={data} productBySlug={productBySlug} />
     </div>
   );
@@ -124,27 +130,30 @@ function BooksContent() {
 
 function BookBlock({
   meta,
+  lang,
   data,
   productBySlug,
 }: {
-  meta: typeof PFA_META | typeof HCD_META;
+  meta: typeof PFA_META | typeof PFA_TR_META | typeof HCD_META;
+  lang: "tr" | "en";
   data: BooksPayload;
   productBySlug: Map<string, BooksPayload["products"][number]>;
 }) {
-  const [lang, setLang] = useState<"tr" | "en">(meta.key === "hcd" ? "en" : "tr");
   const productSlug = bookSlugFor(meta.key, lang);
   const product = productBySlug.get(productSlug);
   const productLive = product ? isLive(product) : false;
 
   const editions = data.editions
-    .filter((e) => e.book_key === meta.key)
+    .filter((e) => e.book_key === meta.key && e.language === lang)
     .sort((a, b) => a.sort_order - b.sort_order);
 
   const kindle = editions.find((e) => e.format === "kindle" && e.active && e.asin);
   const paperback = editions.find((e) => e.format === "paperback" && e.active && e.asin);
-  const googlePlay = meta.key === "pfa" ? editions.find((e) => e.format === "google_play") : null;
+  const googlePlayRow = editions.find((e) => e.format === "google_play");
+  const showGooglePlay = meta.key === "pfa" && lang === "tr";
 
   const cover = product?.cover_image_url || meta.covers[lang] || meta.covers.en || "";
+  const langLabel = lang === "tr" ? "Türkçe" : "English";
 
   return (
     <section className="grid gap-12 md:grid-cols-[minmax(240px,320px)_1fr] md:items-start">
@@ -160,9 +169,14 @@ function BookBlock({
 
       <div className="flex flex-col">
         <div className="text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
-          {meta.key === "pfa" ? "PFA · Kaynak Metin" : "HCD · Erken Dönem"}
+          {meta.key === "pfa" ? "PFA · Kaynak Metin" : "HCD · Erken Dönem"} · {langLabel}
         </div>
-        <h2 className="mt-2 font-serif text-3xl md:text-4xl">{meta.title}</h2>
+        <h2 className="mt-2 font-serif text-3xl md:text-4xl">
+          {meta.title}
+          <span className="ml-3 align-middle rounded-full border border-accent/50 bg-accent/10 px-3 py-1 text-[0.65rem] uppercase tracking-[0.2em] text-accent">
+            {langLabel}
+          </span>
+        </h2>
         <p className="mt-3 font-serif italic text-foreground/75">{meta.subtitle}</p>
         <p className="mt-4 max-w-xl text-sm leading-relaxed text-foreground/80">{meta.desc}</p>
 
@@ -172,14 +186,6 @@ function BookBlock({
             <div className="flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.25em] text-accent">
               <span aria-hidden>✒</span> Siteden · İsme İmzalı Nüsha
             </div>
-
-            {meta.key === "pfa" && (
-              <div className="mt-3 flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground">Dil:</span>
-                <LangPill active={lang === "tr"} onClick={() => setLang("tr")}>Türkçe</LangPill>
-                <LangPill active={lang === "en"} onClick={() => setLang("en")}>English</LangPill>
-              </div>
-            )}
 
             <div className="mt-4 flex flex-wrap items-baseline gap-3">
               <div className="font-serif text-2xl text-primary">{fmtUsd(product.price_cents)}</div>
@@ -204,12 +210,12 @@ function BookBlock({
           </div>
         )}
 
-        {/* C — Google Play (yalnız PFA) */}
-        {meta.key === "pfa" && (
+        {/* C — Google Play (yalnız PFA · Türkçe) */}
+        {showGooglePlay && (
           <div className="mt-4">
-            {googlePlay && googlePlay.active && googlePlay.external_url ? (
+            {googlePlayRow && googlePlayRow.active && googlePlayRow.external_url ? (
               <a
-                href={googlePlay.external_url}
+                href={googlePlayRow.external_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-xs underline decoration-accent decoration-2 underline-offset-4 hover:text-accent"
