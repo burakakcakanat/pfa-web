@@ -6,8 +6,12 @@ import { BuyButton } from "@/components/buy-button";
 import { getProDashboard, createProInvite } from "@/lib/pro.functions";
 import { listMyEbooks, getEbookUrl } from "@/lib/ebooks.functions";
 import { listMyGifts } from "@/lib/gifts.functions";
+import { PractitionerAccountTab } from "@/components/practitioner-account";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    tab: typeof s.tab === "string" ? s.tab : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Hesabım — PFA" },
@@ -52,13 +56,14 @@ const TABS = [
 ] as const;
 
 function AccountPage() {
+  const search = Route.useSearch();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [entitlements, setEntitlements] = useState<Entitlement[]>([]);
   const [assessments, setAssessments] = useState<AssessmentSessionRow[]>([]);
   const [sevenqSessions, setSevenqSessions] = useState<SevenqSessionRow[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
-  const [tab, setTab] = useState<string>("profile");
+  const [tab, setTab] = useState<string>(search.tab ?? "profile");
   const [fullName, setFullName] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState("tr");
   const [saving, setSaving] = useState(false);
@@ -93,7 +98,11 @@ function AccountPage() {
   }, [fetchGifts]);
 
   const isPro = roles.includes("pro") || roles.includes("admin");
-  const tabs = isPro ? [...TABS, { id: "clients", label: "Danışanlarım" }] : TABS;
+  const tabs = [
+    ...TABS,
+    { id: "practitioner", label: "Uygulayıcı" },
+    ...(isPro ? [{ id: "clients", label: "Danışanlarım" }] : []),
+  ];
 
   async function saveProfile() {
     if (!profile) return;
@@ -221,6 +230,9 @@ function AccountPage() {
         )}
 
         {tab === "clients" && <ClientsTab />}
+        {tab === "practitioner" && (
+          <PractitionerAccountTab onGoToClients={() => setTab("clients")} />
+        )}
       </div>
     </div>
   );
