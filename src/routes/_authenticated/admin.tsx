@@ -3425,6 +3425,11 @@ function IssueEditor({ initial, emailConfigured, error, onCancel, onSave, onSend
         <h3 className="font-serif text-xl">{id ? "Sayıyı Düzenle" : "Yeni Bülten Sayısı"}</h3>
         <Button variant="ghost" onClick={onCancel}>Kapat</Button>
       </div>
+      {error && (
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          Gönderim hatası: {error}
+        </div>
+      )}
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-3">
           <Label>Başlık</Label>
