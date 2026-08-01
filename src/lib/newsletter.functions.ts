@@ -296,40 +296,71 @@ function inline(s: string): string {
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
-type Artwork = { url: string; side: "left" | "right" } | null;
+type Artwork = {
+  url: string;
+  side: "left" | "right" | "top" | "bottom";
+  width: number;
+  opacity: number;
+  alt: string;
+} | null;
 
 async function loadArtwork(supabaseAdmin: any): Promise<Artwork> {
   try {
     const { data } = await supabaseAdmin
       .from("site_settings")
       .select("key, value")
-      .in("key", ["newsletter_bg_image_url", "newsletter_bg_side"]);
+      .in("key", [
+        "newsletter_bg_image_url",
+        "newsletter_bg_side",
+        "newsletter_bg_width",
+        "newsletter_bg_opacity",
+        "newsletter_bg_alt",
+      ]);
     const map: Record<string, string> = {};
     for (const r of data ?? []) if (r.value) map[r.key] = String(r.value).trim();
     const url = map["newsletter_bg_image_url"];
     if (!url || !/^https?:\/\//i.test(url)) return null;
-    const side = map["newsletter_bg_side"] === "left" ? "left" : "right";
-    return { url, side };
+    const rawSide = map["newsletter_bg_side"];
+    const side: Artwork extends null ? never : "left" | "right" | "top" | "bottom" =
+      rawSide === "left" || rawSide === "top" || rawSide === "bottom" ? rawSide : "right";
+    const width = Math.min(560, Math.max(40, Number(map["newsletter_bg_width"]) || 96));
+    const opacity = Math.min(100, Math.max(5, Number(map["newsletter_bg_opacity"]) || 50)) / 100;
+    return { url, side, width, opacity, alt: map["newsletter_bg_alt"] ?? "" };
   } catch {
     return null;
   }
 }
 
-// Artwork is rendered as a real <img> inside a fixed-width side cell (never a
-// CSS background), flush to one edge of the layout. If the image fails to load
-// or is blocked, the cell collapses to a narrow empty strip — the letter stays
-// readable and never shows a broken banner or empty block.
+// Artwork is always a real <img> (never a CSS background, which Outlook and
+// several webmail clients drop). Blocked/broken images collapse to an empty
+// strip: no broken-image icon, no layout shift, letter stays readable.
 function artworkCell(art: Artwork): string {
   if (!art) return "";
-  return `<td width="96" valign="top" style="width:96px;padding:0;line-height:0;font-size:0;background:#fffdf7">
-    <img src="${art.url}" width="96" alt="" border="0" style="display:block;width:96px;max-width:96px;height:auto;border:0;outline:none;text-decoration:none;opacity:0.5" />
+  const w = Math.round(art.width);
+  return `<td width="${w}" valign="top" style="width:${w}px;padding:0;line-height:0;font-size:0;background:#fffdf7">
+    <img src="${art.url}" width="${w}" alt="${escAttr(art.alt)}" border="0" style="display:block;width:${w}px;max-width:${w}px;height:auto;border:0;outline:none;text-decoration:none;opacity:${art.opacity}" />
   </td>`;
 }
 
+function escAttr(s: string): string {
+  return (s ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+}
+
+function artworkEdgeRow(art: Artwork): string {
+  if (!art) return "";
+  const w = Math.min(560, Math.round(art.width));
+  return `<tr><td align="center" style="padding:0;line-height:0;font-size:0;background:#fffdf7">
+    <img src="${art.url}" width="${w}" alt="${escAttr(art.alt)}" border="0" style="display:block;width:${w}px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;opacity:${art.opacity}" />
+  </td></tr>`;
+}
+
 function wrapEmailHtml(bodyHtml: string, unsubscribeUrl: string, art: Artwork = null): string {
-  const left = art?.side === "left" ? artworkCell(art) : "";
-  const right = art?.side === "right" ? artworkCell(art) : "";
-  const bodyRow = art
+  const sideArt = art && (art.side === "left" || art.side === "right") ? art : null;
+  const left = sideArt?.side === "left" ? artworkCell(sideArt) : "";
+  const right = sideArt?.side === "right" ? artworkCell(sideArt) : "";
+  const topRow = art?.side === "top" ? artworkEdgeRow(art) : "";
+  const bottomRow = art?.side === "bottom" ? artworkEdgeRow(art) : "";
+  const bodyRow = sideArt
     ? `<tr><td style="padding:0">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
           ${left}
@@ -343,7 +374,9 @@ function wrapEmailHtml(bodyHtml: string, unsubscribeUrl: string, art: Artwork = 
     <tr><td align="center">
       <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fffdf7;border:1px solid #e6dfcf;border-radius:8px;overflow:hidden">
         <tr><td style="padding:24px 32px;border-bottom:1px solid #eee5d0;text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:20px;letter-spacing:.14em;color:#0f766e">PFA — PSİKO-FONKSİYONEL ANALİZ</td></tr>
+        ${topRow}
         ${bodyRow}
+        ${bottomRow}
         <tr><td style="padding:20px 32px;border-top:1px solid #eee5d0;font-size:11px;color:#6b6355;text-align:center">
           Bu e-postayı PFA bültenine abone olduğunuz için aldınız.<br/>
           <a href="${unsubscribeUrl}" style="color:#6b6355;text-decoration:underline">Abonelikten ayrıl</a>
