@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { isLive } from "@/lib/bundles";
+import { ChevronDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { listContactMessages, markContactMessageRead } from "@/lib/contact.functions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
