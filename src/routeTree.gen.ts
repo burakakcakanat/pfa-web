@@ -45,6 +45,7 @@ import { Route as AuthenticatedRaporSessionIdRouteImport } from './routes/_authe
 import { Route as AuthenticatedDegerlendirmeTamRouteImport } from './routes/_authenticated/degerlendirme.tam'
 import { Route as Authenticated7qFormRouteImport } from './routes/_authenticated/7q.form'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as ApiPublicMediaFileRouteImport } from './routes/api/public/media/$file'
 import { Route as Authenticated7qRaporSessionIdRouteImport } from './routes/_authenticated/7q.rapor.$sessionId'
 
 const UygulayiciOlunRoute = UygulayiciOlunRouteImport.update({
@@ -233,6 +234,11 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicMediaFileRoute = ApiPublicMediaFileRouteImport.update({
+  id: '/api/public/media/$file',
+  path: '/api/public/media/$file',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Authenticated7qRaporSessionIdRoute =
   Authenticated7qRaporSessionIdRouteImport.update({
     id: '/7q/rapor/$sessionId',
@@ -277,6 +283,7 @@ export interface FileRoutesByFullPath {
   '/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
+  '/api/public/media/$file': typeof ApiPublicMediaFileRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -315,6 +322,7 @@ export interface FileRoutesByTo {
   '/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
+  '/api/public/media/$file': typeof ApiPublicMediaFileRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -355,6 +363,7 @@ export interface FileRoutesById {
   '/_authenticated/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/_authenticated/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
+  '/api/public/media/$file': typeof ApiPublicMediaFileRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -395,6 +404,7 @@ export interface FileRouteTypes {
     | '/rapor/$sessionId'
     | '/api/public/stripe-webhook'
     | '/7q/rapor/$sessionId'
+    | '/api/public/media/$file'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -433,6 +443,7 @@ export interface FileRouteTypes {
     | '/rapor/$sessionId'
     | '/api/public/stripe-webhook'
     | '/7q/rapor/$sessionId'
+    | '/api/public/media/$file'
   id:
     | '__root__'
     | '/'
@@ -472,6 +483,7 @@ export interface FileRouteTypes {
     | '/_authenticated/rapor/$sessionId'
     | '/api/public/stripe-webhook'
     | '/_authenticated/7q/rapor/$sessionId'
+    | '/api/public/media/$file'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -505,6 +517,7 @@ export interface RootRouteChildren {
   WebinarlarIndexRoute: typeof WebinarlarIndexRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
+  ApiPublicMediaFileRoute: typeof ApiPublicMediaFileRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -761,6 +774,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/media/$file': {
+      id: '/api/public/media/$file'
+      path: '/api/public/media/$file'
+      fullPath: '/api/public/media/$file'
+      preLoaderRoute: typeof ApiPublicMediaFileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/7q/rapor/$sessionId': {
       id: '/_authenticated/7q/rapor/$sessionId'
       path: '/7q/rapor/$sessionId'
@@ -826,6 +846,7 @@ const rootRouteChildren: RootRouteChildren = {
   WebinarlarIndexRoute: WebinarlarIndexRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
+  ApiPublicMediaFileRoute: ApiPublicMediaFileRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

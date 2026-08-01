@@ -1124,6 +1124,57 @@ export type Database = {
           },
         ]
       }
+      site_media: {
+        Row: {
+          byte_size: number
+          created_at: string
+          has_transparency: boolean
+          height: number
+          id: string
+          label: string | null
+          mime_type: string
+          original_filename: string
+          public_url: string
+          storage_path: string
+          tags: string[]
+          updated_at: string
+          uploaded_by: string | null
+          width: number
+        }
+        Insert: {
+          byte_size: number
+          created_at?: string
+          has_transparency?: boolean
+          height?: number
+          id?: string
+          label?: string | null
+          mime_type: string
+          original_filename: string
+          public_url: string
+          storage_path: string
+          tags?: string[]
+          updated_at?: string
+          uploaded_by?: string | null
+          width?: number
+        }
+        Update: {
+          byte_size?: number
+          created_at?: string
+          has_transparency?: boolean
+          height?: number
+          id?: string
+          label?: string | null
+          mime_type?: string
+          original_filename?: string
+          public_url?: string
+          storage_path?: string
+          tags?: string[]
+          updated_at?: string
+          uploaded_by?: string | null
+          width?: number
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           key: string
