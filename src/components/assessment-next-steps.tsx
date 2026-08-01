@@ -5,14 +5,14 @@ import { NewsletterForm } from "@/components/newsletter-form";
  * Closing "how to continue" block for assessment results.
  * Intentionally identical for everyone — never conditioned on scores.
  */
-export function AssessmentNextSteps() {
+export function AssessmentNextSteps({ showFullAssessment = true }: { showFullAssessment?: boolean }) {
   return (
     <section className="mt-14">
       <p className="mx-auto max-w-2xl text-center text-sm leading-relaxed text-muted-foreground">
         Bu sonuç bir tanı değil; bugünkü durumunuza dair bir başlangıç fotoğrafıdır.
         Buradan nasıl devam etmek istediğinize kendiniz karar verin.
       </p>
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
+      <div className={`mt-6 grid gap-4 ${showFullAssessment ? "md:grid-cols-3" : "mx-auto max-w-3xl md:grid-cols-2"}`}>
         <div className="flex flex-col rounded-lg border border-border bg-card p-6">
           <div className="text-xs uppercase tracking-[0.25em] text-accent">Bültene Katıl</div>
           <p className="mt-3 flex-1 text-sm leading-relaxed text-foreground/80">
@@ -23,6 +23,7 @@ export function AssessmentNextSteps() {
           </div>
         </div>
 
+        {showFullAssessment && (
         <div className="flex flex-col rounded-lg border border-border bg-card p-6">
           <div className="text-xs uppercase tracking-[0.25em] text-accent">Tam PFA Ölçeği + Rapor</div>
           <p className="mt-3 flex-1 text-sm leading-relaxed text-foreground/80">
@@ -32,6 +33,7 @@ export function AssessmentNextSteps() {
             Ölçeği İncele →
           </Link>
         </div>
+        )}
 
         <div className="flex flex-col rounded-lg border border-border bg-card p-6">
           <div className="text-xs uppercase tracking-[0.25em] text-accent">Webinarlar ve Seanslar</div>

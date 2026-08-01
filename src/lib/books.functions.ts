@@ -34,6 +34,7 @@ export type BooksPayload = {
     id: string;
     book_key: string;
     format: "kindle" | "paperback" | "google_play";
+    language: "tr" | "en";
     asin: string | null;
     external_url: string | null;
     marketplaces: string[];
@@ -65,7 +66,7 @@ export const getBooksData = createServerFn({ method: "GET" }).handler(async (): 
 
   const [prodRes, edRes, bundleRes, bundleItemsRes] = await Promise.all([
     sb.from("products").select("slug, name_tr, price_cents, currency, active, activate_at, book_key, language, cover_image_url"),
-    sb.from("book_editions").select("id, book_key, format, asin, external_url, marketplaces, overrides, active, sort_order").order("sort_order"),
+    sb.from("book_editions").select("id, book_key, format, language, asin, external_url, marketplaces, overrides, active, sort_order").order("sort_order"),
     sb.from("bundles").select("id, slug, name_tr, description_tr, book_key, includes_book, pricing_mode, locked_to_product_slug, discount_percent, price_override_cents, active, activate_at, sort_order").order("sort_order"),
     sb.from("bundle_items").select("bundle_id, product_slug, quantity"),
   ]);
@@ -82,6 +83,7 @@ export const getBooksData = createServerFn({ method: "GET" }).handler(async (): 
     editions: (edRes.data ?? []).map((e) => ({
       ...e,
       format: e.format as "kindle" | "paperback" | "google_play",
+      language: ((e as { language?: string }).language === "tr" ? "tr" : "en") as "tr" | "en",
       overrides: (e.overrides ?? {}) as Record<string, string>,
       marketplaces: e.marketplaces ?? [],
     })),

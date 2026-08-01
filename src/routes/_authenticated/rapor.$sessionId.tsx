@@ -80,7 +80,7 @@ function ReportPage() {
           variant={session.type}
         />
 
-        {isOwner && <AssessmentNextSteps />}
+        {isOwner && <AssessmentNextSteps showFullAssessment={session.type !== "full"} />}
 
         <div className="mt-10 text-center">
           <Link to="/hesabim" className="text-sm text-accent hover:underline">← Hesabıma dön</Link>
