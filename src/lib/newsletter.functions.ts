@@ -321,7 +321,7 @@ async function loadArtwork(supabaseAdmin: any): Promise<Artwork> {
     const url = map["newsletter_bg_image_url"];
     if (!url || !/^https?:\/\//i.test(url)) return null;
     const rawSide = map["newsletter_bg_side"];
-    const side: Artwork extends null ? never : "left" | "right" | "top" | "bottom" =
+    const side: "left" | "right" | "top" | "bottom" =
       rawSide === "left" || rawSide === "top" || rawSide === "bottom" ? rawSide : "right";
     const width = Math.min(560, Math.max(40, Number(map["newsletter_bg_width"]) || 96));
     const opacity = Math.min(100, Math.max(5, Number(map["newsletter_bg_opacity"]) || 50)) / 100;
