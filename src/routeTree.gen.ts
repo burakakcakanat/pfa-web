@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UygulayiciOlunRouteImport } from './routes/uygulayici-olun'
 import { Route as UygulayiciEkosistemiRouteImport } from './routes/uygulayici-ekosistemi'
+import { Route as UlkeLisansiRouteImport } from './routes/ulke-lisansi'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SeanslarRouteImport } from './routes/seanslar'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as KurumsalLisansRouteImport } from './routes/kurumsal-lisans'
 import { Route as KullanimKosullariRouteImport } from './routes/kullanim-kosullari'
 import { Route as KitaplarRouteImport } from './routes/kitaplar'
 import { Route as IletisimRouteImport } from './routes/iletisim'
@@ -58,6 +60,11 @@ const UygulayiciEkosistemiRoute = UygulayiciEkosistemiRouteImport.update({
   path: '/uygulayici-ekosistemi',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UlkeLisansiRoute = UlkeLisansiRouteImport.update({
+  id: '/ulke-lisansi',
+  path: '/ulke-lisansi',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -71,6 +78,11 @@ const SeanslarRoute = SeanslarRouteImport.update({
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KurumsalLisansRoute = KurumsalLisansRouteImport.update({
+  id: '/kurumsal-lisans',
+  path: '/kurumsal-lisans',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KullanimKosullariRoute = KullanimKosullariRouteImport.update({
@@ -256,9 +268,11 @@ export interface FileRoutesByFullPath {
   '/iletisim': typeof IletisimRoute
   '/kitaplar': typeof KitaplarRoute
   '/kullanim-kosullari': typeof KullanimKosullariRoute
+  '/kurumsal-lisans': typeof KurumsalLisansRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/ulke-lisansi': typeof UlkeLisansiRoute
   '/uygulayici-ekosistemi': typeof UygulayiciEkosistemiRoute
   '/uygulayici-olun': typeof UygulayiciOlunRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -295,9 +309,11 @@ export interface FileRoutesByTo {
   '/iletisim': typeof IletisimRoute
   '/kitaplar': typeof KitaplarRoute
   '/kullanim-kosullari': typeof KullanimKosullariRoute
+  '/kurumsal-lisans': typeof KurumsalLisansRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/ulke-lisansi': typeof UlkeLisansiRoute
   '/uygulayici-ekosistemi': typeof UygulayiciEkosistemiRoute
   '/uygulayici-olun': typeof UygulayiciOlunRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -336,9 +352,11 @@ export interface FileRoutesById {
   '/iletisim': typeof IletisimRoute
   '/kitaplar': typeof KitaplarRoute
   '/kullanim-kosullari': typeof KullanimKosullariRoute
+  '/kurumsal-lisans': typeof KurumsalLisansRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/ulke-lisansi': typeof UlkeLisansiRoute
   '/uygulayici-ekosistemi': typeof UygulayiciEkosistemiRoute
   '/uygulayici-olun': typeof UygulayiciOlunRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -377,9 +395,11 @@ export interface FileRouteTypes {
     | '/iletisim'
     | '/kitaplar'
     | '/kullanim-kosullari'
+    | '/kurumsal-lisans'
     | '/mcp'
     | '/seanslar'
     | '/sitemap.xml'
+    | '/ulke-lisansi'
     | '/uygulayici-ekosistemi'
     | '/uygulayici-olun'
     | '/.mcp/list-tools'
@@ -416,9 +436,11 @@ export interface FileRouteTypes {
     | '/iletisim'
     | '/kitaplar'
     | '/kullanim-kosullari'
+    | '/kurumsal-lisans'
     | '/mcp'
     | '/seanslar'
     | '/sitemap.xml'
+    | '/ulke-lisansi'
     | '/uygulayici-ekosistemi'
     | '/uygulayici-olun'
     | '/.mcp/list-tools'
@@ -456,9 +478,11 @@ export interface FileRouteTypes {
     | '/iletisim'
     | '/kitaplar'
     | '/kullanim-kosullari'
+    | '/kurumsal-lisans'
     | '/mcp'
     | '/seanslar'
     | '/sitemap.xml'
+    | '/ulke-lisansi'
     | '/uygulayici-ekosistemi'
     | '/uygulayici-olun'
     | '/.mcp/list-tools'
@@ -497,9 +521,11 @@ export interface RootRouteChildren {
   IletisimRoute: typeof IletisimRoute
   KitaplarRoute: typeof KitaplarRoute
   KullanimKosullariRoute: typeof KullanimKosullariRoute
+  KurumsalLisansRoute: typeof KurumsalLisansRoute
   McpRoute: typeof McpRoute
   SeanslarRoute: typeof SeanslarRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  UlkeLisansiRoute: typeof UlkeLisansiRoute
   UygulayiciEkosistemiRoute: typeof UygulayiciEkosistemiRoute
   UygulayiciOlunRoute: typeof UygulayiciOlunRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
@@ -536,6 +562,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UygulayiciEkosistemiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ulke-lisansi': {
+      id: '/ulke-lisansi'
+      path: '/ulke-lisansi'
+      fullPath: '/ulke-lisansi'
+      preLoaderRoute: typeof UlkeLisansiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -555,6 +588,13 @@ declare module '@tanstack/react-router' {
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kurumsal-lisans': {
+      id: '/kurumsal-lisans'
+      path: '/kurumsal-lisans'
+      fullPath: '/kurumsal-lisans'
+      preLoaderRoute: typeof KurumsalLisansRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kullanim-kosullari': {
@@ -825,9 +865,11 @@ const rootRouteChildren: RootRouteChildren = {
   IletisimRoute: IletisimRoute,
   KitaplarRoute: KitaplarRoute,
   KullanimKosullariRoute: KullanimKosullariRoute,
+  KurumsalLisansRoute: KurumsalLisansRoute,
   McpRoute: McpRoute,
   SeanslarRoute: SeanslarRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  UlkeLisansiRoute: UlkeLisansiRoute,
   UygulayiciEkosistemiRoute: UygulayiciEkosistemiRoute,
   UygulayiciOlunRoute: UygulayiciOlunRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
@@ -851,13 +893,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
