@@ -153,22 +153,24 @@ function HomePage() {
       <section id="bilinc-haritasi" className="container-page pt-[1.5cm] pb-0 scroll-mt-24">
         <div className="mx-auto max-w-6xl text-center">
           <div className="text-xs uppercase tracking-[0.3em] text-accent">
-            Bilinç Döngüsü
+            Bilinç Haritası
           </div>
           <h2 className="mt-2 font-serif text-3xl md:text-4xl">
-            Bekadan Aydınlanmaya uzanan tek bir döngü
+            Bekadan Aydınlanmaya Bilinç Döngüsü
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-foreground/80">
-            Yedi seviye, tek harita — her seviye bir beyin bölgesi, bir zekâ
-            türü ve bir gelişim aşamasıyla eşleşir.
+          <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-foreground/80">
+            6 temel bir de nihai bütünleştirici işlevi olan bilinç seviyeleri,
+            herkes için tüm seviyeleri ile aktiftir. PFA ile haritada hangi
+            seviyenin regüle edileceği, hangisinin geliştirileceği ortaya çıkar
+            ve kişi yaşamsal oryantasyonunu yapar.
           </p>
           <figure
             data-map-figure
-            className="relative -mt-[3cm] mb-0 left-1/2 -translate-x-1/2 w-[140vw] max-w-[1920px]"
+            className="relative mx-auto mt-6 mb-0 w-full max-w-[1180px]"
           >
             <img
               src={pfaMapAsset.url}
-              alt="PFA Bilinç Döngüsü — Yedi İşlevsel Seviye Haritası"
+              alt="Bekadan Aydınlanmaya Bilinç Döngüsü — yedi işlevsel bilinç seviyesi haritası"
               className="mx-auto block h-auto w-full max-w-none align-bottom"
               loading="lazy"
             />
