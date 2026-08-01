@@ -577,12 +577,74 @@ function ProductsTab() {
     })).filter((g) => g.items.length > 0);
   }, [rows]);
 
+  const renderBundleForm = (b: any) => {
+    const auto = resolveBundlePrice(
+      { ...b, price_override_cents: null },
+      bundlePriceMap,
+      b.book_key === "hcd" ? "en" : "tr",
+    );
+    const override = bundleValue(b, "price_override_cents");
+    return (
+      <div className="border-t border-border bg-muted/20 px-3 py-4">
+        <div className="grid gap-3 md:grid-cols-2">
+          <div>
+            <Label>Ad (TR)</Label>
+            <Input value={bundleValue(b, "name_tr") ?? ""} onChange={(e) => bundlePatch(b.id, "name_tr", e.target.value)} />
+          </div>
+          <div>
+            <Label>Sıralama</Label>
+            <Input type="number" value={bundleValue(b, "sort_order") ?? 0} onChange={(e) => bundlePatch(b.id, "sort_order", parseInt(e.target.value) || 0)} />
+          </div>
+          <div className="md:col-span-2">
+            <Label>Açıklama (TR)</Label>
+            <Textarea value={bundleValue(b, "description_tr") ?? ""} onChange={(e) => bundlePatch(b.id, "description_tr", e.target.value)} />
+          </div>
+          <div>
+            <Label>Otomatik hesaplanan fiyat</Label>
+            <div className="mt-2 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">{fmtUsd(auto)}</div>
+          </div>
+          <div>
+            <Label>Fiyat (override) — boşsa otomatik</Label>
+            <PriceInput
+              cents={override}
+              nullable
+              placeholder="Otomatik"
+              onCommit={(cents) => bundlePatch(b.id, "price_override_cents", cents)}
+            />
+          </div>
+          <div>
+            <Label>İndirim (%)</Label>
+            <Input type="number" value={bundleValue(b, "discount_percent") ?? 0} onChange={(e) => bundlePatch(b.id, "discount_percent", parseInt(e.target.value) || 0)} />
+          </div>
+          <div>
+            <Label>Yayına giriş</Label>
+            <Input type="datetime-local" value={bundleValue(b, "activate_at") ? new Date(bundleValue(b, "activate_at")).toISOString().slice(0,16) : ""}
+              onChange={(e) => bundlePatch(b.id, "activate_at", e.target.value ? new Date(e.target.value).toISOString() : null)} />
+          </div>
+          <div className="flex items-end gap-2">
+            <Switch checked={!!bundleValue(b, "active")} onCheckedChange={(v) => bundlePatch(b.id, "active", v)} />
+            <span className="text-sm">{bundleValue(b, "active") ? "Aktif" : "Pasif"} — {b.slug}</span>
+          </div>
+          <div className="md:col-span-2 text-xs text-muted-foreground">
+            Bileşenler: {b.items.map((i: any) => `${i.product_slug}×${i.quantity}`).join(", ") || "—"}
+            {b.includes_book && ` + kitap (${b.book_key})`}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const bundleRows = useMemo(
+    () => bundleData.bundles.slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
+    [bundleData.bundles],
+  );
+
   return (
     <div className="space-y-6 pb-24">
       {grouped.map((g) => (
         <section key={g.value}>
-          <h3 className="mb-1 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            {g.label} <span className="text-muted-foreground/60">({g.items.length})</span>
+          <h3 className="mb-1 text-xs font-medium tracking-widest text-muted-foreground">
+            {g.label.toLocaleUpperCase("tr-TR")} <span className="text-muted-foreground/60">({g.items.length})</span>
           </h3>
           <div className="overflow-hidden rounded-md border border-border">
             {g.items.map((p, i) => {
@@ -603,11 +665,11 @@ function ProductsTab() {
                       {((currentValue(p, "price_cents") ?? 0) / 100).toFixed(2)} {p.currency ?? "USD"}
                     </span>
                     <span
-                      className={`w-16 shrink-0 text-center text-[11px] uppercase tracking-wide ${
+                      className={`w-16 shrink-0 text-center text-[11px] tracking-wide ${
                         status === "live" ? "text-accent" : status === "taslak" ? "text-muted-foreground" : "text-destructive"
                       }`}
                     >
-                      {status}
+                      {status.toLocaleUpperCase("tr-TR")}
                     </span>
                     <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition ${open ? "rotate-180" : ""}`} />
                   </button>
@@ -618,7 +680,49 @@ function ProductsTab() {
           </div>
         </section>
       ))}
-      <StickySaveBar dirty={dirty} count={dirtyIds.length} busy={busy} msg={msg} onSave={saveAll} onReset={() => { setDrafts({}); setMsg(null); }} />
+      {bundleRows.length > 0 && (
+        <section>
+          <h3 className="mb-1 text-xs font-medium tracking-widest text-muted-foreground">
+            PAKETLER <span className="text-muted-foreground/60">({bundleRows.length})</span>
+          </h3>
+          <div className="overflow-hidden rounded-md border border-border">
+            {bundleRows.map((b, i) => {
+              const open = openId === b.id;
+              const live = isLive({ active: !!bundleValue(b, "active"), activate_at: bundleValue(b, "activate_at") });
+              const status = !bundleValue(b, "active") ? "pasif" : live ? "live" : "taslak";
+              const price = resolveBundlePrice(
+                { ...b, price_override_cents: bundleValue(b, "price_override_cents"), discount_percent: bundleValue(b, "discount_percent") },
+                bundlePriceMap,
+                b.book_key === "hcd" ? "en" : "tr",
+              );
+              return (
+                <div key={b.id} className={i > 0 ? "border-t border-border" : undefined}>
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    onClick={() => setOpenId(open ? null : b.id)}
+                    className="flex w-full items-center gap-3 px-3 py-1.5 text-left text-sm transition hover:bg-muted/50"
+                  >
+                    <span className="min-w-0 flex-1 truncate font-medium">{bundleValue(b, "name_tr")}</span>
+                    <span className="hidden truncate font-mono text-xs text-muted-foreground sm:block sm:w-56">{b.slug}</span>
+                    <span className="w-24 shrink-0 text-right tabular-nums">{((price ?? 0) / 100).toFixed(2)} USD</span>
+                    <span
+                      className={`w-16 shrink-0 text-center text-[11px] tracking-wide ${
+                        status === "live" ? "text-accent" : status === "taslak" ? "text-muted-foreground" : "text-destructive"
+                      }`}
+                    >
+                      {status.toLocaleUpperCase("tr-TR")}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition ${open ? "rotate-180" : ""}`} />
+                  </button>
+                  {open && renderBundleForm(b)}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+      <StickySaveBar dirty={dirty} count={dirtyCount} busy={busy} msg={msg} onSave={saveAll} onReset={() => { setDrafts({}); setBundleDrafts({}); setMsg(null); }} />
     </div>
   );
 }
