@@ -86,7 +86,7 @@ function HomePage() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden bg-hero-map-bg">
         <Ornament />
         <div className="container-page relative py-20 md:py-28">
           <div className="mx-auto max-w-3xl text-center">
