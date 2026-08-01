@@ -159,8 +159,7 @@ function AdminPage() {
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-transparent">
             <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
-            <TabsTrigger value="products">Ürünler</TabsTrigger>
-            <TabsTrigger value="bundles">Paketler</TabsTrigger>
+            <TabsTrigger value="products">Ürünler ve Paketler</TabsTrigger>
             <TabsTrigger value="editions">Kitap Baskıları</TabsTrigger>
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
           <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
@@ -179,7 +178,6 @@ function AdminPage() {
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
             <TabsContent value="products"><ProductsTab /></TabsContent>
-            <TabsContent value="bundles"><BundlesTab /></TabsContent>
             <TabsContent value="editions"><EditionsTab /></TabsContent>
             <TabsContent value="users"><UsersTab /></TabsContent>
             <TabsContent value="pro"><ProLicensesTab /></TabsContent>
