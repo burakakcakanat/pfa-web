@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AssessmentResult } from "@/components/assessment-result";
-import { BuyButton } from "@/components/buy-button";
+import { AssessmentNextSteps } from "@/components/assessment-next-steps";
 
 export const Route = createFileRoute("/_authenticated/rapor/$sessionId")({
   head: () => ({
@@ -80,19 +80,7 @@ function ReportPage() {
           variant={session.type}
         />
 
-        {session.type === "mini" && isOwner && (
-          <div className="mt-12 rounded-lg border-2 border-accent/50 bg-accent/5 p-8 text-center">
-            <div className="text-xs uppercase tracking-[0.3em] text-accent">Bir Adım Daha</div>
-            <h3 className="mt-3 font-serif text-2xl md:text-3xl">Tam Assessment + Bilinç Seviyesi Raporu</h3>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-foreground/80">
-              Genişletilmiş soru bankası, her seviye için ayrıntılı yorum, zeka türü skorları ve destek alınacak alanların derinlemesine haritası.
-            </p>
-            <div className="mt-6 flex flex-col items-center gap-2">
-              <span className="font-serif text-3xl">$29</span>
-              <BuyButton productSlug="tam-assessment-rapor" label="Tam Assessment Satın Al" />
-            </div>
-          </div>
-        )}
+        {isOwner && <AssessmentNextSteps />}
 
         <div className="mt-10 text-center">
           <Link to="/hesabim" className="text-sm text-accent hover:underline">← Hesabıma dön</Link>
