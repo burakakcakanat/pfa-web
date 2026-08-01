@@ -14,7 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND_TAGLINE } from "@/lib/brand";
 import { NewsletterForm } from "@/components/newsletter-form";
-import { Instagram, Linkedin, Youtube, Twitter } from "lucide-react";
+import { Instagram, Linkedin, Youtube, Twitter, ChevronDown } from "lucide-react";
 
 function FooterNewsletter() {
   return <NewsletterForm variant="footer" source="footer" />;
