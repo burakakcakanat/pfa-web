@@ -2660,26 +2660,6 @@ function PractitionerApplications({
     }
   }
 
-  function seedFromApplication(app: AdminApplicationRow) {
-    onCreatePractitioner({
-      full_name: app.full_name,
-      category: app.category,
-      title: app.profession_title ?? "",
-      photo_url: "",
-      short_bio: "",
-      long_bio: app.motivation ?? "",
-      specializations: [],
-      languages: [],
-      city: app.city ?? "",
-      country: "Türkiye",
-      mode: "online",
-      email: app.email,
-      website: "",
-      published: false, // otomatik yayınlanmaz
-      sort_order: 0,
-    });
-  }
-
   async function acceptAndPromote(app: AdminApplicationRow) {
     setAcceptBusy(true);
     try {
@@ -2703,7 +2683,13 @@ function PractitionerApplications({
     if (!promoteEmail.trim()) return;
     setPromoteBusy(true);
     try {
-      const res = (await promoteUser({ data: { email: promoteEmail.trim() } })) as {
+      const res = (await promoteUser({
+        data: {
+          email: promoteEmail.trim(),
+          category: promoteCategory,
+          city: promoteCity.trim(),
+        },
+      })) as {
         created: boolean;
       };
       toast.success(
@@ -2712,6 +2698,7 @@ function PractitionerApplications({
           : "Kullanıcıya pro rolü verildi. Uygulayıcı kaydı zaten mevcut.",
       );
       setPromoteEmail("");
+      setPromoteCity("");
     } catch (e: any) {
       toast.error(e?.message ?? "İşlem başarısız");
     } finally {
@@ -2733,6 +2720,27 @@ function PractitionerApplications({
             placeholder="hesap e-postası"
             value={promoteEmail}
             onChange={(e) => setPromoteEmail(e.target.value)}
+          />
+          <Select
+            value={promoteCategory}
+            onValueChange={(v) => setPromoteCategory(v as PractitionerCategory)}
+          >
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Kategori" />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(P_CATEGORY_LABEL) as PractitionerCategory[]).map((c) => (
+                <SelectItem key={c} value={c}>
+                  {P_CATEGORY_LABEL[c]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            className="w-40"
+            placeholder="şehir (opsiyonel)"
+            value={promoteCity}
+            onChange={(e) => setPromoteCity(e.target.value)}
           />
           <Button size="sm" disabled={promoteBusy} onClick={promoteByEmail}>
             {promoteBusy ? "İşleniyor…" : "Uygulayıcı yap"}
@@ -2837,30 +2845,23 @@ function PractitionerApplications({
             </Button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-[1fr_auto]">
-            <div>
-              <Label>Durum</Label>
-              <Select
-                value={opened.status}
-                onValueChange={(v) => changeStatus(opened.id, v as ApplicationStatus)}
-              >
-                <SelectTrigger className="mt-1 w-56">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(APP_STATUS_LABEL) as ApplicationStatus[]).map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {APP_STATUS_LABEL[s]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-end">
-              <Button size="sm" onClick={() => seedFromApplication(opened)}>
-                Uygulayıcı kaydı oluştur
-              </Button>
-            </div>
+          <div>
+            <Label>Durum</Label>
+            <Select
+              value={opened.status}
+              onValueChange={(v) => changeStatus(opened.id, v as ApplicationStatus)}
+            >
+              <SelectTrigger className="mt-1 w-56">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(APP_STATUS_LABEL) as ApplicationStatus[]).map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {APP_STATUS_LABEL[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">

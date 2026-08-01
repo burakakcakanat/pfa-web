@@ -339,6 +339,7 @@ async function promoteToPractitioner(
     city: string | null;
     category: PractitionerCategory;
     title?: string | null;
+    long_bio?: string | null;
   },
 ): Promise<{ practitionerId: string; created: boolean }> {
   // pro rolü (idempotent)
@@ -363,6 +364,7 @@ async function promoteToPractitioner(
       category: input.category,
       title: input.title || null,
       city: input.city || null,
+      long_bio: input.long_bio || null,
       country: "Türkiye",
       mode: "online",
       email: input.email,
@@ -385,7 +387,7 @@ export const acceptApplicationAsPractitioner = createServerFn({ method: "POST" }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: app, error } = await supabaseAdmin
       .from("practitioner_applications")
-      .select("id, user_id, full_name, email, city, category, profession_title")
+      .select("id, user_id, full_name, email, city, category, profession_title, motivation, status")
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -395,6 +397,8 @@ export const acceptApplicationAsPractitioner = createServerFn({ method: "POST" }
         "Bu başvuru bir hesaba bağlı değil (eski kayıt). 'Bu kullanıcıyı uygulayıcı yap' ile e-posta üzerinden ilerleyin.",
       );
     }
+
+    const alreadyAccepted = app.status === "kabul";
 
     const { error: upErr } = await supabaseAdmin
       .from("practitioner_applications")
@@ -409,7 +413,34 @@ export const acceptApplicationAsPractitioner = createServerFn({ method: "POST" }
       city: app.city,
       category: app.category as PractitionerCategory,
       title: app.profession_title,
+      long_bio: app.motivation,
     });
+
+    // Kabul e-postası — yalnızca durum gerçekten 'kabul'e geçtiyse (kırılmasın)
+    if (!alreadyAccepted && app.email) {
+      try {
+        const { sendEmail } = await import("@/lib/email/send.server");
+        const { renderEmail, esc } = await import("@/lib/email/templates");
+        const firstName = String(app.full_name ?? "").trim().split(/\s+/)[0] || app.full_name;
+        await sendEmail({
+          to: app.email,
+          replyTo: "info@psychofunctionalanalysis.com",
+          subject: "Başvurunuz kabul edildi — PFA",
+          html: renderEmail({
+            title: "Başvurunuz kabul edildi",
+            bodyHtml: `
+              <p>Merhaba ${esc(firstName)},</p>
+              <p>PFA Uygulayıcı Programı başvurunuz kabul edildi. Hesabınıza uygulayıcı erişimi tanımlandı.</p>
+              <p>Bunu <strong>Hesabım → Uygulayıcı</strong> sekmesinden görebilirsiniz.</p>
+              <p>Dizindeki uygulayıcı profiliniz hazırlanıyor. Programın kalan aşamaları için sizinle ayrıca iletişime geçeceğiz.</p>
+              <p>Sevgiyle,<br/>PFA Ekibi</p>`,
+          }),
+        });
+      } catch (e) {
+        console.error("[email] application acceptance notify failed", e);
+      }
+    }
+
     return { ok: true, ...res };
   });
 
@@ -419,7 +450,7 @@ export const makeUserPractitioner = createServerFn({ method: "POST" })
     z
       .object({
         email: z.string().trim().toLowerCase().email().max(200),
-        category: CATEGORY.default("kocluk"),
+        category: CATEGORY,
         city: z.string().trim().max(120).optional().default(""),
       })
       .parse(d),
