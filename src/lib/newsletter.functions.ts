@@ -33,6 +33,9 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const email = data.email.toLowerCase().trim();
 
+    // Explicit new opt-in lifts any previous global suppression for this address.
+    await supabaseAdmin.from("newsletter_suppressions").delete().eq("email", email);
+
     // upsert-like: check if exists
     const { data: existing } = await supabaseAdmin
       .from("newsletter_subscribers")
@@ -66,20 +69,28 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
   });
 
 // -------- PUBLIC: unsubscribe --------
+// Standalone, token-based, NO auth required. Global: opting out stops every
+// segment and every future send for that address.
 export const unsubscribeNewsletter = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ token: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row } = await supabaseAdmin
       .from("newsletter_subscribers")
-      .select("id")
+      .select("id, email")
       .eq("unsubscribe_token", data.token)
       .maybeSingle();
     if (!row) return { ok: false };
+    const email = row.email.toLowerCase().trim();
+    // 1) mark EVERY row for this address as unsubscribed (all segments)
     await supabaseAdmin
       .from("newsletter_subscribers")
       .update({ unsubscribed_at: new Date().toISOString() })
-      .eq("id", row.id);
+      .eq("email", email);
+    // 2) permanent global suppression, independent of subscriber rows
+    await supabaseAdmin
+      .from("newsletter_suppressions")
+      .upsert({ email, unsubscribed_at: new Date().toISOString(), source: "link" }, { onConflict: "email" });
     return { ok: true };
   });
 
