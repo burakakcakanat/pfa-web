@@ -295,13 +295,13 @@ function IntelligencesStrip() {
         <div className="text-sm font-medium uppercase tracking-[0.3em] text-accent md:text-base">
           Yedi Seviye, Yedi Zekâ
         </div>
-        <ol className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <ol className="mt-8 flex flex-wrap justify-center gap-3">
           {items.map((it) => {
             const Icon = it.Icon;
             return (
               <li
                 key={it.lvl}
-                className="group flex flex-col items-center justify-center rounded-lg border border-border/70 bg-card/70 px-3 py-4 text-center shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/60 hover:bg-card hover:shadow-[0_8px_22px_-14px_rgba(0,0,0,0.3)]"
+                className="group flex w-[calc(50%-0.375rem)] flex-col items-center justify-center rounded-lg border border-border/70 bg-card/70 px-3 py-4 text-center shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/60 hover:bg-card hover:shadow-[0_8px_22px_-14px_rgba(0,0,0,0.3)] sm:w-[calc(25%-0.5625rem)]"
               >
                 <span className="flex items-center gap-1.5 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-accent/80">
                   L{it.lvl}
