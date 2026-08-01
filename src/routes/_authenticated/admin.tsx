@@ -375,6 +375,7 @@ function ProductsTab() {
   const [drafts, setDrafts] = useState<Record<string, any>>({});
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     const list = await fetchList();
@@ -405,7 +406,7 @@ function ProductsTab() {
       for (const id of dirtyIds) {
         const d = drafts[id]; const orig = rows.find((r) => r.id === id);
         const changed: any = { id };
-        for (const k of ["name_tr","name_en","description_tr","description_en","price_cents","active","activate_at","cover_image_url","master_pdf_path","master_epub_path","language","book_key"]) {
+        for (const k of ["name_tr","name_en","description_tr","description_en","price_cents","active","activate_at","cover_image_url","master_pdf_path","master_epub_path","language","book_key","category"]) {
           if ((d[k] ?? null) !== (orig?.[k] ?? null)) changed[k] = d[k];
         }
         await update({ data: changed });
