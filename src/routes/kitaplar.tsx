@@ -96,7 +96,7 @@ function BooksPage() {
   return (
     <div className="container-page py-20">
       <header className="mx-auto max-w-2xl text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">Kitaplar</div>
+        <div className="text-xs tracking-[0.3em] text-accent">KİTAPLAR</div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">Haritanın kaynak metinleri</h1>
         <p className="mt-6 text-sm leading-relaxed text-foreground/75">
           İmzalı nüshalar yalnızca bu siteden edinilebilir; adınıza kişisel ithaf içerir.

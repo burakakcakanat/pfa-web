@@ -93,7 +93,7 @@ function PractitionersPage() {
   return (
     <div className="container-page py-16 md:py-20">
       <header className="mx-auto max-w-2xl text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">Uygulayıcı Rehberi</div>
+        <div className="text-xs tracking-[0.3em] text-accent">UYGULAYICI REHBERİ</div>
         <h1 className="mt-3 font-serif text-4xl text-primary md:text-5xl">
           PFA Uygulayıcı Rehberi
         </h1>
@@ -193,8 +193,8 @@ function PractitionerCard({ p }: { p: PractitionerPublic }) {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[0.65rem] uppercase tracking-[0.2em] text-accent">
-            {CATEGORY_LABEL[p.category]}
+          <div className="text-[0.65rem] tracking-[0.2em] text-accent">
+            {CATEGORY_LABEL[p.category].toLocaleUpperCase("tr-TR")}
           </div>
           <h2 className="mt-1 font-serif text-xl text-primary">{p.full_name}</h2>
           {p.title && <p className="mt-1 text-xs text-muted-foreground">{p.title}</p>}

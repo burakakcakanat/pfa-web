@@ -55,7 +55,7 @@ function SessionsPage() {
       <div className="mx-auto mt-14 max-w-4xl overflow-hidden rounded-lg border border-border">
         <div className="grid gap-px bg-border md:grid-cols-[1fr_1.4fr]">
           <aside className="bg-card p-8">
-            <div className="text-xs uppercase tracking-[0.25em] text-accent">Hizmet</div>
+            <div className="text-xs tracking-[0.25em] text-accent">HİZMET</div>
             <h2 className="mt-3 font-serif text-2xl">Danışmanlık Oturumu</h2>
             <ul className="mt-6 space-y-3 text-sm text-foreground/80">
               <li>• 60 dakika</li>
@@ -82,8 +82,8 @@ function SessionsPage() {
                 className="grid gap-6"
               >
                 <div>
-                  <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                    1 · Tarih Seçin
+                  <div className="text-xs tracking-[0.25em] text-muted-foreground">
+                    1 · TARİH SEÇİN
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {dates.map((d) => {
@@ -112,8 +112,8 @@ function SessionsPage() {
                 </div>
 
                 <div>
-                  <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                    2 · Saat Seçin
+                  <div className="text-xs tracking-[0.25em] text-muted-foreground">
+                    2 · SAAT SEÇİN
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {SLOTS.map((s) => (
@@ -134,8 +134,8 @@ function SessionsPage() {
                 </div>
 
                 <div className="grid gap-4">
-                  <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                    3 · Bilgileriniz
+                  <div className="text-xs tracking-[0.25em] text-muted-foreground">
+                    3 · BİLGİLERİNİZ
                   </div>
                   <input
                     required

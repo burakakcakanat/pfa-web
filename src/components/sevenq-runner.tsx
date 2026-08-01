@@ -108,8 +108,8 @@ export function SevenqRunner({ sessionId, initialAnswers, onComplete, submitting
       </div>
 
       <div className="rounded-lg border border-border bg-card p-6 md:p-8">
-        <div className="text-xs uppercase tracking-[0.25em] text-accent">
-          {SEVENQ_LEVEL_LABEL[currentLevel]}
+        <div className="text-xs tracking-[0.25em] text-accent">
+          {SEVENQ_LEVEL_LABEL[currentLevel].toLocaleUpperCase("tr-TR")}
         </div>
         <p className="mt-3 text-sm text-muted-foreground">
           Her cümle için, o davranışın yaşamınızda ne sıklıkla yer aldığını işaretleyin.

@@ -159,8 +159,7 @@ function AdminPage() {
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-transparent">
             <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
-            <TabsTrigger value="products">Ürünler</TabsTrigger>
-            <TabsTrigger value="bundles">Paketler</TabsTrigger>
+            <TabsTrigger value="products">Ürünler ve Paketler</TabsTrigger>
             <TabsTrigger value="editions">Kitap Baskıları</TabsTrigger>
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
           <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
@@ -179,7 +178,6 @@ function AdminPage() {
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
             <TabsContent value="products"><ProductsTab /></TabsContent>
-            <TabsContent value="bundles"><BundlesTab /></TabsContent>
             <TabsContent value="editions"><EditionsTab /></TabsContent>
             <TabsContent value="users"><UsersTab /></TabsContent>
             <TabsContent value="pro"><ProLicensesTab /></TabsContent>
@@ -368,6 +366,8 @@ function OverviewTab() {
 function ProductsTab() {
   const fetchList = useServerFn(listAdminProducts);
   const update = useServerFn(updateAdminProduct);
+  const fetchBundles = useServerFn(listAdminBundles);
+  const upsertBundle = useServerFn(upsertAdminBundle);
   const createCoverUpload = useServerFn(createProductCoverUploadUrl);
   const createMasterUpload = useServerFn(createProductMasterUploadUrl);
   const queryClient = useQueryClient();
@@ -376,6 +376,8 @@ function ProductsTab() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [bundleData, setBundleData] = useState<{ bundles: any[]; products: any[] }>({ bundles: [], products: [] });
+  const [bundleDrafts, setBundleDrafts] = useState<Record<string, any>>({});
 
   const reload = useCallback(async () => {
     const list = await fetchList();
@@ -384,16 +386,44 @@ function ProductsTab() {
   }, [fetchList]);
   useEffect(() => { reload(); }, [reload]);
 
+  const reloadBundles = useCallback(async () => {
+    const d = await fetchBundles();
+    setBundleData(d);
+    setBundleDrafts({});
+  }, [fetchBundles]);
+  useEffect(() => { reloadBundles(); }, [reloadBundles]);
+
+  const bundlePriceMap = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const p of bundleData.products) m[p.slug] = p.price_cents;
+    return m;
+  }, [bundleData.products]);
+
   const dirtyIds = useMemo(() => Object.keys(drafts).filter((id) => {
     const d = drafts[id]; const orig = rows.find((r) => r.id === id);
     if (!orig || !d) return false;
     return Object.keys(d).some((k) => (d[k] ?? null) !== (orig[k] ?? null));
   }), [drafts, rows]);
-  const dirty = dirtyIds.length > 0;
+  const bundleDirtyIds = useMemo(() => Object.keys(bundleDrafts).filter((id) => {
+    const d = bundleDrafts[id]; const orig = bundleData.bundles.find((r) => r.id === id);
+    if (!orig || !d) return false;
+    return Object.keys(d).some((k) => (d[k] ?? null) !== (orig[k] ?? null));
+  }), [bundleDrafts, bundleData.bundles]);
+  const dirtyCount = dirtyIds.length + bundleDirtyIds.length;
+  const dirty = dirtyCount > 0;
 
   const patch = (id: string, k: string, v: any) => {
     setDrafts((prev) => {
       const orig = rows.find((r) => r.id === id);
+      const base = prev[id] ?? { ...orig };
+      return { ...prev, [id]: { ...base, [k]: v } };
+    });
+    setMsg(null);
+  };
+
+  const bundlePatch = (id: string, k: string, v: any) => {
+    setBundleDrafts((prev) => {
+      const orig = bundleData.bundles.find((r) => r.id === id);
       const base = prev[id] ?? { ...orig };
       return { ...prev, [id]: { ...base, [k]: v } };
     });
@@ -411,10 +441,19 @@ function ProductsTab() {
         }
         await update({ data: changed });
       }
-      await reload();
+      for (const id of bundleDirtyIds) {
+        const d = bundleDrafts[id]; const orig = bundleData.bundles.find((r) => r.id === id);
+        const changed: any = { id };
+        for (const k of ["active","activate_at","sort_order","price_override_cents","discount_percent","name_tr","description_tr"]) {
+          if ((d[k] ?? null) !== (orig?.[k] ?? null)) changed[k] = d[k];
+        }
+        await upsertBundle({ data: changed });
+      }
+      if (dirtyIds.length) await reload();
+      if (bundleDirtyIds.length) await reloadBundles();
       await queryClient.invalidateQueries({ queryKey: ["books-data"] });
       setMsg("Kaydedildi.");
-      toast.success("Ürünler kaydedildi");
+      toast.success("Kaydedildi");
     } catch (e: any) {
       const m = e?.message ?? "bilinmiyor";
       setMsg("Hata: " + m);
@@ -423,6 +462,7 @@ function ProductsTab() {
   };
 
   const currentValue = (p: any, k: string) => (drafts[p.id] ? drafts[p.id][k] : p[k]);
+  const bundleValue = (b: any, k: string) => (bundleDrafts[b.id] ? bundleDrafts[b.id][k] : b[k]);
 
   const uploadCover = async (p: any, file: File) => {
     if (file.size > 35 * 1024 * 1024) { alert("Kapak 35 MB'ı aşamaz."); return; }
@@ -487,7 +527,7 @@ function ProductsTab() {
               {isBook && (
                 <>
                   <div className="md:col-span-2 mt-2 border-t border-border pt-3">
-                    <div className="text-xs uppercase tracking-widest text-muted-foreground">Kitap Dosyaları</div>
+                    <div className="text-xs tracking-widest text-muted-foreground">KİTAP DOSYALARI</div>
                   </div>
                   <div>
                     <Label>Kapak görseli</Label>
@@ -537,12 +577,74 @@ function ProductsTab() {
     })).filter((g) => g.items.length > 0);
   }, [rows]);
 
+  const renderBundleForm = (b: any) => {
+    const auto = resolveBundlePrice(
+      { ...b, price_override_cents: null },
+      bundlePriceMap,
+      b.book_key === "hcd" ? "en" : "tr",
+    );
+    const override = bundleValue(b, "price_override_cents");
+    return (
+      <div className="border-t border-border bg-muted/20 px-3 py-4">
+        <div className="grid gap-3 md:grid-cols-2">
+          <div>
+            <Label>Ad (TR)</Label>
+            <Input value={bundleValue(b, "name_tr") ?? ""} onChange={(e) => bundlePatch(b.id, "name_tr", e.target.value)} />
+          </div>
+          <div>
+            <Label>Sıralama</Label>
+            <Input type="number" value={bundleValue(b, "sort_order") ?? 0} onChange={(e) => bundlePatch(b.id, "sort_order", parseInt(e.target.value) || 0)} />
+          </div>
+          <div className="md:col-span-2">
+            <Label>Açıklama (TR)</Label>
+            <Textarea value={bundleValue(b, "description_tr") ?? ""} onChange={(e) => bundlePatch(b.id, "description_tr", e.target.value)} />
+          </div>
+          <div>
+            <Label>Otomatik hesaplanan fiyat</Label>
+            <div className="mt-2 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">{fmtUsd(auto)}</div>
+          </div>
+          <div>
+            <Label>Fiyat (override) — boşsa otomatik</Label>
+            <PriceInput
+              cents={override}
+              nullable
+              placeholder="Otomatik"
+              onCommit={(cents) => bundlePatch(b.id, "price_override_cents", cents)}
+            />
+          </div>
+          <div>
+            <Label>İndirim (%)</Label>
+            <Input type="number" value={bundleValue(b, "discount_percent") ?? 0} onChange={(e) => bundlePatch(b.id, "discount_percent", parseInt(e.target.value) || 0)} />
+          </div>
+          <div>
+            <Label>Yayına giriş</Label>
+            <Input type="datetime-local" value={bundleValue(b, "activate_at") ? new Date(bundleValue(b, "activate_at")).toISOString().slice(0,16) : ""}
+              onChange={(e) => bundlePatch(b.id, "activate_at", e.target.value ? new Date(e.target.value).toISOString() : null)} />
+          </div>
+          <div className="flex items-end gap-2">
+            <Switch checked={!!bundleValue(b, "active")} onCheckedChange={(v) => bundlePatch(b.id, "active", v)} />
+            <span className="text-sm">{bundleValue(b, "active") ? "Aktif" : "Pasif"} — {b.slug}</span>
+          </div>
+          <div className="md:col-span-2 text-xs text-muted-foreground">
+            Bileşenler: {b.items.map((i: any) => `${i.product_slug}×${i.quantity}`).join(", ") || "—"}
+            {b.includes_book && ` + kitap (${b.book_key})`}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const bundleRows = useMemo(
+    () => bundleData.bundles.slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
+    [bundleData.bundles],
+  );
+
   return (
     <div className="space-y-6 pb-24">
       {grouped.map((g) => (
         <section key={g.value}>
-          <h3 className="mb-1 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            {g.label} <span className="text-muted-foreground/60">({g.items.length})</span>
+          <h3 className="mb-1 text-xs font-medium tracking-widest text-muted-foreground">
+            {g.label.toLocaleUpperCase("tr-TR")} <span className="text-muted-foreground/60">({g.items.length})</span>
           </h3>
           <div className="overflow-hidden rounded-md border border-border">
             {g.items.map((p, i) => {
@@ -563,11 +665,11 @@ function ProductsTab() {
                       {((currentValue(p, "price_cents") ?? 0) / 100).toFixed(2)} {p.currency ?? "USD"}
                     </span>
                     <span
-                      className={`w-16 shrink-0 text-center text-[11px] uppercase tracking-wide ${
+                      className={`w-16 shrink-0 text-center text-[11px] tracking-wide ${
                         status === "live" ? "text-accent" : status === "taslak" ? "text-muted-foreground" : "text-destructive"
                       }`}
                     >
-                      {status}
+                      {status.toLocaleUpperCase("tr-TR")}
                     </span>
                     <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition ${open ? "rotate-180" : ""}`} />
                   </button>
@@ -578,7 +680,49 @@ function ProductsTab() {
           </div>
         </section>
       ))}
-      <StickySaveBar dirty={dirty} count={dirtyIds.length} busy={busy} msg={msg} onSave={saveAll} onReset={() => { setDrafts({}); setMsg(null); }} />
+      {bundleRows.length > 0 && (
+        <section>
+          <h3 className="mb-1 text-xs font-medium tracking-widest text-muted-foreground">
+            PAKETLER <span className="text-muted-foreground/60">({bundleRows.length})</span>
+          </h3>
+          <div className="overflow-hidden rounded-md border border-border">
+            {bundleRows.map((b, i) => {
+              const open = openId === b.id;
+              const live = isLive({ active: !!bundleValue(b, "active"), activate_at: bundleValue(b, "activate_at") });
+              const status = !bundleValue(b, "active") ? "pasif" : live ? "live" : "taslak";
+              const price = resolveBundlePrice(
+                { ...b, price_override_cents: bundleValue(b, "price_override_cents"), discount_percent: bundleValue(b, "discount_percent") },
+                bundlePriceMap,
+                b.book_key === "hcd" ? "en" : "tr",
+              );
+              return (
+                <div key={b.id} className={i > 0 ? "border-t border-border" : undefined}>
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    onClick={() => setOpenId(open ? null : b.id)}
+                    className="flex w-full items-center gap-3 px-3 py-1.5 text-left text-sm transition hover:bg-muted/50"
+                  >
+                    <span className="min-w-0 flex-1 truncate font-medium">{bundleValue(b, "name_tr")}</span>
+                    <span className="hidden truncate font-mono text-xs text-muted-foreground sm:block sm:w-56">{b.slug}</span>
+                    <span className="w-24 shrink-0 text-right tabular-nums">{((price ?? 0) / 100).toFixed(2)} USD</span>
+                    <span
+                      className={`w-16 shrink-0 text-center text-[11px] tracking-wide ${
+                        status === "live" ? "text-accent" : status === "taslak" ? "text-muted-foreground" : "text-destructive"
+                      }`}
+                    >
+                      {status.toLocaleUpperCase("tr-TR")}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition ${open ? "rotate-180" : ""}`} />
+                  </button>
+                  {open && renderBundleForm(b)}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+      <StickySaveBar dirty={dirty} count={dirtyCount} busy={busy} msg={msg} onSave={saveAll} onReset={() => { setDrafts({}); setBundleDrafts({}); setMsg(null); }} />
     </div>
   );
 }
@@ -663,132 +807,6 @@ function PriceInput({
         if (e.key === "Enter") { (e.currentTarget as HTMLInputElement).blur(); }
       }}
     />
-  );
-}
-
-// ============== BUNDLES ==============
-function BundlesTab() {
-  const fetchList = useServerFn(listAdminBundles);
-  const upsert = useServerFn(upsertAdminBundle);
-  const queryClient = useQueryClient();
-  const [data, setData] = useState<{ bundles: any[]; products: any[] }>({ bundles: [], products: [] });
-  const [drafts, setDrafts] = useState<Record<string, any>>({});
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
-
-  const reload = useCallback(async () => {
-    const d = await fetchList();
-    setData(d);
-    setDrafts({});
-  }, [fetchList]);
-  useEffect(() => { reload(); }, [reload]);
-
-  const priceMap = useMemo(() => {
-    const m: Record<string, number> = {};
-    for (const p of data.products) m[p.slug] = p.price_cents;
-    return m;
-  }, [data.products]);
-
-  const dirtyIds = useMemo(() => Object.keys(drafts).filter((id) => {
-    const d = drafts[id]; const orig = data.bundles.find((r) => r.id === id);
-    if (!orig || !d) return false;
-    return Object.keys(d).some((k) => (d[k] ?? null) !== (orig[k] ?? null));
-  }), [drafts, data.bundles]);
-  const dirty = dirtyIds.length > 0;
-
-  const patch = (id: string, k: string, v: any) => {
-    setDrafts((prev) => {
-      const orig = data.bundles.find((r) => r.id === id);
-      const base = prev[id] ?? { ...orig };
-      return { ...prev, [id]: { ...base, [k]: v } };
-    });
-    setMsg(null);
-  };
-
-  const saveAll = async () => {
-    setBusy(true); setMsg(null);
-    try {
-      for (const id of dirtyIds) {
-        const d = drafts[id]; const orig = data.bundles.find((r) => r.id === id);
-        const changed: any = { id };
-        for (const k of ["active","activate_at","sort_order","price_override_cents","discount_percent","name_tr","description_tr"]) {
-          if ((d[k] ?? null) !== (orig?.[k] ?? null)) changed[k] = d[k];
-        }
-        await upsert({ data: changed });
-      }
-      await reload();
-      await queryClient.invalidateQueries({ queryKey: ["books-data"] });
-      setMsg("Kaydedildi.");
-      toast.success("Paketler kaydedildi");
-    } catch (e: any) {
-      const m = e?.message ?? "bilinmiyor";
-      setMsg("Hata: " + m);
-      toast.error("Kaydetme hatası: " + m);
-    } finally { setBusy(false); }
-  };
-
-  const cv = (b: any, k: string) => (drafts[b.id] ? drafts[b.id][k] : b[k]);
-
-  return (
-    <div className="space-y-3 pb-24">
-      {data.bundles.map((b) => {
-        const auto = resolveBundlePrice(
-          { ...b, price_override_cents: null },
-          priceMap,
-          b.book_key === "hcd" ? "en" : "tr",
-        );
-        const override = cv(b, "price_override_cents");
-        return (
-          <Card key={b.id} title={b.name_tr}>
-            <div className="grid gap-3 md:grid-cols-2">
-              <div>
-                <Label>Ad (TR)</Label>
-                <Input value={cv(b, "name_tr") ?? ""} onChange={(e) => patch(b.id, "name_tr", e.target.value)} />
-              </div>
-              <div>
-                <Label>Sıralama</Label>
-                <Input type="number" value={cv(b, "sort_order") ?? 0} onChange={(e) => patch(b.id, "sort_order", parseInt(e.target.value) || 0)} />
-              </div>
-              <div className="md:col-span-2">
-                <Label>Açıklama (TR)</Label>
-                <Textarea value={cv(b, "description_tr") ?? ""} onChange={(e) => patch(b.id, "description_tr", e.target.value)} />
-              </div>
-              <div>
-                <Label>Otomatik hesaplanan fiyat</Label>
-                <div className="mt-2 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">{fmtUsd(auto)}</div>
-              </div>
-              <div>
-                <Label>Fiyat (override) — boşsa otomatik</Label>
-                <PriceInput
-                  cents={override}
-                  nullable
-                  placeholder="Otomatik"
-                  onCommit={(cents) => patch(b.id, "price_override_cents", cents)}
-                />
-              </div>
-              <div>
-                <Label>İndirim (%)</Label>
-                <Input type="number" value={cv(b, "discount_percent") ?? 0} onChange={(e) => patch(b.id, "discount_percent", parseInt(e.target.value) || 0)} />
-              </div>
-              <div>
-                <Label>Yayına giriş</Label>
-                <Input type="datetime-local" value={cv(b, "activate_at") ? new Date(cv(b, "activate_at")).toISOString().slice(0,16) : ""}
-                  onChange={(e) => patch(b.id, "activate_at", e.target.value ? new Date(e.target.value).toISOString() : null)} />
-              </div>
-              <div className="flex items-end gap-2">
-                <Switch checked={!!cv(b, "active")} onCheckedChange={(v) => patch(b.id, "active", v)} />
-                <span className="text-sm">{cv(b, "active") ? "Aktif" : "Pasif"} — {b.slug}</span>
-              </div>
-              <div className="md:col-span-2 text-xs text-muted-foreground">
-                Bileşenler: {b.items.map((i: any) => `${i.product_slug}×${i.quantity}`).join(", ") || "—"}
-                {b.includes_book && ` + kitap (${b.book_key})`}
-              </div>
-            </div>
-          </Card>
-        );
-      })}
-      <StickySaveBar dirty={dirty} count={dirtyIds.length} busy={busy} msg={msg} onSave={saveAll} onReset={() => { setDrafts({}); setMsg(null); }} />
-    </div>
   );
 }
 

@@ -152,8 +152,8 @@ function HomePage() {
       {/* Bilinç Döngüsü */}
       <section id="bilinc-haritasi" className="container-page pt-[1.5cm] pb-0 scroll-mt-24">
         <div className="mx-auto max-w-6xl text-center">
-          <div className="text-xs uppercase tracking-[0.3em] text-accent">
-            Bilinç Haritası
+          <div className="text-xs tracking-[0.3em] text-accent">
+            BİLİNÇ HARİTASI
           </div>
           <h2 className="mt-2 font-serif text-3xl md:text-4xl">
             Bekadan Aydınlanmaya Bilinç Döngüsü
@@ -187,8 +187,8 @@ function HomePage() {
       {/* Neden Bir Harita */}
       <section className="container-page pt-0 pb-16">
         <div className="mx-auto max-w-3xl border-t border-border pt-6 text-center">
-          <div data-neden-heading className="text-xs uppercase tracking-[0.3em] text-accent">
-            Neden Bir Harita?
+          <div data-neden-heading className="text-xs tracking-[0.3em] text-accent">
+            NEDEN BİR HARİTA?
           </div>
           <p className="mt-6 font-serif text-2xl leading-relaxed text-foreground md:text-3xl">
             “Bilinç, yedi enstrümanlı bir orkestradan ortaya çıkan müziktir—
@@ -235,8 +235,8 @@ function AudienceSection() {
     <section className="container-page py-14 md:py-16">
       <div className="mx-auto max-w-6xl">
         <div className="text-center">
-          <div className="text-xs uppercase tracking-[0.3em] text-accent">
-            PFA Kime Hitap Eder?
+          <div className="text-xs tracking-[0.3em] text-accent">
+            PFA KİME HİTAP EDER?
           </div>
           <h2 className="mt-2 font-serif text-3xl md:text-4xl">
             Üç alanda çözümler
@@ -259,8 +259,8 @@ function AudienceSection() {
               >
                 <div className="flex items-baseline justify-between gap-3">
                   <div className="font-serif text-xl text-foreground">{a.tag}</div>
-                  <div className="text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
-                    {a.sub}
+                  <div className="text-[0.7rem] tracking-[0.25em] text-muted-foreground">
+                    {a.sub.toLocaleUpperCase("tr-TR")}
                   </div>
                 </div>
                 <p className="mt-3 text-[0.95rem] leading-relaxed text-foreground/80">
@@ -292,8 +292,8 @@ function IntelligencesStrip() {
   return (
     <section className="container-page pb-10 pt-10 md:pb-14 md:pt-12">
       <div className="mx-auto max-w-4xl text-center">
-        <div className="text-sm font-medium uppercase tracking-[0.3em] text-accent md:text-base">
-          Yedi Seviye, Yedi Zekâ
+        <div className="text-sm font-medium tracking-[0.3em] text-accent md:text-base">
+          YEDİ SEVİYE, YEDİ ZEKÂ
         </div>
         <ol className="mt-8 flex flex-wrap justify-center gap-3">
           {items.map((it) => {

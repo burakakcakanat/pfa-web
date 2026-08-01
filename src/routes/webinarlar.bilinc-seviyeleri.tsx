@@ -42,8 +42,8 @@ function Page() {
             className="mb-10 w-full rounded-lg border border-border shadow-sm"
           />
         )}
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">
-          Kendi Yolculuğunuz İçin
+        <div className="text-xs tracking-[0.3em] text-accent">
+          KENDİ YOLCULUĞUNUZ İÇİN
         </div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">Bilinç Seviyeleri Çalışmaları</h1>
         <p className="mt-3 font-serif text-xl italic text-foreground/70">

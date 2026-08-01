@@ -75,7 +75,7 @@ export function PractitionerAccountTab({ onGoToClients }: { onGoToClients?: () =
   if (app && app.status === "kabul") {
     return (
       <div className="rounded-lg border border-border bg-card p-6">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">Kabul edildi</div>
+        <div className="text-xs tracking-[0.3em] text-accent">KABUL EDİLDİ</div>
         <h2 className="mt-3 font-serif text-2xl">Uygulayıcı Profilinizi Oluşturuyoruz</h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
           Başvurunuz kabul edildi. Uygulayıcı profiliniz hazırlanıyor; süreçle ilgili olarak
@@ -205,8 +205,8 @@ function ApplicationForm({
         <Field label="Telefon (opsiyonel)" name="phone" type="tel" maxLength={60} />
         <Field label="Şehir" name="city" maxLength={120} />
         <div className="flex flex-col">
-          <label className="mb-1.5 text-xs uppercase tracking-[0.2em] text-foreground/70">
-            Kategori <span className="text-destructive">*</span>
+          <label className="mb-1.5 text-xs tracking-[0.2em] text-foreground/70">
+            KATEGORİ <span className="text-destructive">*</span>
           </label>
           <select
             name="category"
@@ -225,8 +225,8 @@ function ApplicationForm({
       </div>
 
       <div className="flex flex-col">
-        <label className="mb-1.5 text-xs uppercase tracking-[0.2em] text-foreground/70">
-          Niyet metni <span className="text-destructive">*</span>{" "}
+        <label className="mb-1.5 text-xs tracking-[0.2em] text-foreground/70">
+          NİYET METNİ <span className="text-destructive">*</span>{" "}
           <span className="ml-2 text-[10px] tracking-normal text-foreground/50">
             (200–1500 karakter · {motivationLen})
           </span>

@@ -29,7 +29,7 @@ export function GiftModal({ productSlug, productTitle, priceLabel, open, onClose
       <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-lg">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="text-xs uppercase tracking-[0.3em] text-accent">Hediye Et</div>
+            <div className="text-xs tracking-[0.3em] text-accent">HEDİYE ET</div>
             <h3 className="mt-2 font-serif text-2xl leading-tight">{productTitle}</h3>
             <p className="mt-1 text-xs text-muted-foreground">
               Alıcı adına imzalı bir nüsha hazırlanır ve claim bağlantısı size verilir.

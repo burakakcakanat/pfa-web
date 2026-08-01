@@ -21,7 +21,7 @@ function TrainingPage() {
   return (
     <div className="container-page py-20">
       <header className="mx-auto max-w-3xl text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">Eğitim</div>
+        <div className="text-xs tracking-[0.3em] text-accent">EĞİTİM</div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">
           PFA Temel Eğitimi — Yakında
         </h1>

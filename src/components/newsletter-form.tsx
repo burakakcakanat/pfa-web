@@ -76,7 +76,7 @@ export function NewsletterForm({
           <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
         </label>
         <label className="grid gap-1 text-sm">
-          <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Sizi en iyi tanımlayan</span>
+          <span className="text-xs tracking-[0.2em] text-muted-foreground">SİZİ EN İYİ TANIMLAYAN</span>
           <select value={segment} onChange={(e) => setSegment(e.target.value as any)} className={inputCls}>
             {SEGMENT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>

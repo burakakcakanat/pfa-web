@@ -44,7 +44,7 @@ function AssessmentPage() {
   return (
     <div className="container-page py-20">
       <header className="mx-auto max-w-3xl text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">PFA Ölçeği</div>
+        <div className="text-xs tracking-[0.3em] text-accent">PFA ÖLÇEĞİ</div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">
           PFA Ölçeği: Farkındalıktan İşlevsel Farkındalığa
         </h1>
@@ -71,7 +71,7 @@ function AssessmentPage() {
 
       <div className="mx-auto mt-14 grid max-w-4xl gap-6 md:grid-cols-2">
         <div className="rounded-lg border border-border bg-card p-8">
-          <div className="text-xs uppercase tracking-[0.25em] text-accent">Ücretsiz</div>
+          <div className="text-xs tracking-[0.25em] text-accent">ÜCRETSİZ</div>
           <h2 className="mt-2 font-serif text-2xl">Mini Test</h2>
           <p className="mt-3 text-sm text-foreground/80">
             35 soru, 7 seviyede kısa bir görünüm. Sonucu görmek için ücretsiz üyelik gerekir.

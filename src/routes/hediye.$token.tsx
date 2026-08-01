@@ -72,7 +72,7 @@ function ClaimPage() {
   return (
     <div className="container-page py-20">
       <div className="mx-auto max-w-xl rounded-lg border border-border bg-card p-8 text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">Hediyeniz</div>
+        <div className="text-xs tracking-[0.3em] text-accent">HEDİYENİZ</div>
         <h1 className="mt-3 font-serif text-3xl md:text-4xl">{gift.product_name}</h1>
         <p className="mt-4 text-sm text-foreground/80">
           {gift.buyer_name ? <><strong>{gift.buyer_name}</strong> tarafından </> : "Sizin için "}

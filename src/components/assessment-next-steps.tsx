@@ -25,7 +25,7 @@ export function AssessmentNextSteps({ showFullAssessment = true }: { showFullAss
 
         {showFullAssessment && (
         <div className="flex flex-col rounded-lg border border-border bg-card p-6">
-          <div className="text-xs uppercase tracking-[0.25em] text-accent">Tam PFA Ölçeği + Rapor</div>
+          <div className="text-xs tracking-[0.25em] text-accent">TAM PFA ÖLÇEĞİ + RAPOR</div>
           <p className="mt-3 flex-1 text-sm leading-relaxed text-foreground/80">
             Genişletilmiş soru bankası, her seviye için ayrıntılı yorum ve zekâ türü skorları.
           </p>
@@ -36,7 +36,7 @@ export function AssessmentNextSteps({ showFullAssessment = true }: { showFullAss
         )}
 
         <div className="flex flex-col rounded-lg border border-border bg-card p-6">
-          <div className="text-xs uppercase tracking-[0.25em] text-accent">Webinarlar ve Seanslar</div>
+          <div className="text-xs tracking-[0.25em] text-accent">WEBİNARLAR VE SEANSLAR</div>
           <p className="mt-3 flex-1 text-sm leading-relaxed text-foreground/80">
             Haritayı birlikte çalışmak isterseniz webinarlara katılabilir veya birebir seans alabilirsiniz.
           </p>

@@ -79,8 +79,8 @@ function PractitionerDetail() {
               )}
             </div>
             <div className="space-y-1.5 p-5 text-xs text-muted-foreground">
-              <div className="text-[0.65rem] uppercase tracking-[0.2em] text-accent">
-                {CATEGORY_LABEL[p.category]}
+              <div className="text-[0.65rem] tracking-[0.2em] text-accent">
+                {CATEGORY_LABEL[p.category].toLocaleUpperCase("tr-TR")}
               </div>
               {p.city && (
                 <div>
@@ -118,8 +118,8 @@ function PractitionerDetail() {
         </aside>
 
         <div>
-          <div className="text-xs uppercase tracking-[0.3em] text-accent">
-            {CATEGORY_LABEL[p.category]}
+          <div className="text-xs tracking-[0.3em] text-accent">
+            {CATEGORY_LABEL[p.category].toLocaleUpperCase("tr-TR")}
           </div>
           <h1 className="mt-3 font-serif text-4xl text-primary md:text-5xl">{p.full_name}</h1>
           {p.title && <p className="mt-2 text-base text-muted-foreground">{p.title}</p>}

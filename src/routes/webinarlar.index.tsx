@@ -44,7 +44,7 @@ function WebinarsPage() {
   return (
     <div className="container-page py-20">
       <header className="mx-auto max-w-3xl text-center">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">Webinarlar</div>
+        <div className="text-xs tracking-[0.3em] text-accent">WEBİNARLAR</div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">Programlar</h1>
         <p className="mt-6 text-sm text-muted-foreground">
           İki farklı yolculuk: kendi haritanızı okumak ya da modeli danışanlarınızla uygulamak.
@@ -57,7 +57,7 @@ function WebinarsPage() {
             key={b.title}
             className="flex flex-col rounded-lg border border-border bg-card p-8"
           >
-            <div className="text-xs uppercase tracking-[0.25em] text-accent">{b.badge}</div>
+            <div className="text-xs tracking-[0.25em] text-accent">{b.badge.toLocaleUpperCase("tr-TR")}</div>
             <h2 className="mt-4 font-serif text-2xl">{b.title}</h2>
             <p className="mt-2 text-sm italic text-foreground/70">{b.subtitle}</p>
             <p className="mt-4 text-sm leading-relaxed text-foreground/80">{b.desc}</p>
