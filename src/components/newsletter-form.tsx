@@ -11,6 +11,8 @@ const SEGMENT_OPTIONS = [
 
 type Variant = "footer" | "banner";
 
+const DISMISS_KEY = "pfa_newsletter_dismissed";
+
 export function NewsletterForm({
   variant = "footer",
   source = "footer",
@@ -22,6 +24,8 @@ export function NewsletterForm({
   const [website, setWebsite] = useState(""); // honeypot
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "err">("idle");
   const [err, setErr] = useState<string | null>(null);
+  const [hidden, setHidden] = useState(false);
+  const [checkedDismissal, setCheckedDismissal] = useState(variant !== "banner");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -29,6 +33,16 @@ export function NewsletterForm({
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Banner is a one-time invitation: once the visitor subscribes (or has
+  // subscribed before on this device) it never reappears.
+  useEffect(() => {
+    if (variant !== "banner") return;
+    try {
+      if (window.localStorage.getItem(DISMISS_KEY) === "1") setHidden(true);
+    } catch { /* storage blocked */ }
+    setCheckedDismissal(true);
+  }, [variant]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,16 +55,22 @@ export function NewsletterForm({
     try {
       await subscribe({ data: { email, segment, consent, source, website } });
       setStatus("ok");
+      if (variant === "banner") {
+        try { window.localStorage.setItem(DISMISS_KEY, "1"); } catch { /* ignore */ }
+        window.setTimeout(() => setHidden(true), 2500);
+      }
     } catch (e: any) {
       setStatus("err");
       setErr(e?.message ?? "Bir hata oluştu.");
     }
   }
 
+  if (variant === "banner" && (hidden || !checkedDismissal)) return null;
+
   if (status === "ok") {
     return (
       <div className={variant === "banner"
-        ? "rounded-md border border-accent/40 bg-accent/10 p-4 text-sm text-foreground/85"
+        ? "mx-auto max-w-md rounded-md border border-accent/40 bg-accent/10 p-4 text-center text-sm text-foreground/85"
         : "rounded-md border border-accent/40 bg-accent/10 p-4 text-sm text-foreground/85"}>
         Aboneliğiniz alındı. Teşekkürler.
       </div>
@@ -61,7 +81,8 @@ export function NewsletterForm({
 
   if (variant === "banner") {
     return (
-      <form onSubmit={onSubmit} className="grid gap-3 rounded-lg border border-border bg-card/70 p-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end">
+      <form onSubmit={onSubmit} className="mx-auto grid max-w-md gap-2 rounded-lg border border-border bg-card/70 p-3">
+        <div className="text-center text-[11px] tracking-[0.2em] text-accent">AYLIK BÜLTEN ÜYELİĞİ</div>
         <input
           tabIndex={-1}
           autoComplete="off"
@@ -71,20 +92,21 @@ export function NewsletterForm({
           className="hidden"
           aria-hidden="true"
         />
-        <label className="grid gap-1 text-sm">
-          <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">E-posta</span>
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
-        </label>
-        <label className="grid gap-1 text-sm">
-          <span className="text-xs tracking-[0.2em] text-muted-foreground">SİZİ EN İYİ TANIMLAYAN</span>
-          <select value={segment} onChange={(e) => setSegment(e.target.value as any)} className={inputCls}>
-            {SEGMENT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-        </label>
-        <button className="btn-primary h-10 whitespace-nowrap" disabled={status === "loading"}>
+        <input
+          type="email"
+          required
+          placeholder="E-posta adresi"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className={inputCls}
+        />
+        <select value={segment} onChange={(e) => setSegment(e.target.value as any)} className={inputCls}>
+          {SEGMENT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <button className="btn-primary h-9 whitespace-nowrap" disabled={status === "loading"}>
           {status === "loading" ? "Gönderiliyor…" : "Abone Ol"}
         </button>
-        <label className="col-span-full flex items-start gap-2 text-xs text-muted-foreground">
+        <label className="flex items-start gap-2 text-[11px] text-muted-foreground">
           <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5" />
           <span>
             E-posta iletişimi için KVKK kapsamında onay veriyorum.
@@ -92,7 +114,7 @@ export function NewsletterForm({
             <a href="/kvkk" className="underline hover:text-accent">Aydınlatma metni</a>
           </span>
         </label>
-        {err && <p className="col-span-full text-xs text-destructive">{err}</p>}
+        {err && <p className="text-xs text-destructive">{err}</p>}
       </form>
     );
   }
