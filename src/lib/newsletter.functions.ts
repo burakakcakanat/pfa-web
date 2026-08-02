@@ -65,8 +65,43 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
       source: data.source ?? "footer",
     });
     if (error && !/duplicate|unique/i.test(error.message)) throw new Error(error.message);
+    // Yeni aboneye, kayıt olduğu gün 1 No'lu bülten (hoş geldin) gönderilir.
+    // Hata olursa abonelik akışı bozulmaz.
+    try {
+      await sendWelcomeIssue(supabaseAdmin, email);
+    } catch (e) {
+      console.error("[newsletter] welcome send failed", email, e);
+    }
     return { ok: true };
   });
+
+// İlk (en eski) bülten sayısını hoş geldin mektubu olarak gönderir.
+async function sendWelcomeIssue(supabaseAdmin: any, email: string) {
+  if (!process.env.RESEND_API_KEY_DIRECT) return;
+  const { data: issue } = await supabaseAdmin
+    .from("newsletter_issues")
+    .select("title, content_md")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (!issue) return;
+  const { data: sub } = await supabaseAdmin
+    .from("newsletter_subscribers")
+    .select("unsubscribe_token")
+    .eq("email", email)
+    .maybeSingle();
+  const base = process.env.SITE_URL || "https://psychofunctionalanalysis.com";
+  const unsubUrl = sub?.unsubscribe_token
+    ? `${base}/bulten/ayril?token=${sub.unsubscribe_token}`
+    : `${base}/bulten/ayril`;
+  const art = await loadArtwork(supabaseAdmin);
+  const html = wrapEmailHtml(
+    mdToHtml(issue.content_md).replace(/{{unsubscribe_url}}/g, unsubUrl),
+    unsubUrl,
+    art,
+  );
+  await sendResendEmail(email, issue.title, html);
+}
 
 // -------- PUBLIC: unsubscribe --------
 // Standalone, token-based, NO auth required. Global: opting out stops every
