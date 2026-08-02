@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { isLive } from "@/lib/bundles";
 import { ChevronDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { listContactMessages, markContactMessageRead } from "@/lib/contact.functions";
+import { listContactMessages, markContactMessageRead, deleteContactMessage } from "@/lib/contact.functions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -209,6 +209,7 @@ function AdminPage() {
 function MessagesTab() {
   const listFn = useServerFn(listContactMessages);
   const markFn = useServerFn(markContactMessageRead);
+  const deleteFn = useServerFn(deleteContactMessage);
   const [rows, setRows] = useState<any[]>([]);
   const [unread, setUnread] = useState(0);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -235,6 +236,18 @@ function MessagesTab() {
       await load();
     } catch (e: any) {
       toast.error(e?.message ?? "Güncellenemedi");
+    }
+  };
+
+  const removeMessage = async (id: string) => {
+    if (!window.confirm("Bu mesaj kalıcı olarak silinecek. Emin misiniz?")) return;
+    try {
+      await deleteFn({ data: { id } });
+      if (openId === id) setOpenId(null);
+      toast.success("Mesaj kalıcı olarak silindi");
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Silinemedi");
     }
   };
 
@@ -271,13 +284,21 @@ function MessagesTab() {
                     </div>
                     <div className="mt-0.5 text-xs text-muted-foreground">{fmtDate(m.created_at)}</div>
                   </div>
-                  <div className="shrink-0">
+                  <div className="flex shrink-0 items-center gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={(e) => { e.stopPropagation(); toggleRead(m.id, !m.is_read); }}
                     >
                       {m.is_read ? "Okunmadı yap" : "Okundu işaretle"}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={(e) => { e.stopPropagation(); removeMessage(m.id); }}
+                    >
+                      Kalıcı olarak sil
                     </Button>
                   </div>
                 </button>
