@@ -1084,8 +1084,15 @@ function QuestionsTab() {
   const [rows, setRows] = useState<any[]>([]);
   const [level, setLevel] = useState<string>("all");
   const [editing, setEditing] = useState<any | null>(null);
-  const reload = useCallback(() => { fetchList().then(setRows); }, [fetchList]);
+  const fetchVersions = useServerFn(getInstrumentVersionState);
+  const [versionState, setVersionState] = useState<any | null>(null);
+  const reload = useCallback(() => {
+    fetchList().then(setRows);
+    fetchVersions().then(setVersionState).catch(() => setVersionState(null));
+  }, [fetchList, fetchVersions]);
   useEffect(() => { reload(); }, [reload]);
+  const locked = Boolean(versionState?.locked?.pfa);
+  const currentVersion = (versionState?.versions ?? []).find((v: any) => v.instrument === "pfa" && v.is_current);
   const filtered = useMemo(
     () => rows.filter((r) => level === "all" || r.level === parseInt(level)),
     [rows, level],
@@ -1108,8 +1115,15 @@ function QuestionsTab() {
         <div className="text-xs text-muted-foreground">
           Aktif: {Object.entries(counts).map(([l, c]) => `L${l}: ${c}`).join(" · ")}
         </div>
-        <Button className="ml-auto" onClick={() => setEditing({ text_tr: "", level: 1, reverse_coded: false, is_mini: false, active: true, sort_order: 0 })}>Yeni Soru</Button>
+        <Button
+          className="ml-auto"
+          disabled={locked}
+          onClick={() => setEditing({ text_tr: "", level: 1, reverse_coded: false, is_mini: false, active: true, sort_order: 0 })}
+        >
+          Yeni Soru
+        </Button>
       </div>
+      <InstrumentVersionPanel instrument="pfa" state={versionState} onChanged={reload} />
       {editing && (
         <Card title={editing.id ? "Soruyu Düzenle" : "Yeni Soru"}>
           <QuestionForm
@@ -1131,7 +1145,11 @@ function QuestionsTab() {
               <TableCell>{q.is_mini ? "✓" : ""}</TableCell>
               <TableCell>{q.reverse_coded ? "✓" : ""}</TableCell>
               <TableCell>{q.active ? "✓" : "—"}</TableCell>
-              <TableCell><Button size="sm" variant="outline" onClick={() => setEditing(q)}>Düzenle</Button></TableCell>
+              <TableCell>
+                <Button size="sm" variant="outline" disabled={locked} onClick={() => setEditing(q)}>
+                  Düzenle
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
