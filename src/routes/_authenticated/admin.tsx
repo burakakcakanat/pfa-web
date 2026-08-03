@@ -91,7 +91,6 @@ import {
 } from "@/lib/admin.functions";
 import { resolveBundlePrice, fmtUsd, MARKETPLACE_NAMES, AMAZON_DOMAINS } from "@/lib/bundles";
 import {
-  createWebinarBannerUploadUrl,
   refreshWebinarBannerUrl,
   listSiteSettings,
   upsertSiteSetting,
@@ -131,6 +130,15 @@ import {
   listNewsletterUnsubscribed,
 } from "@/lib/newsletter.functions";
 import { MediaLibraryManager, MediaPickerButton } from "@/components/media-library";
+import {
+  FREE_LABEL_TR,
+  buildInstagramCaptionEn,
+  buildInstagramCaptionTr,
+  buildWebinarDrafts,
+  formatWebinarPrice,
+  openingLine,
+  shareLinks,
+} from "@/lib/social-drafts";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -1794,10 +1802,12 @@ function BlogTab() {
   const save = useServerFn(upsertPost);
   const [rows, setRows] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
+  const [ig, setIg] = useState<{ post: any; lang: "tr" | "en" } | null>(null);
   const reload = useCallback(() => { fetchList().then(setRows); }, [fetchList]);
   useEffect(() => { reload(); }, [reload]);
   return (
     <div className="space-y-4">
+      {ig && <InstagramPrepModal post={ig.post} lang={ig.lang} onClose={() => setIg(null)} />}
       <div className="flex justify-end">
         <Button onClick={() => setEditing({ slug: "", title: "", seo_description: "", content: "", cover_image_url: "", published: false, sort_order: (rows.length + 1) })}>Yeni Yazı</Button>
       </div>
@@ -1817,11 +1827,69 @@ function BlogTab() {
               <TableCell>
                 <Switch checked={p.published} onCheckedChange={async (v) => { await save({ data: { id: p.id, slug: p.slug, title: p.title, seo_description: p.seo_description, content: p.content, published: v, sort_order: p.sort_order, cover_image_url: p.cover_image_url } }); reload(); }} />
               </TableCell>
-              <TableCell><Button size="sm" variant="outline" onClick={() => setEditing(p)}>Düzenle</Button></TableCell>
+              <TableCell className="flex flex-wrap gap-1">
+                <Button size="sm" variant="outline" onClick={() => setEditing(p)}>Düzenle</Button>
+                <Button size="sm" variant="outline" onClick={() => setIg({ post: p, lang: "tr" })}>Instagram TR</Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!hasEnglish(p)}
+                  title={hasEnglish(p) ? "İngilizce içerikten başlık üret" : "İngilizce içerik girilmedi"}
+                  onClick={() => setIg({ post: p, lang: "en" })}
+                >
+                  Instagram GLB
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+    </div>
+  );
+}
+
+function hasEnglish(p: any): boolean {
+  return Boolean((p.title_en ?? "").trim() && (p.content_en ?? "").trim());
+}
+
+function InstagramPrepModal({ post, lang, onClose }: { post: any; lang: "tr" | "en"; onClose: () => void }) {
+  const url = `https://psychofunctionalanalysis.com/blog/${post.slug}`;
+  const image = (lang === "en" ? post.cover_image_url_en : null) ?? post.cover_image_url ?? "";
+  const caption = useMemo(() => {
+    const input = lang === "en"
+      ? { title: post.title_en, opening: openingLine(post.seo_description_en || post.content_en), url }
+      : { title: post.title, opening: openingLine(post.seo_description || post.content), url };
+    return lang === "en" ? buildInstagramCaptionEn(input) : buildInstagramCaptionTr(input);
+  }, [post, lang, url]);
+  const [text, setText] = useState(caption);
+  useEffect(() => { setText(caption); }, [caption]);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-lg border border-border bg-card p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="font-serif text-xl text-primary">
+            Instagram için hazırla — {lang === "en" ? "GLB (EN)" : "TR"}
+          </h3>
+          <Button size="sm" variant="outline" onClick={onClose}>Kapat</Button>
+        </div>
+        {image && <img src={image} alt="" className="mb-4 max-h-56 w-auto rounded border border-border" />}
+        <Label>Başlık (caption)</Label>
+        <Textarea rows={9} value={text} onChange={(e) => setText(e.target.value)} />
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <CopyRow value={text} label="Başlığı Kopyala" />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={!image}
+            onClick={() => downloadFromUrl(image, `${post.slug}-instagram.jpg`)}
+          >
+            Görseli İndir
+          </Button>
+          <CopyRow value={url} label="Linki Kopyala" />
+        </div>
+        {!image && <p className="mt-2 text-xs text-muted-foreground">Kapak görseli yok — indirme kapalı.</p>}
+      </div>
     </div>
   );
 }
