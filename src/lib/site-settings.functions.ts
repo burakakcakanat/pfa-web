@@ -12,6 +12,7 @@ const PUBLIC_SETTING_KEYS = [
   "social_youtube",
   "podcast_program_url",
   "sevenq_pilot_open",
+  "payments_enabled",
   "newsletter_bg_image_url",
   "newsletter_bg_side",
 ];
