@@ -302,6 +302,7 @@ function NavDropdown({ label, links }: { label: string; links: NavItem[] }) {
 function SiteHeader() {
   const [email, setEmail] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const newsletterLabel = useNewsletterMenuLabel(email);
   useEffect(() => {
     const check = async (uid: string | undefined) => {
       if (!uid) { setIsAdmin(false); return; }
@@ -370,11 +371,11 @@ function SiteHeader() {
               </summary>
               <div className="absolute right-0 mt-2 flex w-44 flex-col rounded-md border border-border bg-background shadow-sm">
                 <Link to="/hesabim" className="border-b border-border/60 px-4 py-2 text-sm hover:text-accent">Hesabım</Link>
-                <Link to="/hesabim" search={{ tab: "profile" }} hash="bulten" className="border-b border-border/60 px-4 py-2 text-sm hover:text-accent">Bülten Ayarları</Link>
                 {isAdmin && (
                   <Link to="/admin" className="border-b border-border/60 px-4 py-2 text-sm hover:text-accent">Admin</Link>
                 )}
-                <button type="button" onClick={signOut} className="px-4 py-2 text-left text-sm hover:text-accent">Çıkış</button>
+                <button type="button" onClick={signOut} className="border-b border-border/60 px-4 py-2 text-left text-sm hover:text-accent">Çıkış</button>
+                <Link to="/hesabim" search={{ tab: "profile" }} hash="bulten" className="px-4 py-2 text-sm hover:text-accent">{newsletterLabel}</Link>
               </div>
             </details>
           ) : (
@@ -383,7 +384,7 @@ function SiteHeader() {
             </Link>
           )}
         </nav>
-        <MobileMenu email={email} isAdmin={isAdmin} onSignOut={signOut} />
+        <MobileMenu email={email} isAdmin={isAdmin} onSignOut={signOut} newsletterLabel={newsletterLabel} />
       </div>
     </header>
   );
@@ -393,10 +394,12 @@ function MobileMenu({
   email,
   isAdmin,
   onSignOut,
+  newsletterLabel,
 }: {
   email: string | null;
   isAdmin: boolean;
   onSignOut: () => void;
+  newsletterLabel: string;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -485,10 +488,19 @@ function MobileMenu({
               <button
                 type="button"
                 onClick={() => { setOpen(false); onSignOut(); }}
-                className="px-4 py-2.5 text-left text-sm"
+                className="border-b border-border/60 px-4 py-2.5 text-left text-sm"
               >
                 Çıkış
               </button>
+              <Link
+                to="/hesabim"
+                search={{ tab: "profile" }}
+                hash="bulten"
+                className="px-4 py-2.5 text-sm"
+                onClick={() => setOpen(false)}
+              >
+                {newsletterLabel}
+              </Link>
             </>
           ) : (
             <Link to="/auth" className="px-4 py-2.5 text-sm text-accent" onClick={() => setOpen(false)}>Giriş Yap</Link>
