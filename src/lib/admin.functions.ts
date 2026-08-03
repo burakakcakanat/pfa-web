@@ -654,6 +654,11 @@ export const upsertPost = createServerFn({ method: "POST" })
         seo_description: z.string().min(1).max(500),
         content: z.string().min(1),
         cover_image_url: z.string().url().nullable().optional(),
+        // İngilizce (GLB) alanları — boşsa null; "Instagram GLB" bunlar dolunca açılır.
+        title_en: z.string().max(300).nullable().optional(),
+        seo_description_en: z.string().max(500).nullable().optional(),
+        content_en: z.string().nullable().optional(),
+        cover_image_url_en: z.string().url().nullable().optional(),
         published: z.boolean().default(false),
         sort_order: z.number().int().default(0),
       })

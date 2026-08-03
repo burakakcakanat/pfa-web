@@ -1911,6 +1911,21 @@ function BlogForm({ initial, onSave, onCancel }: { initial: any; onSave: (d: any
             <MediaPickerButton onPick={(m) => upd("cover_image_url", m.public_url)} />
           </div>
         </div>
+        <div className="md:col-span-2 rounded-md border border-border/70 p-3">
+          <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">İngilizce (GLB) — opsiyonel</div>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            <div><Label>Title (EN)</Label><Input value={d.title_en ?? ""} onChange={(e) => upd("title_en", e.target.value)} /></div>
+            <div><Label>SEO description (EN)</Label><Input value={d.seo_description_en ?? ""} onChange={(e) => upd("seo_description_en", e.target.value)} /></div>
+            <div className="md:col-span-2"><Label>Content (EN)</Label><Textarea rows={6} value={d.content_en ?? ""} onChange={(e) => upd("content_en", e.target.value)} /></div>
+            <div className="md:col-span-2">
+              <Label>Cover image URL (EN)</Label>
+              <div className="flex items-center gap-2">
+                <Input value={d.cover_image_url_en ?? ""} onChange={(e) => upd("cover_image_url_en", e.target.value)} />
+                <MediaPickerButton onPick={(m) => upd("cover_image_url_en", m.public_url)} />
+              </div>
+            </div>
+          </div>
+        </div>
         <div><Label>Sıra</Label><Input type="number" value={d.sort_order} onChange={(e) => upd("sort_order", parseInt(e.target.value) || 0)} /></div>
         <label className="flex items-end gap-2"><Switch checked={d.published} onCheckedChange={(v) => upd("published", v)} /> Yayında</label>
       </div>
