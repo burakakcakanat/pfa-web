@@ -15,6 +15,50 @@ export const Route = createFileRoute("/webinarlar/")({
       { property: "og:url", content: "https://psychofunctionalanalysis.com/webinarlar" },
     ],
     links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/webinarlar" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "PFA Webinar Programları",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              item: {
+                "@type": "Course",
+                name: "Bilinç Seviyeleri Çalışmaları",
+                description: "Kendi haritanızı okumayı öğreten canlı online PFA gelişim programı.",
+                url: "https://psychofunctionalanalysis.com/webinarlar/bilinc-seviyeleri",
+                inLanguage: "tr",
+                provider: {
+                  "@type": "Organization",
+                  name: "Psiko-Fonksiyonel Analiz (PFA)",
+                  url: "https://psychofunctionalanalysis.com",
+                },
+              },
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              item: {
+                "@type": "Course",
+                name: "PFA-Pro Uygulayıcı Lisans Paketi",
+                description: "PFA'yı danışanlarınızla uygulamak için eğitim, lisans ve araçlar.",
+                url: "https://psychofunctionalanalysis.com/webinarlar/pfa-pro",
+                inLanguage: "tr",
+                provider: {
+                  "@type": "Organization",
+                  name: "Psiko-Fonksiyonel Analiz (PFA)",
+                  url: "https://psychofunctionalanalysis.com",
+                },
+              },
+            },
+          ],
+        }),
+      },
+    ],
   }),
   component: WebinarsPage,
 });
