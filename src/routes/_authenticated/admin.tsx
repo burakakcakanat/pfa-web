@@ -672,9 +672,60 @@ function ProductsTab() {
     [bundleData.bundles],
   );
 
+  // Filtre çubuğu: kategori başına adet; "paket" sayımına paketler bölümü de dahil.
+  const filterChips = useMemo(() => {
+    const total = rows.length + bundleRows.length;
+    const chips = PRODUCT_CATEGORIES.map((c) => ({
+      value: c.value as string,
+      label: c.label as string,
+      count:
+        rows.filter((r) => (r.category ?? "diger") === c.value).length +
+        (c.value === "paket" ? bundleRows.length : 0),
+    })).filter((c) => c.count > 0);
+    return [{ value: "all", label: "Tümü", count: total }, ...chips];
+  }, [rows, bundleRows]);
+
+  const visibleGrouped = useMemo(
+    () => (catFilter === "all" ? grouped : grouped.filter((g) => g.value === catFilter)),
+    [grouped, catFilter],
+  );
+  const showBundles = bundleRows.length > 0 && (catFilter === "all" || catFilter === "paket");
+
+  // Filtre değişince görünmeyen satır açık kalmasın.
+  useEffect(() => {
+    if (!openId) return;
+    const visibleIds = new Set<string>([
+      ...visibleGrouped.flatMap((g) => g.items.map((p: any) => p.id as string)),
+      ...(showBundles ? bundleRows.map((b: any) => b.id as string) : []),
+    ]);
+    if (!visibleIds.has(openId)) setOpenId(null);
+  }, [openId, visibleGrouped, showBundles, bundleRows]);
+
   return (
     <div className="space-y-6 pb-24">
-      {grouped.map((g) => (
+      {filterChips.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {filterChips.map((c) => {
+            const on = catFilter === c.value;
+            return (
+              <button
+                key={c.value}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setCatFilter(c.value)}
+                className={`rounded-full border px-3 py-1 text-xs transition ${
+                  on
+                    ? "border-accent bg-accent/10 text-accent"
+                    : "border-border text-muted-foreground hover:bg-muted/50"
+                }`}
+              >
+                {c.label} <span className="opacity-60">({c.count})</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {visibleGrouped.map((g) => (
         <section key={g.value}>
           <h3 className="mb-1 text-xs font-medium tracking-widest text-muted-foreground">
             {g.label.toLocaleUpperCase("tr-TR")} <span className="text-muted-foreground/60">({g.items.length})</span>
@@ -713,7 +764,7 @@ function ProductsTab() {
           </div>
         </section>
       ))}
-      {bundleRows.length > 0 && (
+      {showBundles && (
         <section>
           <h3 className="mb-1 text-xs font-medium tracking-widest text-muted-foreground">
             PAKETLER <span className="text-muted-foreground/60">({bundleRows.length})</span>
