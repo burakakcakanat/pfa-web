@@ -37,6 +37,7 @@ import { Route as HediyeTokenRouteImport } from './routes/hediye.$token'
 import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
 import { Route as BultenAyrilRouteImport } from './routes/bulten.ayril'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as AuthSifreYenileRouteImport } from './routes/auth_.sifre-yenile'
 import { Route as AuthenticatedRaporFinalizeRouteImport } from './routes/_authenticated/rapor-finalize'
 import { Route as AuthenticatedHesabimRouteImport } from './routes/_authenticated/hesabim'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -190,6 +191,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthSifreYenileRoute = AuthSifreYenileRouteImport.update({
+  id: '/auth_/sifre-yenile',
+  path: '/auth/sifre-yenile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRaporFinalizeRoute =
   AuthenticatedRaporFinalizeRouteImport.update({
     id: '/rapor-finalize',
@@ -280,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/hesabim': typeof AuthenticatedHesabimRoute
   '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
+  '/auth/sifre-yenile': typeof AuthSifreYenileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/bulten/ayril': typeof BultenAyrilRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
@@ -321,6 +328,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/hesabim': typeof AuthenticatedHesabimRoute
   '/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
+  '/auth/sifre-yenile': typeof AuthSifreYenileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/bulten/ayril': typeof BultenAyrilRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
@@ -364,6 +372,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/hesabim': typeof AuthenticatedHesabimRoute
   '/_authenticated/rapor-finalize': typeof AuthenticatedRaporFinalizeRoute
+  '/auth_/sifre-yenile': typeof AuthSifreYenileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/bulten/ayril': typeof BultenAyrilRoute
   '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
@@ -407,6 +416,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/hesabim'
     | '/rapor-finalize'
+    | '/auth/sifre-yenile'
     | '/blog/$slug'
     | '/bulten/ayril'
     | '/degerlendirme/mini'
@@ -448,6 +458,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/hesabim'
     | '/rapor-finalize'
+    | '/auth/sifre-yenile'
     | '/blog/$slug'
     | '/bulten/ayril'
     | '/degerlendirme/mini'
@@ -490,6 +501,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/hesabim'
     | '/_authenticated/rapor-finalize'
+    | '/auth_/sifre-yenile'
     | '/blog/$slug'
     | '/bulten/ayril'
     | '/degerlendirme_/mini'
@@ -530,6 +542,7 @@ export interface RootRouteChildren {
   UygulayiciOlunRoute: typeof UygulayiciOlunRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  AuthSifreYenileRoute: typeof AuthSifreYenileRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BultenAyrilRoute: typeof BultenAyrilRoute
   DegerlendirmeMiniRoute: typeof DegerlendirmeMiniRoute
@@ -744,6 +757,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth_/sifre-yenile': {
+      id: '/auth_/sifre-yenile'
+      path: '/auth/sifre-yenile'
+      fullPath: '/auth/sifre-yenile'
+      preLoaderRoute: typeof AuthSifreYenileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/rapor-finalize': {
       id: '/_authenticated/rapor-finalize'
       path: '/rapor-finalize'
@@ -875,6 +895,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  AuthSifreYenileRoute: AuthSifreYenileRoute,
   BlogSlugRoute: BlogSlugRoute,
   BultenAyrilRoute: BultenAyrilRoute,
   DegerlendirmeMiniRoute: DegerlendirmeMiniRoute,
