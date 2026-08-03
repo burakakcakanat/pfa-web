@@ -81,7 +81,7 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
   return (
     <div
       ref={wrapRef}
-      className="grid overflow-hidden transition-all duration-500 ease-in-out"
+      className="grid w-full min-w-0 max-w-full overflow-hidden transition-all duration-500 ease-in-out"
       style={{ gridTemplateRows: collapsed ? "0fr" : "1fr", opacity: collapsed ? 0 : 1 }}
       aria-hidden={collapsed}
     >
