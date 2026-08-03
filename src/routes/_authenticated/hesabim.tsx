@@ -51,7 +51,7 @@ const TABS = [
   { id: "profile", label: "Profil" },
   { id: "orders", label: "Satın Alımlarım" },
   { id: "reports", label: "Raporlarım" },
-  { id: "ebooks", label: "E-Book'larım" },
+  { id: "ebooks", label: "E-Kitaplarım" },
   { id: "webinars", label: "Webinar Kayıtlarım" },
   { id: "research", label: "Araştırma" },
 ] as const;
@@ -254,7 +254,7 @@ function EbookTab({ hasAny }: { hasAny: boolean }) {
   if (!hasAny) {
     return (
       <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
-        E-book'larınız burada görünecek. <Link to="/kitaplar" className="text-accent">Kitaplara göz at →</Link>
+        E-kitaplarınız burada görünecek. <Link to="/kitaplar" className="text-accent">Kitaplara göz at →</Link>
       </div>
     );
   }

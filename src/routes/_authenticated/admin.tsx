@@ -40,6 +40,8 @@ import {
   upsertQuestion,
   getInstrumentVersionState,
   bumpInstrumentVersion,
+  getInstrumentVersionInventory,
+  diffInstrumentVersions,
   listWebinarSessions,
   upsertWebinarSession,
   deleteWebinarSession,
@@ -1123,6 +1125,7 @@ function QuestionsTab() {
         </Button>
       </div>
       <InstrumentVersionPanel instrument="pfa" state={versionState} onChanged={reload} />
+      <InstrumentVersionExplorer />
       {editing && (
         <Card title={editing.id ? "Soruyu Düzenle" : "Yeni Soru"}>
           <QuestionForm
@@ -1241,6 +1244,152 @@ function InstrumentVersionPanel({
         </div>
       </div>
     </Card>
+  );
+}
+
+function InstrumentVersionExplorer() {
+  const fetchInventory = useServerFn(getInstrumentVersionInventory);
+  const fetchDiff = useServerFn(diffInstrumentVersions);
+  const [rows, setRows] = useState<any[] | null>(null);
+  const [instrument, setInstrument] = useState<"pfa" | "sevenq">("pfa");
+  const [from, setFrom] = useState<string>("");
+  const [to, setTo] = useState<string>("");
+  const [diff, setDiff] = useState<any | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    fetchInventory().then((r) => setRows(r.versions as any[])).catch(() => setRows([]));
+  }, [fetchInventory]);
+
+  const list = useMemo(
+    () => (rows ?? []).filter((v) => v.instrument === instrument),
+    [rows, instrument],
+  );
+
+  const runDiff = async () => {
+    if (!from || !to) return;
+    setBusy(true);
+    try {
+      setDiff(await fetchDiff({ data: { instrument, from: Number(from), to: Number(to) } }));
+    } catch (e: any) {
+      toast.error(e?.message ?? "Karşılaştırma yapılamadı");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card title="Sürüm İzleme ve Karşılaştırma">
+      <div className="space-y-4 text-sm">
+        <div className="flex items-center gap-3">
+          <Label>Ölçek</Label>
+          <Select value={instrument} onValueChange={(v) => { setInstrument(v as "pfa" | "sevenq"); setDiff(null); setFrom(""); setTo(""); }}>
+            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pfa">PFA Ölçeği</SelectItem>
+              <SelectItem value="sevenq">7Q Profili</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {rows === null ? (
+          <div className="text-muted-foreground">Yükleniyor…</div>
+        ) : list.length === 0 ? (
+          <div className="text-muted-foreground">Bu ölçek için kayıtlı sürüm yok.</div>
+        ) : (
+          <Table>
+            <TableHeader><TableRow>
+              <TableHead>Sürüm</TableHead><TableHead>Etiket</TableHead><TableHead>Oluşturma</TableHead>
+              <TableHead>Madde</TableHead><TableHead>Oturum</TableHead><TableHead>Durum</TableHead>
+            </TableRow></TableHeader>
+            <TableBody>
+              {list.map((v) => (
+                <TableRow key={`${v.instrument}-${v.version}`}>
+                  <TableCell>v{v.version}</TableCell>
+                  <TableCell className="text-xs">{v.label ?? "—"}</TableCell>
+                  <TableCell className="text-xs">{new Date(v.created_at).toLocaleDateString("tr-TR")}</TableCell>
+                  <TableCell>{v.item_count}</TableCell>
+                  <TableCell>{v.session_count}</TableCell>
+                  <TableCell className="text-xs">{v.is_current ? "Geçerli" : "Arşiv"}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+
+        {list.length >= 2 && (
+          <div className="flex flex-wrap items-end gap-3 rounded-md border border-border p-3">
+            <div>
+              <Label>Kaynak sürüm</Label>
+              <Select value={from} onValueChange={setFrom}>
+                <SelectTrigger className="w-32"><SelectValue placeholder="v?" /></SelectTrigger>
+                <SelectContent>
+                  {list.map((v) => (<SelectItem key={`f${v.version}`} value={String(v.version)}>v{v.version}</SelectItem>))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Hedef sürüm</Label>
+              <Select value={to} onValueChange={setTo}>
+                <SelectTrigger className="w-32"><SelectValue placeholder="v?" /></SelectTrigger>
+                <SelectContent>
+                  {list.map((v) => (<SelectItem key={`t${v.version}`} value={String(v.version)}>v{v.version}</SelectItem>))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button size="sm" variant="outline" disabled={busy || !from || !to} onClick={runDiff}>
+              {busy ? "Karşılaştırılıyor…" : "Karşılaştır"}
+            </Button>
+          </div>
+        )}
+
+        {diff && (
+          <div className="space-y-3">
+            <div className="text-xs text-muted-foreground">
+              v{diff.from} ({diff.counts.from} madde) → v{diff.to} ({diff.counts.to} madde) ·
+              {" "}Eklenen: {diff.added.length} · Çıkarılan: {diff.removed.length} · Değişen: {diff.changed.length}
+            </div>
+            <DiffList title="Eklenen maddeler" items={diff.added} />
+            <DiffList title="Çıkarılan maddeler" items={diff.removed} />
+            <DiffList title="Değişen maddeler" items={diff.changed} showChanges />
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+const DIFF_FIELD_LABELS: Record<string, string> = {
+  text_tr: "Metin",
+  level: "Seviye",
+  capacity: "Kapasite",
+  reverse_coded: "Ters kodlama",
+  is_pilot_only: "Pilot maddesi",
+  active: "Aktif",
+};
+
+function DiffList({ title, items, showChanges }: { title: string; items: any[]; showChanges?: boolean }) {
+  if (!items?.length) return null;
+  return (
+    <div className="rounded-md border border-border p-3">
+      <div className="mb-2 text-xs font-medium">{title} ({items.length})</div>
+      <ul className="space-y-2 text-xs">
+        {items.map((it, i) => (
+          <li key={`${it.item_code ?? i}`}>
+            <span className="font-mono">{it.item_code ?? "—"}</span> — {it.text_tr ?? ""}
+            {showChanges && (
+              <ul className="mt-1 space-y-0.5 pl-4 text-muted-foreground">
+                {it.changes.map((c: any, j: number) => (
+                  <li key={j}>
+                    {DIFF_FIELD_LABELS[c.field] ?? c.field}: “{c.from}” → “{c.to}”
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
