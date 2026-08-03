@@ -14,15 +14,15 @@ const supabaseUrl = (
 
 export default defineMcp({
   name: "pfa-mcp",
-  title: "Psİko-Fonksİyonel Analİz (PFA)",
+  title: "Psiko-Fonksiyonel Analiz (PFA)",
   version: "0.1.0",
   auth: auth.oauth.issuer({
     issuer: `${supabaseUrl}/auth/v1`,
     acceptedAudiences: "authenticated",
-    resourceName: "Psİko-Fonksİyonel Analİz (PFA)",
+    resourceName: "Psiko-Fonksiyonel Analiz (PFA)",
   }),
   instructions:
-    "Burak Akçakanat'ın Psİko-Fonksİyonel Analİz (PFA) portalı için araçlar. `pfa_overview` ile başla; kitaplar, webinarlar ve seans müsaitliği için ilgili list/get araçlarını, kullanıcı adına başvuru göndermek için `submit_inquiry` aracını kullan.",
+    "Burak Akçakanat'ın Psiko-Fonksiyonel Analiz (PFA) portalı için araçlar. `pfa_overview` ile başla; kitaplar, webinarlar ve seans müsaitliği için ilgili list/get araçlarını, kullanıcı adına başvuru göndermek için `submit_inquiry` aracını kullan.",
   tools: [
     pfaOverviewTool,
     listBooksTool,

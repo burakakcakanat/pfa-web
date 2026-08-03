@@ -24,7 +24,7 @@ export const Route = createFileRoute("/hakkinda")({
           name: "Burak Akçakanat",
           jobTitle: "PFA modelinin yaratıcısı",
           description:
-            "Psİko-Fonksİyonel Analİz (PFA) modelinin yaratıcısı; 2001'de başlayan, yirmi üç yılı aşan bir bilinç araştırması.",
+            "Psiko-Fonksiyonel Analiz (PFA) modelinin yaratıcısı; 2001'de başlayan, yirmi üç yılı aşan bir bilinç araştırması.",
           url: "https://psychofunctionalanalysis.com/hakkinda",
           worksFor: {
             "@type": "Organization",

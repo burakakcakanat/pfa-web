@@ -106,10 +106,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PFA — Psİko-Fonksİyonel Analİz Bilinç Haritası" },
-      { name: "description", content: "Psİko-Fonksİyonel Analİz (PFA): insan bilincini yedi işlevsel seviyeye ayıran bir harita. Kitaplar, PFA Ölçeği, birebir seanslar, webinarlar ve eğitim." },
+      { title: "PFA — Psiko-Fonksiyonel Analiz Bilinç Haritası" },
+      { name: "description", content: "Psiko-Fonksiyonel Analiz (PFA): insan bilincini yedi işlevsel seviyeye ayıran bir harita. Kitaplar, PFA Ölçeği, birebir seanslar, webinarlar ve eğitim." },
       { name: "author", content: "Burak Akçakanat" },
-      { property: "og:title", content: "PFA — Psİko-Fonksİyonel Analİz" },
+      { property: "og:title", content: "PFA — Psiko-Fonksiyonel Analiz" },
       { property: "og:description", content: "İnsan bilincinin yedi seviyeli işlevsel haritası." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -604,7 +604,7 @@ function SiteFooter() {
       </div>
       <div className="border-t border-border/60">
         <div className="container-page py-6 text-xs text-muted-foreground">
-          © 2026 Burak Akçakanat — Psİko-Fonksİyonel Analİz. Tüm hakları saklıdır.
+          © 2026 Burak Akçakanat — Psiko-Fonksiyonel Analiz. Tüm hakları saklıdır.
         </div>
       </div>
     </footer>

@@ -5,7 +5,7 @@
   "auth": {
     "type": "oauth",
     "issuer": "https://ocwnavrmlfunbxszhhxt.supabase.co/auth/v1",
-    "resource_name": "Psİko-Fonksİyonel Analİz (PFA)",
+    "resource_name": "Psiko-Fonksiyonel Analiz (PFA)",
     "accepted_audiences": [
       "authenticated"
     ]
@@ -14,7 +14,7 @@
     "server": {
       "name": "pfa-mcp",
       "version": "0.1.0",
-      "title": "Psİko-Fonksİyonel Analİz (PFA)"
+      "title": "Psiko-Fonksiyonel Analiz (PFA)"
     },
     "tools": [
       {
@@ -36,7 +36,7 @@
       {
         "name": "list_books",
         "title": "PFA kitaplarını listele",
-        "description": "Burak Akçakanat'ın Psİko-Fonksİyonel Analİz (PFA) kitaplarını başlık, dil, açıklama ve satın alma linkiyle döndürür.",
+        "description": "Burak Akçakanat'ın Psiko-Fonksiyonel Analiz (PFA) kitaplarını başlık, dil, açıklama ve satın alma linkiyle döndürür.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,

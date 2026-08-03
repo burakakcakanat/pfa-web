@@ -138,7 +138,7 @@ function BecomePractitionerPage() {
                 title="Hazırlık — Oku, Dinle, İzle"
               >
                 <p>
-                  PFA kitabı (<em>Psİko-Fonksİyonel Analİz</em>), her seviye için bir
+                  PFA kitabı (<em>Psiko-Fonksiyonel Analiz</em>), her seviye için bir
                   bölümden oluşan yedi bölümlük podcast serisi ve video içerikler.
                   Materyallerin çoğu çevrimiçidir; kendi hızınızda ilerlersiniz.
                 </p>
