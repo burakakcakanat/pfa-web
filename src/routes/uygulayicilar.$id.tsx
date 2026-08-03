@@ -34,6 +34,35 @@ export const Route = createFileRoute("/uygulayicilar/$id")({
     const title = p?.full_name ? `${p.full_name} — PFA Uygulayıcı Rehberi` : "Uygulayıcı — PFA";
     const desc = p?.short_bio ??
       "PFA yaklaşımını uygulayan uygulayıcı profili.";
+    const person: Record<string, unknown> = {
+      "@context": "https://schema.org",
+      "@type": "ProfilePage",
+      name: title,
+      inLanguage: "tr",
+      mainEntity: {
+        "@type": "Person",
+        name: p?.full_name,
+        ...(p?.title ? { jobTitle: p.title } : {}),
+        ...(p?.short_bio ? { description: p.short_bio } : {}),
+        ...(p?.photo_url ? { image: p.photo_url } : {}),
+        ...(p?.website ? { url: p.website } : {}),
+        ...(p?.city || p?.country
+          ? {
+              address: {
+                "@type": "PostalAddress",
+                ...(p?.city ? { addressLocality: p.city } : {}),
+                ...(p?.country ? { addressCountry: p.country } : {}),
+              },
+            }
+          : {}),
+        ...(Array.isArray(p?.specializations) && p.specializations.length
+          ? { knowsAbout: p.specializations }
+          : {}),
+        ...(Array.isArray(p?.languages) && p.languages.length
+          ? { knowsLanguage: p.languages }
+          : {}),
+      },
+    };
     return {
       meta: [
         { title },
@@ -43,6 +72,9 @@ export const Route = createFileRoute("/uygulayicilar/$id")({
         { property: "og:type", content: "profile" },
         { name: "twitter:card", content: "summary" },
       ],
+      ...(p?.full_name
+        ? { scripts: [{ type: "application/ld+json", children: JSON.stringify(person) }] }
+        : {}),
     };
   },
   loader: async ({ context, params }) => {
