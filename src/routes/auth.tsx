@@ -18,12 +18,13 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const { redirect } = useSearch({ from: "/auth" });
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "reset">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resetSent, setResetSent] = useState(false);
 
   async function onGoogle() {
     setError(null);
@@ -51,6 +52,23 @@ function AuthPage() {
     setError(null);
     setLoading(true);
     try {
+      if (mode === "reset") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth/sifre-yenile`,
+        });
+        if (error) {
+          const status = (error as { status?: number }).status;
+          if (status === 429 || /rate limit|too many/i.test(error.message)) {
+            setError(
+              "Çok fazla deneme yapıldı. Lütfen bir süre bekleyip yeniden deneyin.",
+            );
+            return;
+          }
+          // Diğer hatalarda hesap varlığını ifşa etmemek için genel onay gösterilir.
+        }
+        setResetSent(true);
+        return;
+      }
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
@@ -77,6 +95,54 @@ function AuthPage() {
   return (
     <div className="container-page flex min-h-[70vh] items-center justify-center py-16">
       <div className="w-full max-w-md rounded-lg border border-border bg-card p-8">
+        {mode === "reset" ? (
+          <>
+            <h1 className="mb-2 font-serif text-2xl text-foreground">Şifremi unuttum</h1>
+            {resetSent ? (
+              <p className="text-sm text-foreground/80">
+                Bu adres kayıtlıysa sıfırlama bağlantısı gönderildi.
+              </p>
+            ) : (
+              <form onSubmit={onSubmit} className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Hesabınızın e-posta adresini girin; sıfırlama bağlantısını gönderelim.
+                </p>
+                <label className="block text-sm">
+                  <span className="mb-1 block text-foreground/80">E-posta</span>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full rounded-md border border-border bg-background px-3 py-2"
+                  />
+                </label>
+                {error && (
+                  <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                    {error}
+                  </div>
+                )}
+                <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
+                  {loading ? "..." : "Sıfırlama bağlantısı gönder"}
+                </button>
+              </form>
+            )}
+            <div className="mt-6 text-center text-xs text-muted-foreground">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("signin");
+                  setError(null);
+                  setResetSent(false);
+                }}
+                className="hover:text-accent"
+              >
+                Giriş ekranına dön
+              </button>
+            </div>
+          </>
+        ) : (
+        <>
         <div className="mb-6 flex gap-2 rounded-md border border-border p-1">
           <button
             type="button"
@@ -128,6 +194,20 @@ function AuthPage() {
               className="w-full rounded-md border border-border bg-background px-3 py-2"
             />
           </label>
+          {mode === "signin" && (
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("reset");
+                  setError(null);
+                }}
+                className="text-xs text-muted-foreground hover:text-accent"
+              >
+                Şifremi unuttum
+              </button>
+            </div>
+          )}
           {error && <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</div>}
           <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
             {loading ? "..." : mode === "signin" ? "Giriş Yap" : "Üye Ol"}
@@ -156,6 +236,8 @@ function AuthPage() {
         <div className="mt-6 text-center text-xs text-muted-foreground">
           <Link to="/" className="hover:text-accent">Ana sayfaya dön</Link>
         </div>
+        </>
+        )}
       </div>
     </div>
   );
