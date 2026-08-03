@@ -5,7 +5,7 @@ export default defineTool({
   name: "submit_inquiry",
   title: "Başvuru / iletişim talebi gönder",
   description:
-    "Değerlendirme (PFA Ölçeği), seans rezervasyonu, webinar kaydı veya genel iletişim için başvuru gönderir. Başvuru sunucu loglarına düşer; Burak ekibi e-posta ile geri döner.",
+    "Değerlendirme (PFA Ölçeği), seans rezervasyonu, webinar kaydı veya genel iletişim için başvuru gönderir. Başvuru, sitedeki iletişim formuyla aynı yere (admin panelindeki iletişim kutusu) kaydedilir; Burak ekibi e-posta ile geri döner.",
   inputSchema: {
     type: z
       .enum(["assessment", "session", "webinar", "training", "contact"])
