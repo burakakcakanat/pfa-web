@@ -50,6 +50,8 @@ import { Route as AuthenticatedRaporSessionIdRouteImport } from './routes/_authe
 import { Route as AuthenticatedDegerlendirmeTamRouteImport } from './routes/_authenticated/degerlendirme.tam'
 import { Route as Authenticated7qFormRouteImport } from './routes/_authenticated/7q.form'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicMediaFileRouteImport } from './routes/api/public/media/$file'
 import { Route as Authenticated7qRaporSessionIdRouteImport } from './routes/_authenticated/7q.rapor.$sessionId'
 
@@ -265,6 +267,16 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMediaFileRoute = ApiPublicMediaFileRouteImport.update({
   id: '/api/public/media/$file',
   path: '/api/public/media/$file',
@@ -320,6 +332,8 @@ export interface FileRoutesByFullPath {
   '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
   '/api/public/media/$file': typeof ApiPublicMediaFileRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -364,6 +378,8 @@ export interface FileRoutesByTo {
   '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
   '/api/public/media/$file': typeof ApiPublicMediaFileRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -410,6 +426,8 @@ export interface FileRoutesById {
   '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/_authenticated/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
   '/api/public/media/$file': typeof ApiPublicMediaFileRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -456,6 +474,8 @@ export interface FileRouteTypes {
     | '/api/public/webinar-reminders'
     | '/7q/rapor/$sessionId'
     | '/api/public/media/$file'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -500,6 +520,8 @@ export interface FileRouteTypes {
     | '/api/public/webinar-reminders'
     | '/7q/rapor/$sessionId'
     | '/api/public/media/$file'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
   id:
     | '__root__'
     | '/'
@@ -545,6 +567,8 @@ export interface FileRouteTypes {
     | '/api/public/webinar-reminders'
     | '/_authenticated/7q/rapor/$sessionId'
     | '/api/public/media/$file'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -584,6 +608,8 @@ export interface RootRouteChildren {
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicWebinarRemindersRoute: typeof ApiPublicWebinarRemindersRoute
   ApiPublicMediaFileRoute: typeof ApiPublicMediaFileRoute
+  LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
+  LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -875,6 +901,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/media/$file': {
       id: '/api/public/media/$file'
       path: '/api/public/media/$file'
@@ -953,6 +993,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicWebinarRemindersRoute: ApiPublicWebinarRemindersRoute,
   ApiPublicMediaFileRoute: ApiPublicMediaFileRoute,
+  LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
+  LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
