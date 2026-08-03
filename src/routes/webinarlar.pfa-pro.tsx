@@ -13,6 +13,30 @@ export const Route = createFileRoute("/webinarlar/pfa-pro")({
           "Terapist, koç, eğitimci ve İK profesyonelleri için PFA uygulayıcı lisans paketi: eğitim + sertifika + Pro panel.",
       },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Course",
+          name: "PFA-Pro Uygulayıcı Lisans Paketi",
+          description:
+            "Terapist, koç, eğitimci ve İK profesyonelleri için PFA uygulayıcı lisans paketi: 6 canlı online eğitim oturumu, sertifika ve Pro panel.",
+          url: "https://psychofunctionalanalysis.com/webinarlar/pfa-pro",
+          inLanguage: "tr",
+          provider: {
+            "@type": "Organization",
+            name: "Psiko-Fonksiyonel Analiz (PFA)",
+            url: "https://psychofunctionalanalysis.com",
+          },
+          hasCourseInstance: {
+            "@type": "CourseInstance",
+            courseMode: "online",
+            courseWorkload: "PT6H",
+          },
+        }),
+      },
+    ],
   }),
   component: Page,
 });
