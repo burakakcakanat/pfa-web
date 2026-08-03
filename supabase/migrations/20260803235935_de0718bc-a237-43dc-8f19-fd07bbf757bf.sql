@@ -1,0 +1,3 @@
+UPDATE public.bundles SET name_tr = replace(replace(name_tr, 'İmzalı Kitap', 'İmzalı E-Kitap'), 'İmzalı HCD', 'İmzalı HCD E-Kitabı'),
+ description_tr = replace(replace(replace(description_tr, 'imzalı nüsha eşlik eder', 'adınıza imzalı dijital nüsha (PDF) eşlik eder'), 'imzalı kitap', 'adınıza imzalı e-kitap (PDF + EPUB)'), 'imzalı HCD', 'adınıza imzalı HCD e-kitabı (PDF + EPUB)')
+WHERE coalesce(description_tr,'')||name_tr ~* '(imzal|nüsha)';
