@@ -82,7 +82,7 @@ export const listNewsletterSubscribers = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("newsletter_subscribers")
-      .select("id, email, full_name, segment, source, consent, unsubscribed_at, created_at")
+      .select("id, email, full_name, segment, source, consent, confirmed, confirmed_at, unsubscribed_at, created_at")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -229,7 +229,7 @@ export const sendNewsletterTest = createServerFn({ method: "POST" })
     const { data: userRes } = await context.supabase.auth.getUser();
     const email = userRes.user?.email;
     if (!email) throw new Error("Yönetici e-postası bulunamadı.");
-    const base = process.env.SITE_URL || "https://psychofunctionalanalysis.com";
+    const base = siteBase();
     // Use the admin's OWN real token when they are a subscriber, so the test
     // mail's unsubscribe link actually works instead of being a dead dummy.
     const { data: own } = await supabaseAdmin
@@ -270,6 +270,8 @@ export const sendNewsletterIssue = createServerFn({ method: "POST" })
       .from("newsletter_subscribers")
       .select("email, unsubscribe_token, segment")
       .eq("consent", true)
+      // Çift onay: yalnızca aboneliğini onaylamış adreslere gönderilir.
+      .eq("confirmed", true)
       .is("unsubscribed_at", null);
     if (issue.segment !== "tumu") q = q.eq("segment", issue.segment);
     const { data: subs, error: subsErr } = await q;
@@ -281,7 +283,7 @@ export const sendNewsletterIssue = createServerFn({ method: "POST" })
       `[newsletter] issue=${data.issueId} candidates=${(subs ?? []).length} suppressed=${suppressed} recipients=${recipients.length}`,
     );
 
-    const base = process.env.SITE_URL || "https://psychofunctionalanalysis.com";
+    const base = siteBase();
     const art = await loadArtwork(supabaseAdmin);
     let sent = 0;
     const BATCH = 50;
