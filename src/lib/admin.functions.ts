@@ -533,9 +533,25 @@ export const upsertWebinarSession = createServerFn({ method: "POST" })
         capacity: z.number().int().nullable().optional(),
         // Şema eklemeden http(s) ön eki tamamlanır; katı URL doğrulaması
         // kayıtları sessizce engellemesin.
-        join_url: normalizedUrl,
+        join_url: z
+          .string()
+          .trim()
+          .max(600)
+          .nullable()
+          .optional()
+          .transform((v) =>
+            !v ? null : /^https?:\/\//i.test(v) ? v : `https://${v.replace(/^\/+/, "")}`,
+          ),
         notes: z.string().max(4000).nullable().optional(),
-        banner_url: normalizedUrl,
+        banner_url: z
+          .string()
+          .trim()
+          .max(1000)
+          .nullable()
+          .optional()
+          .transform((v) =>
+            !v ? null : /^https?:\/\//i.test(v) ? v : `https://${v.replace(/^\/+/, "")}`,
+          ),
         // Fiyatın tek kaynağı products.price_cents; buradan yalnızca güncellenir.
         price_cents: z.number().int().min(0).nullable().optional(),
       })
