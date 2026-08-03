@@ -106,7 +106,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PFA — Psİko-Fonksİyonel Analİz | İnsan Bilincinin İşlevsel Haritası" },
+      { title: "PFA — Psİko-Fonksİyonel Analİz Bilinç Haritası" },
       { name: "description", content: "Psİko-Fonksİyonel Analİz (PFA): insan bilincini yedi işlevsel seviyeye ayıran bir harita. Kitaplar, PFA Ölçeği, birebir seanslar, webinarlar ve eğitim." },
       { name: "author", content: "Burak Akçakanat" },
       { property: "og:title", content: "PFA — Psİko-Fonksİyonel Analİz" },
