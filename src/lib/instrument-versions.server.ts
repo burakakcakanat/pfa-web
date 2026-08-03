@@ -65,8 +65,14 @@ export async function loadVersionInventory(): Promise<VersionRow[]> {
 export type ItemDiff = {
   item_code: string | null;
   text_tr: string | null;
-  changes: { field: string; from: unknown; to: unknown }[];
+  changes: { field: string; from: string; to: string }[];
 };
+
+function fmt(v: unknown): string {
+  if (v === null || v === undefined) return "—";
+  if (typeof v === "boolean") return v ? "evet" : "hayır";
+  return String(v);
+}
 
 export async function diffVersions(instrument: "pfa" | "sevenq", from: number, to: number) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -93,7 +99,7 @@ export async function diffVersions(instrument: "pfa" | "sevenq", from: number, t
     }
     const changes = fields
       .filter((f) => l[f] !== r[f])
-      .map((f) => ({ field: String(f), from: l[f], to: r[f] }));
+      .map((f) => ({ field: String(f), from: fmt(l[f]), to: fmt(r[f]) }));
     if (changes.length) changed.push({ item_code: r.item_code, text_tr: r.text_tr, changes });
   }
   for (const [id, l] of left) {
