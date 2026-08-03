@@ -50,6 +50,7 @@ import { Route as AuthenticatedRaporSessionIdRouteImport } from './routes/_authe
 import { Route as AuthenticatedDegerlendirmeTamRouteImport } from './routes/_authenticated/degerlendirme.tam'
 import { Route as Authenticated7qFormRouteImport } from './routes/_authenticated/7q.form'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicMediaFileRouteImport } from './routes/api/public/media/$file'
@@ -267,6 +268,11 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
   id: '/lovable/email/auth/webhook',
   path: '/lovable/email/auth/webhook',
@@ -324,6 +330,7 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof BlogIndexRoute
   '/uygulayicilar/': typeof UygulayicilarIndexRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/7q/form': typeof Authenticated7qFormRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -370,6 +377,7 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogIndexRoute
   '/uygulayicilar': typeof UygulayicilarIndexRoute
   '/webinarlar': typeof WebinarlarIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/7q/form': typeof Authenticated7qFormRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -418,6 +426,7 @@ export interface FileRoutesById {
   '/blog/': typeof BlogIndexRoute
   '/uygulayicilar/': typeof UygulayicilarIndexRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/7q/form': typeof Authenticated7qFormRoute
   '/_authenticated/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
@@ -466,6 +475,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/uygulayicilar/'
     | '/webinarlar/'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/7q/form'
     | '/degerlendirme/tam'
@@ -512,6 +522,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/uygulayicilar'
     | '/webinarlar'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/7q/form'
     | '/degerlendirme/tam'
@@ -559,6 +570,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/uygulayicilar/'
     | '/webinarlar/'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/7q/form'
     | '/_authenticated/degerlendirme/tam'
@@ -604,6 +616,7 @@ export interface RootRouteChildren {
   BlogIndexRoute: typeof BlogIndexRoute
   UygulayicilarIndexRoute: typeof UygulayicilarIndexRoute
   WebinarlarIndexRoute: typeof WebinarlarIndexRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicWebinarRemindersRoute: typeof ApiPublicWebinarRemindersRoute
@@ -901,6 +914,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/auth/webhook': {
       id: '/lovable/email/auth/webhook'
       path: '/lovable/email/auth/webhook'
@@ -989,6 +1009,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogIndexRoute: BlogIndexRoute,
   UygulayicilarIndexRoute: UygulayicilarIndexRoute,
   WebinarlarIndexRoute: WebinarlarIndexRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicWebinarRemindersRoute: ApiPublicWebinarRemindersRoute,
