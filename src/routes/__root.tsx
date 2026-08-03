@@ -17,7 +17,7 @@ import { NewsletterForm } from "@/components/newsletter-form";
 import { Instagram, Linkedin, Youtube, Twitter, ChevronDown } from "lucide-react";
 
 function FooterNewsletter() {
-  return <NewsletterForm variant="footer" source="footer" />;
+  return <NewsletterForm source="footer" />;
 }
 
 function NotFoundComponent() {
