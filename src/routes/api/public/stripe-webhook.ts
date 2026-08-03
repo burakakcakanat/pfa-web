@@ -57,7 +57,9 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
                 const { data: prof } = await supabaseAdmin
                   .from("profiles").select("email, full_name").eq("id", updated.user_id).maybeSingle();
                 const amount = (updated.amount_cents / 100).toFixed(2) + " " + (updated.currency || "usd").toUpperCase();
-                const isDigital = productType === "ebook" || productType === "assessment" || !!updated.bundle_slug;
+                // Tüm ürünler dijitaldir; her siparişte hesap bağlantısı verilir.
+                const isDigital = true;
+                void productType;
                 // Buyer confirmation
                 if (prof?.email) {
                   const body = `
