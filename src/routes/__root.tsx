@@ -16,12 +16,23 @@ import { BRAND_TAGLINE } from "@/lib/brand";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Instagram, Linkedin, Youtube, Twitter, ChevronDown } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
-import { getMyNewsletterStatus } from "@/lib/newsletter-status.functions";
+import {
+  getMyNewsletterStatus,
+  subscribeMeToNewsletter,
+  unsubscribeMeFromNewsletter,
+} from "@/lib/newsletter-status.functions";
 
-/** Oturumdaki kullanıcının bülten durumuna göre menü etiketi. */
-function useNewsletterMenuLabel(email: string | null) {
+/**
+ * Oturumdaki kullanıcının bülten durumu: menü etiketi + tek tıkla
+ * abone ol / abonelikten çık. Çıkışta onay istenir.
+ */
+function useNewsletterMenuAction(email: string | null) {
   const status = useServerFn(getMyNewsletterStatus);
+  const subscribeMe = useServerFn(subscribeMeToNewsletter);
+  const unsubscribeMe = useServerFn(unsubscribeMeFromNewsletter);
   const [subscribed, setSubscribed] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+
   useEffect(() => {
     if (!email) { setSubscribed(null); return; }
     let alive = true;
@@ -30,11 +41,48 @@ function useNewsletterMenuLabel(email: string | null) {
       .catch(() => { if (alive) setSubscribed(null); });
     return () => { alive = false; };
   }, [email, status]);
-  return subscribed === null
-    ? "Bülten Ayarları"
-    : subscribed
-      ? "Abonelikten Ayrıl"
-      : "Bültene Abone Ol";
+
+  const label = busy
+    ? "İşleniyor…"
+    : subscribed === null
+      ? "Bülten"
+      : subscribed
+        ? "Bülten Aboneliğinden Çık"
+        : "Bültene Abone Ol";
+
+  const toggle = async () => {
+    if (busy || subscribed === null) return;
+    if (subscribed) {
+      if (!window.confirm("Bülten aboneliğinden çıkmak istediğinizden emin misiniz?")) return;
+      setBusy(true);
+      try {
+        await unsubscribeMe({});
+        setSubscribed(false);
+        window.alert("Bülten aboneliğiniz kapatıldı.");
+      } catch {
+        window.alert("İşlem tamamlanamadı. Lütfen daha sonra tekrar deneyin.");
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+    setBusy(true);
+    try {
+      const r = await subscribeMe({});
+      setSubscribed(true);
+      window.alert(
+        r.state === "confirmed"
+          ? "Aboneliğiniz etkin."
+          : "Onay e-postası gönderildi; bağlantıya tıklayınca abonelik başlar.",
+      );
+    } catch {
+      window.alert("İşlem tamamlanamadı. Lütfen daha sonra tekrar deneyin.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return { label, toggle, busy, subscribed };
 }
 
 function FooterNewsletter() {
