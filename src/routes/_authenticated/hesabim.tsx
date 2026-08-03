@@ -7,7 +7,6 @@ import { getProDashboard, createProInvite } from "@/lib/pro.functions";
 import { listMyEbooks, getEbookUrl } from "@/lib/ebooks.functions";
 import { listMyGifts } from "@/lib/gifts.functions";
 import { PractitionerAccountTab } from "@/components/practitioner-account";
-import { NewsletterPreferences } from "@/components/newsletter-preferences";
 import { ResearchPreferences } from "@/components/research-preferences";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
@@ -164,7 +163,6 @@ function AccountPage() {
               {msg && <span className="text-xs text-muted-foreground">{msg}</span>}
             </div>
           </div>
-          <NewsletterPreferences />
           </div>
         )}
 

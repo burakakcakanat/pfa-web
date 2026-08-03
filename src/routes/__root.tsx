@@ -16,12 +16,23 @@ import { BRAND_TAGLINE } from "@/lib/brand";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Instagram, Linkedin, Youtube, Twitter, ChevronDown } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
-import { getMyNewsletterStatus } from "@/lib/newsletter-status.functions";
+import {
+  getMyNewsletterStatus,
+  subscribeMeToNewsletter,
+  unsubscribeMeFromNewsletter,
+} from "@/lib/newsletter-status.functions";
 
-/** Oturumdaki kullanıcının bülten durumuna göre menü etiketi. */
-function useNewsletterMenuLabel(email: string | null) {
+/**
+ * Oturumdaki kullanıcının bülten durumu: menü etiketi + tek tıkla
+ * abone ol / abonelikten çık. Çıkışta onay istenir.
+ */
+function useNewsletterMenuAction(email: string | null) {
   const status = useServerFn(getMyNewsletterStatus);
+  const subscribeMe = useServerFn(subscribeMeToNewsletter);
+  const unsubscribeMe = useServerFn(unsubscribeMeFromNewsletter);
   const [subscribed, setSubscribed] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+
   useEffect(() => {
     if (!email) { setSubscribed(null); return; }
     let alive = true;
@@ -30,11 +41,48 @@ function useNewsletterMenuLabel(email: string | null) {
       .catch(() => { if (alive) setSubscribed(null); });
     return () => { alive = false; };
   }, [email, status]);
-  return subscribed === null
-    ? "Bülten Ayarları"
-    : subscribed
-      ? "Abonelikten Ayrıl"
-      : "Bültene Abone Ol";
+
+  const label = busy
+    ? "İşleniyor…"
+    : subscribed === null
+      ? "Bülten"
+      : subscribed
+        ? "Bülten Aboneliğinden Çık"
+        : "Bültene Abone Ol";
+
+  const toggle = async () => {
+    if (busy || subscribed === null) return;
+    if (subscribed) {
+      if (!window.confirm("Bülten aboneliğinden çıkmak istediğinizden emin misiniz?")) return;
+      setBusy(true);
+      try {
+        await unsubscribeMe({});
+        setSubscribed(false);
+        window.alert("Bülten aboneliğiniz kapatıldı.");
+      } catch {
+        window.alert("İşlem tamamlanamadı. Lütfen daha sonra tekrar deneyin.");
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+    setBusy(true);
+    try {
+      const r = await subscribeMe({});
+      setSubscribed(true);
+      window.alert(
+        r.state === "confirmed"
+          ? "Aboneliğiniz etkin."
+          : "Onay e-postası gönderildi; bağlantıya tıklayınca abonelik başlar.",
+      );
+    } catch {
+      window.alert("İşlem tamamlanamadı. Lütfen daha sonra tekrar deneyin.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return { label, toggle, busy, subscribed };
 }
 
 function FooterNewsletter() {
@@ -302,7 +350,7 @@ function NavDropdown({ label, links }: { label: string; links: NavItem[] }) {
 function SiteHeader() {
   const [email, setEmail] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const newsletterLabel = useNewsletterMenuLabel(email);
+  const newsletter = useNewsletterMenuAction(email);
   useEffect(() => {
     const check = async (uid: string | undefined) => {
       if (!uid) { setIsAdmin(false); return; }
@@ -375,7 +423,14 @@ function SiteHeader() {
                   <Link to="/admin" className="border-b border-border/60 px-4 py-2 text-sm hover:text-accent">Admin</Link>
                 )}
                 <button type="button" onClick={signOut} className="border-b border-border/60 px-4 py-2 text-left text-sm hover:text-accent">Çıkış</button>
-                <Link to="/hesabim" search={{ tab: "profile" }} hash="bulten" className="px-4 py-2 text-sm hover:text-accent">{newsletterLabel}</Link>
+                <button
+                  type="button"
+                  onClick={newsletter.toggle}
+                  disabled={newsletter.busy || newsletter.subscribed === null}
+                  className="px-4 py-2 text-left text-sm hover:text-accent disabled:opacity-60"
+                >
+                  {newsletter.label}
+                </button>
               </div>
             </details>
           ) : (
@@ -384,7 +439,12 @@ function SiteHeader() {
             </Link>
           )}
         </nav>
-        <MobileMenu email={email} isAdmin={isAdmin} onSignOut={signOut} newsletterLabel={newsletterLabel} />
+        <MobileMenu
+          email={email}
+          isAdmin={isAdmin}
+          onSignOut={signOut}
+          newsletter={newsletter}
+        />
       </div>
     </header>
   );
@@ -394,12 +454,12 @@ function MobileMenu({
   email,
   isAdmin,
   onSignOut,
-  newsletterLabel,
+  newsletter,
 }: {
   email: string | null;
   isAdmin: boolean;
   onSignOut: () => void;
-  newsletterLabel: string;
+  newsletter: { label: string; toggle: () => void; busy: boolean; subscribed: boolean | null };
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -492,15 +552,14 @@ function MobileMenu({
               >
                 Çıkış
               </button>
-              <Link
-                to="/hesabim"
-                search={{ tab: "profile" }}
-                hash="bulten"
-                className="px-4 py-2.5 text-sm"
-                onClick={() => setOpen(false)}
+              <button
+                type="button"
+                disabled={newsletter.busy || newsletter.subscribed === null}
+                className="px-4 py-2.5 text-left text-sm disabled:opacity-60"
+                onClick={() => { setOpen(false); newsletter.toggle(); }}
               >
-                {newsletterLabel}
-              </Link>
+                {newsletter.label}
+              </button>
             </>
           ) : (
             <Link to="/auth" className="px-4 py-2.5 text-sm text-accent" onClick={() => setOpen(false)}>Giriş Yap</Link>
