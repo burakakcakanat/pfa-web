@@ -1387,6 +1387,13 @@ export type Database = {
             referencedRelation: "webinar_sessions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "webinar_reminders_webinar_session_id_fkey"
+            columns: ["webinar_session_id"]
+            isOneToOne: false
+            referencedRelation: "webinar_sessions_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       webinar_sessions: {
@@ -1491,6 +1498,44 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      webinar_sessions_public: {
+        Row: {
+          banner_url: string | null
+          capacity: number | null
+          created_at: string | null
+          id: string | null
+          product_id: string | null
+          starts_at: string | null
+          title: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          capacity?: number | null
+          created_at?: string | null
+          id?: string | null
+          product_id?: string | null
+          starts_at?: string | null
+          title?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          capacity?: number | null
+          created_at?: string | null
+          id?: string | null
+          product_id?: string | null
+          starts_at?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webinar_sessions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
