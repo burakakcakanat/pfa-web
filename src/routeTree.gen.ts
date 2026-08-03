@@ -44,6 +44,7 @@ import { Route as AuthenticatedHesabimRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as ApiPublicWebinarRemindersRouteImport } from './routes/api/public/webinar-reminders'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as AuthenticatedRaporSessionIdRouteImport } from './routes/_authenticated/rapor.$sessionId'
 import { Route as AuthenticatedDegerlendirmeTamRouteImport } from './routes/_authenticated/degerlendirme.tam'
@@ -230,6 +231,12 @@ const Char91DotmcpChar93ListToolsRoute =
     path: '/.mcp/list-tools',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicWebinarRemindersRoute =
+  ApiPublicWebinarRemindersRouteImport.update({
+    id: '/api/public/webinar-reminders',
+    path: '/api/public/webinar-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   id: '/api/public/stripe-webhook',
   path: '/api/public/stripe-webhook',
@@ -310,6 +317,7 @@ export interface FileRoutesByFullPath {
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
   '/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
   '/api/public/media/$file': typeof ApiPublicMediaFileRoute
 }
@@ -353,6 +361,7 @@ export interface FileRoutesByTo {
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
   '/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
   '/api/public/media/$file': typeof ApiPublicMediaFileRoute
 }
@@ -398,6 +407,7 @@ export interface FileRoutesById {
   '/_authenticated/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
   '/_authenticated/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/_authenticated/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
   '/api/public/media/$file': typeof ApiPublicMediaFileRoute
 }
@@ -443,6 +453,7 @@ export interface FileRouteTypes {
     | '/degerlendirme/tam'
     | '/rapor/$sessionId'
     | '/api/public/stripe-webhook'
+    | '/api/public/webinar-reminders'
     | '/7q/rapor/$sessionId'
     | '/api/public/media/$file'
   fileRoutesByTo: FileRoutesByTo
@@ -486,6 +497,7 @@ export interface FileRouteTypes {
     | '/degerlendirme/tam'
     | '/rapor/$sessionId'
     | '/api/public/stripe-webhook'
+    | '/api/public/webinar-reminders'
     | '/7q/rapor/$sessionId'
     | '/api/public/media/$file'
   id:
@@ -530,6 +542,7 @@ export interface FileRouteTypes {
     | '/_authenticated/degerlendirme/tam'
     | '/_authenticated/rapor/$sessionId'
     | '/api/public/stripe-webhook'
+    | '/api/public/webinar-reminders'
     | '/_authenticated/7q/rapor/$sessionId'
     | '/api/public/media/$file'
   fileRoutesById: FileRoutesById
@@ -569,6 +582,7 @@ export interface RootRouteChildren {
   WebinarlarIndexRoute: typeof WebinarlarIndexRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
+  ApiPublicWebinarRemindersRoute: typeof ApiPublicWebinarRemindersRoute
   ApiPublicMediaFileRoute: typeof ApiPublicMediaFileRoute
 }
 
@@ -819,6 +833,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webinar-reminders': {
+      id: '/api/public/webinar-reminders'
+      path: '/api/public/webinar-reminders'
+      fullPath: '/api/public/webinar-reminders'
+      preLoaderRoute: typeof ApiPublicWebinarRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/stripe-webhook': {
       id: '/api/public/stripe-webhook'
       path: '/api/public/stripe-webhook'
@@ -930,6 +951,7 @@ const rootRouteChildren: RootRouteChildren = {
   WebinarlarIndexRoute: WebinarlarIndexRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
+  ApiPublicWebinarRemindersRoute: ApiPublicWebinarRemindersRoute,
   ApiPublicMediaFileRoute: ApiPublicMediaFileRoute,
 }
 export const routeTree = rootRouteImport
