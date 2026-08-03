@@ -2,6 +2,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { parseFriendly } from "@/lib/zod-friendly";
+import {
+  confirmCore,
+  filterSuppressed,
+  loadArtwork,
+  mdToHtml,
+  sendResendEmail,
+  siteBase,
+  subscribeCore,
+  unsubscribeCore,
+  wrapEmailHtml,
+} from "@/lib/newsletter-core.server";
 
 const SEGMENTS = ["merakli", "profesyonel", "kurumsal"] as const;
 const TARGETS = ["merakli", "profesyonel", "kurumsal", "tumu"] as const;
@@ -27,81 +38,25 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     if (data.website && data.website.trim() !== "") {
       // honeypot triggered — pretend success
-      return { ok: true };
+      return { ok: true as const, state: "pending" as const, emailSent: false };
     }
     if (!data.consent) throw new Error("KVKK onayı gerekli.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const email = data.email.toLowerCase().trim();
-
-    // Explicit new opt-in lifts any previous global suppression for this address.
-    await supabaseAdmin.from("newsletter_suppressions").delete().eq("email", email);
-
-    // upsert-like: check if exists
-    const { data: existing } = await supabaseAdmin
-      .from("newsletter_subscribers")
-      .select("id, unsubscribed_at")
-      .eq("email", email)
-      .maybeSingle();
-
-    if (existing) {
-      await supabaseAdmin
-        .from("newsletter_subscribers")
-        .update({
-          segment: data.segment,
-          full_name: data.full_name ?? null,
-          consent: true,
-          source: data.source ?? "footer",
-          unsubscribed_at: null,
-        })
-        .eq("id", existing.id);
-      return { ok: true };
-    }
-
-    const { error } = await supabaseAdmin.from("newsletter_subscribers").insert({
-      email,
+    return subscribeCore(supabaseAdmin, {
+      email: data.email,
       full_name: data.full_name ?? null,
       segment: data.segment,
-      consent: true,
       source: data.source ?? "footer",
     });
-    if (error && !/duplicate|unique/i.test(error.message)) throw new Error(error.message);
-    // Yeni aboneye, kayıt olduğu gün 1 No'lu bülten (hoş geldin) gönderilir.
-    // Hata olursa abonelik akışı bozulmaz.
-    try {
-      await sendWelcomeIssue(supabaseAdmin, email);
-    } catch (e) {
-      console.error("[newsletter] welcome send failed", email, e);
-    }
-    return { ok: true };
   });
 
-// İlk (en eski) bülten sayısını hoş geldin mektubu olarak gönderir.
-async function sendWelcomeIssue(supabaseAdmin: any, email: string) {
-  if (!process.env.RESEND_API_KEY_DIRECT) return;
-  const { data: issue } = await supabaseAdmin
-    .from("newsletter_issues")
-    .select("title, content_md")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  if (!issue) return;
-  const { data: sub } = await supabaseAdmin
-    .from("newsletter_subscribers")
-    .select("unsubscribe_token")
-    .eq("email", email)
-    .maybeSingle();
-  const base = process.env.SITE_URL || "https://psychofunctionalanalysis.com";
-  const unsubUrl = sub?.unsubscribe_token
-    ? `${base}/bulten/ayril?token=${sub.unsubscribe_token}`
-    : `${base}/bulten/ayril`;
-  const art = await loadArtwork(supabaseAdmin);
-  const html = wrapEmailHtml(
-    mdToHtml(issue.content_md).replace(/{{unsubscribe_url}}/g, unsubUrl),
-    unsubUrl,
-    art,
-  );
-  await sendResendEmail(email, issue.title, html);
-}
+// -------- PUBLIC: confirm (double opt-in) --------
+export const confirmNewsletter = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => z.object({ token: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    return confirmCore(supabaseAdmin, data.token);
+  });
 
 // -------- PUBLIC: unsubscribe --------
 // Standalone, token-based, NO auth required. Global: opting out stops every
@@ -116,17 +71,7 @@ export const unsubscribeNewsletter = createServerFn({ method: "POST" })
       .eq("unsubscribe_token", data.token)
       .maybeSingle();
     if (!row) return { ok: false };
-    const email = row.email.toLowerCase().trim();
-    // 1) mark EVERY row for this address as unsubscribed (all segments)
-    await supabaseAdmin
-      .from("newsletter_subscribers")
-      .update({ unsubscribed_at: new Date().toISOString() })
-      .eq("email", email);
-    // 2) permanent global suppression, independent of subscriber rows
-    await supabaseAdmin
-      .from("newsletter_suppressions")
-      .upsert({ email, unsubscribed_at: new Date().toISOString(), source: "link" }, { onConflict: "email" });
-    return { ok: true };
+    return unsubscribeCore(supabaseAdmin, row.email, "link");
   });
 
 // -------- ADMIN --------
