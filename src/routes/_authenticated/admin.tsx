@@ -38,6 +38,8 @@ import {
   setProQuota,
   listAdminQuestions,
   upsertQuestion,
+  getInstrumentVersionState,
+  bumpInstrumentVersion,
   listWebinarSessions,
   upsertWebinarSession,
   deleteWebinarSession,
@@ -1082,8 +1084,14 @@ function QuestionsTab() {
   const [rows, setRows] = useState<any[]>([]);
   const [level, setLevel] = useState<string>("all");
   const [editing, setEditing] = useState<any | null>(null);
-  const reload = useCallback(() => { fetchList().then(setRows); }, [fetchList]);
+  const fetchVersions = useServerFn(getInstrumentVersionState);
+  const [versionState, setVersionState] = useState<any | null>(null);
+  const reload = useCallback(() => {
+    fetchList().then(setRows);
+    fetchVersions().then(setVersionState).catch(() => setVersionState(null));
+  }, [fetchList, fetchVersions]);
   useEffect(() => { reload(); }, [reload]);
+  const locked = Boolean(versionState?.locked?.pfa);
   const filtered = useMemo(
     () => rows.filter((r) => level === "all" || r.level === parseInt(level)),
     [rows, level],
@@ -1106,8 +1114,15 @@ function QuestionsTab() {
         <div className="text-xs text-muted-foreground">
           Aktif: {Object.entries(counts).map(([l, c]) => `L${l}: ${c}`).join(" · ")}
         </div>
-        <Button className="ml-auto" onClick={() => setEditing({ text_tr: "", level: 1, reverse_coded: false, is_mini: false, active: true, sort_order: 0 })}>Yeni Soru</Button>
+        <Button
+          className="ml-auto"
+          disabled={locked}
+          onClick={() => setEditing({ text_tr: "", level: 1, reverse_coded: false, is_mini: false, active: true, sort_order: 0 })}
+        >
+          Yeni Soru
+        </Button>
       </div>
+      <InstrumentVersionPanel instrument="pfa" state={versionState} onChanged={reload} />
       {editing && (
         <Card title={editing.id ? "Soruyu Düzenle" : "Yeni Soru"}>
           <QuestionForm
@@ -1129,7 +1144,11 @@ function QuestionsTab() {
               <TableCell>{q.is_mini ? "✓" : ""}</TableCell>
               <TableCell>{q.reverse_coded ? "✓" : ""}</TableCell>
               <TableCell>{q.active ? "✓" : "—"}</TableCell>
-              <TableCell><Button size="sm" variant="outline" onClick={() => setEditing(q)}>Düzenle</Button></TableCell>
+              <TableCell>
+                <Button size="sm" variant="outline" disabled={locked} onClick={() => setEditing(q)}>
+                  Düzenle
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -1139,6 +1158,93 @@ function QuestionsTab() {
 }
 
 function QuestionForm({ initial, onSave, onCancel }: { initial: any; onSave: (d: any) => void; onCancel: () => void }) {
+  return <QuestionFormInner initial={initial} onSave={onSave} onCancel={onCancel} />;
+}
+
+function InstrumentVersionPanel({
+  instrument,
+  state,
+  onChanged,
+}: {
+  instrument: "pfa" | "sevenq";
+  state: any | null;
+  onChanged: () => void;
+}) {
+  const bump = useServerFn(bumpInstrumentVersion);
+  const [label, setLabel] = useState("");
+  const [notes, setNotes] = useState("");
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  if (!state) return null;
+  const versions = (state.versions ?? []).filter((v: any) => v.instrument === instrument);
+  const current = versions.find((v: any) => v.is_current);
+  const locked = Boolean(state.locked?.[instrument]);
+
+  const createVersion = async () => {
+    if (!window.confirm("Yeni bir ölçek sürümü oluşturulacak ve mevcut madde havuzu bu sürüme dondurulacak. Devam edilsin mi?")) return;
+    setBusy(true);
+    try {
+      const r = await bump({ data: { instrument, label: label || null, notes: notes || null } });
+      toast.success(`Sürüm v${r.version} oluşturuldu`);
+      setLabel("");
+      setNotes("");
+      setOpen(false);
+      onChanged();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Sürüm oluşturulamadı");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card title="Ölçek Sürümü">
+      <div className="space-y-3 text-sm">
+        <div>
+          Geçerli sürüm: <strong>v{current?.version ?? 1}</strong>
+          {current?.label ? <span className="text-muted-foreground"> — {current.label}</span> : null}
+        </div>
+        {locked ? (
+          <div className="rounded-md border border-primary/40 bg-primary/5 p-3">
+            <strong>Bu sürüm kilitli.</strong> v{current?.version} ile yanıt toplanmış olduğu için madde
+            metni, seviyesi, ters kodlaması veya aktifliği değiştirilemez. Değişiklik yapmak için önce
+            yeni bir sürüm oluşturun; eski yanıtlar kendi sürümünün madde metinleriyle birlikte saklı kalır.
+          </div>
+        ) : (
+          <div className="text-muted-foreground">
+            Bu sürümde henüz yanıt yok; düzenlemeler sürüm kopyasına otomatik yansır.
+          </div>
+        )}
+        <div>
+          <Button size="sm" variant="outline" onClick={() => setOpen((o) => !o)}>
+            {open ? "Kapat" : "Yeni sürüm oluştur"}
+          </Button>
+        </div>
+        {open && (
+          <div className="space-y-2 rounded-md border border-border p-3">
+            <div>
+              <Label>Etiket</Label>
+              <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="v2 — pilot sonrası kısaltma" />
+            </div>
+            <div>
+              <Label>Not</Label>
+              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Neyin değiştiğini yazın" />
+            </div>
+            <Button size="sm" onClick={createVersion} disabled={busy}>
+              {busy ? "Oluşturuluyor…" : "Sürümü oluştur ve havuzu dondur"}
+            </Button>
+          </div>
+        )}
+        <div className="text-xs text-muted-foreground">
+          Sürüm geçmişi: {versions.map((v: any) => `v${v.version}`).join(" · ") || "—"}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function QuestionFormInner({ initial, onSave, onCancel }: { initial: any; onSave: (d: any) => void; onCancel: () => void }) {
   const [d, setD] = useState(initial);
   const upd = (k: string, v: any) => setD({ ...d, [k]: v });
   return (

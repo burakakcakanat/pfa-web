@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AssessmentRunner } from "@/components/assessment-runner";
 import { saveAssessment } from "@/lib/assessment.functions";
+import { ResearchConsentBlock } from "@/components/research-consent-block";
+import { EMPTY_CONSENT, type ResearchConsentInput } from "@/lib/research-consent";
 
 export const Route = createFileRoute("/_authenticated/degerlendirme/tam")({
   head: () => ({
@@ -21,6 +23,7 @@ function FullTestPage() {
   const [entitled, setEntitled] = useState<boolean | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [consent, setConsent] = useState<ResearchConsentInput>(EMPTY_CONSENT);
 
   useEffect(() => {
     (async () => {
@@ -40,7 +43,7 @@ function FullTestPage() {
     setErr(null);
     setSubmitting(true);
     try {
-      const res = await save({ data: { type: "full", answers } });
+      const res = await save({ data: { type: "full", answers, consent } });
       await navigate({ to: "/rapor/$sessionId", params: { sessionId: res.session_id } });
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Bir hata oluştu.");
@@ -73,6 +76,9 @@ function FullTestPage() {
         <h1 className="mt-3 font-serif text-3xl md:text-4xl">Ayrıntılı Bilinç Seviyesi Raporu</h1>
       </header>
       <AssessmentRunner variant="full" onComplete={onComplete} submitting={submitting} />
+      <div className="mx-auto mt-8 max-w-2xl">
+        <ResearchConsentBlock value={consent} onChange={setConsent} />
+      </div>
       {err && <div className="mx-auto mt-4 max-w-2xl rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">{err}</div>}
       <p className="mx-auto mt-10 max-w-2xl text-center text-xs text-muted-foreground">
         Bu değerlendirme klinik bir tanı aracı değildir; işlevsel farkındalık için bir gelişim aracıdır.

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { computeSevenqScores, type CapacityCode } from "./sevenq-scoring";
+import { ResearchConsentSchema } from "./research-consent";
 
 async function readAccess(
   supabase: { from: (t: string) => any },
@@ -23,7 +24,12 @@ export const getSevenqAccess = createServerFn({ method: "GET" })
 export const startSevenqSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
-    z.object({ invite: z.string().min(4).max(200).nullish() }).parse(data ?? {}),
+    z
+      .object({
+        invite: z.string().min(4).max(200).nullish(),
+        consent: ResearchConsentSchema.nullish(),
+      })
+      .parse(data ?? {}),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -55,14 +61,52 @@ export const startSevenqSession = createServerFn({ method: "POST" })
 
     let sessionId = existing?.[0]?.id ?? null;
 
+    const consent = data.consent ?? null;
+    const consented = Boolean(consent?.research_consent);
+    const consentPatch = consented
+      ? {
+          research_consent: true,
+          research_consent_at: new Date().toISOString(),
+          research_consent_version: consent?.consent_version ?? null,
+          research_consent_withdrawn_at: null,
+        }
+      : {};
+
     if (!sessionId) {
+      const { data: versionData } = await supabase.rpc("current_instrument_version", {
+        _instrument: "sevenq",
+      });
       const { data: created, error } = await supabase
         .from("sevenq_sessions")
-        .insert({ user_id: userId, client_invite_id: clientInviteId, status: "in_progress" })
+        .insert({
+          user_id: userId,
+          client_invite_id: clientInviteId,
+          status: "in_progress",
+          instrument_version: Number(versionData ?? 1),
+          ...consentPatch,
+        })
         .select("id")
         .single();
       if (error || !created) throw new Error("7Q oturumu başlatılamadı.");
       sessionId = created.id;
+    } else if (consented) {
+      await supabase.from("sevenq_sessions").update(consentPatch).eq("id", sessionId);
+    }
+
+    if (consented && consent?.demographics) {
+      const d = consent.demographics;
+      if (d.age_band || d.gender || d.education || d.occupation_field) {
+        await supabase.from("respondent_demographics").upsert(
+          {
+            user_id: userId,
+            age_band: d.age_band ?? null,
+            gender: d.gender ?? null,
+            education: d.education ?? null,
+            occupation_field: d.occupation_field ?? null,
+          },
+          { onConflict: "user_id" },
+        );
+      }
     }
 
     const { data: answers } = await supabase

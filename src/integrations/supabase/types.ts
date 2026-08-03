@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           id: string
           question_id: string
+          reverse_coded: boolean
           session_id: string
           value: number
         }
@@ -26,6 +27,7 @@ export type Database = {
           created_at?: string
           id?: string
           question_id: string
+          reverse_coded?: boolean
           session_id: string
           value: number
         }
@@ -33,6 +35,7 @@ export type Database = {
           created_at?: string
           id?: string
           question_id?: string
+          reverse_coded?: boolean
           session_id?: string
           value?: number
         }
@@ -134,6 +137,12 @@ export type Database = {
           created_at: string
           guest_token: string | null
           id: string
+          instrument_version: number
+          research_consent: boolean
+          research_consent_at: string | null
+          research_consent_version: string | null
+          research_consent_withdrawn_at: string | null
+          research_id: string
           started_at: string
           status: Database["public"]["Enums"]["assessment_status"]
           type: Database["public"]["Enums"]["assessment_type"]
@@ -146,6 +155,12 @@ export type Database = {
           created_at?: string
           guest_token?: string | null
           id?: string
+          instrument_version?: number
+          research_consent?: boolean
+          research_consent_at?: string | null
+          research_consent_version?: string | null
+          research_consent_withdrawn_at?: string | null
+          research_id?: string
           started_at?: string
           status?: Database["public"]["Enums"]["assessment_status"]
           type: Database["public"]["Enums"]["assessment_type"]
@@ -158,6 +173,12 @@ export type Database = {
           created_at?: string
           guest_token?: string | null
           id?: string
+          instrument_version?: number
+          research_consent?: boolean
+          research_consent_at?: string | null
+          research_consent_version?: string | null
+          research_consent_withdrawn_at?: string | null
+          research_id?: string
           started_at?: string
           status?: Database["public"]["Enums"]["assessment_status"]
           type?: Database["public"]["Enums"]["assessment_type"]
@@ -469,6 +490,107 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      instrument_item_snapshots: {
+        Row: {
+          active: boolean
+          awareness_item: boolean
+          capacity: string | null
+          created_at: string
+          id: string
+          instrument: string
+          instrument_version_id: string
+          is_mini: boolean
+          is_pilot_only: boolean
+          item_code: string | null
+          level: number
+          question_id: string
+          reverse_coded: boolean
+          sort_order: number
+          text_en: string | null
+          text_tr: string
+          version: number
+        }
+        Insert: {
+          active?: boolean
+          awareness_item?: boolean
+          capacity?: string | null
+          created_at?: string
+          id?: string
+          instrument: string
+          instrument_version_id: string
+          is_mini?: boolean
+          is_pilot_only?: boolean
+          item_code?: string | null
+          level: number
+          question_id: string
+          reverse_coded?: boolean
+          sort_order?: number
+          text_en?: string | null
+          text_tr: string
+          version: number
+        }
+        Update: {
+          active?: boolean
+          awareness_item?: boolean
+          capacity?: string | null
+          created_at?: string
+          id?: string
+          instrument?: string
+          instrument_version_id?: string
+          is_mini?: boolean
+          is_pilot_only?: boolean
+          item_code?: string | null
+          level?: number
+          question_id?: string
+          reverse_coded?: boolean
+          sort_order?: number
+          text_en?: string | null
+          text_tr?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instrument_item_snapshots_instrument_version_id_fkey"
+            columns: ["instrument_version_id"]
+            isOneToOne: false
+            referencedRelation: "instrument_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instrument_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          instrument: string
+          is_current: boolean
+          label: string | null
+          notes: string | null
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          instrument: string
+          is_current?: boolean
+          label?: string | null
+          notes?: string | null
+          version: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          instrument?: string
+          is_current?: boolean
+          label?: string | null
+          notes?: string | null
+          version?: number
+        }
+        Relationships: []
       }
       license_inquiries: {
         Row: {
@@ -1057,6 +1179,66 @@ export type Database = {
         }
         Relationships: []
       }
+      research_consent_versions: {
+        Row: {
+          active: boolean
+          body_md: string
+          created_at: string
+          effective_at: string
+          locale: string
+          title: string
+          version: string
+        }
+        Insert: {
+          active?: boolean
+          body_md: string
+          created_at?: string
+          effective_at?: string
+          locale?: string
+          title: string
+          version: string
+        }
+        Update: {
+          active?: boolean
+          body_md?: string
+          created_at?: string
+          effective_at?: string
+          locale?: string
+          title?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      respondent_demographics: {
+        Row: {
+          age_band: string | null
+          created_at: string
+          education: string | null
+          gender: string | null
+          occupation_field: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age_band?: string | null
+          created_at?: string
+          education?: string | null
+          gender?: string | null
+          occupation_field?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age_band?: string | null
+          created_at?: string
+          education?: string | null
+          gender?: string | null
+          occupation_field?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sevenq_answers: {
         Row: {
           created_at: string
@@ -1189,6 +1371,12 @@ export type Database = {
           created_at: string
           guest_token: string | null
           id: string
+          instrument_version: number
+          research_consent: boolean
+          research_consent_at: string | null
+          research_consent_version: string | null
+          research_consent_withdrawn_at: string | null
+          research_id: string
           started_at: string
           status: string
           updated_at: string
@@ -1200,6 +1388,12 @@ export type Database = {
           created_at?: string
           guest_token?: string | null
           id?: string
+          instrument_version?: number
+          research_consent?: boolean
+          research_consent_at?: string | null
+          research_consent_version?: string | null
+          research_consent_withdrawn_at?: string | null
+          research_id?: string
           started_at?: string
           status?: string
           updated_at?: string
@@ -1211,6 +1405,12 @@ export type Database = {
           created_at?: string
           guest_token?: string | null
           id?: string
+          instrument_version?: number
+          research_consent?: boolean
+          research_consent_at?: string | null
+          research_consent_version?: string | null
+          research_consent_withdrawn_at?: string | null
+          research_id?: string
           started_at?: string
           status?: string
           updated_at?: string
@@ -1499,6 +1699,66 @@ export type Database = {
         }
         Relationships: []
       }
+      research_pfa_responses: {
+        Row: {
+          age_band: string | null
+          completed_at: string | null
+          education: string | null
+          gender: string | null
+          instrument_version: number | null
+          item_code: string | null
+          item_text_tr: string | null
+          level: number | null
+          occupation_field: string | null
+          question_id: string | null
+          research_consent_version: string | null
+          research_id: string | null
+          reverse_coded: boolean | null
+          session_type: string | null
+          started_at: string | null
+          value: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_sevenq_responses: {
+        Row: {
+          age_band: string | null
+          awareness_item: boolean | null
+          capacity: string | null
+          completed_at: string | null
+          education: string | null
+          gender: string | null
+          instrument_version: number | null
+          is_pilot_only: boolean | null
+          item_code: string | null
+          item_text_tr: string | null
+          level: number | null
+          occupation_field: string | null
+          question_id: string | null
+          research_consent_version: string | null
+          research_id: string | null
+          started_at: string | null
+          status: string | null
+          value: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sevenq_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "sevenq_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webinar_sessions_public: {
         Row: {
           banner_url: string | null
@@ -1543,6 +1803,10 @@ export type Database = {
         Args: { _entitlement_id: string; _quota: number; _used: number }
         Returns: undefined
       }
+      bump_instrument_version: {
+        Args: { _instrument: string; _label?: string; _notes?: string }
+        Returns: number
+      }
       can_view_assessment_session: {
         Args: { _session_id: string }
         Returns: boolean
@@ -1570,6 +1834,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      current_instrument_version: {
+        Args: { _instrument: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1577,6 +1845,24 @@ export type Database = {
         }
         Returns: boolean
       }
+      instrument_version_locked: {
+        Args: { _instrument: string }
+        Returns: boolean
+      }
+      my_research_consent: {
+        Args: never
+        Returns: {
+          consent_version: string
+          consented: boolean
+          consented_at: string
+          session_count: number
+        }[]
+      }
+      refresh_instrument_snapshot: {
+        Args: { _instrument: string }
+        Returns: undefined
+      }
+      withdraw_research_consent: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "user" | "pro" | "admin"
