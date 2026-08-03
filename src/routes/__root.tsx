@@ -15,75 +15,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { BRAND_TAGLINE } from "@/lib/brand";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Instagram, Linkedin, Youtube, Twitter, ChevronDown } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
-import {
-  getMyNewsletterStatus,
-  subscribeMeToNewsletter,
-  unsubscribeMeFromNewsletter,
-} from "@/lib/newsletter-status.functions";
-
-/**
- * Oturumdaki kullanıcının bülten durumu: menü etiketi + tek tıkla
- * abone ol / abonelikten çık. Çıkışta onay istenir.
- */
-function useNewsletterMenuAction(email: string | null) {
-  const status = useServerFn(getMyNewsletterStatus);
-  const subscribeMe = useServerFn(subscribeMeToNewsletter);
-  const unsubscribeMe = useServerFn(unsubscribeMeFromNewsletter);
-  const [subscribed, setSubscribed] = useState<boolean | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    if (!email) { setSubscribed(null); return; }
-    let alive = true;
-    status({})
-      .then((r) => { if (alive) setSubscribed(Boolean(r.subscribed)); })
-      .catch(() => { if (alive) setSubscribed(null); });
-    return () => { alive = false; };
-  }, [email, status]);
-
-  const label = busy
-    ? "İşleniyor…"
-    : subscribed === null
-      ? "Bülten"
-      : subscribed
-        ? "Bülten Aboneliğinden Çık"
-        : "Bültene Abone Ol";
-
-  const toggle = async () => {
-    if (busy || subscribed === null) return;
-    if (subscribed) {
-      if (!window.confirm("Bülten aboneliğinden çıkmak istediğinizden emin misiniz?")) return;
-      setBusy(true);
-      try {
-        await unsubscribeMe({});
-        setSubscribed(false);
-        window.alert("Bülten aboneliğiniz kapatıldı.");
-      } catch {
-        window.alert("İşlem tamamlanamadı. Lütfen daha sonra tekrar deneyin.");
-      } finally {
-        setBusy(false);
-      }
-      return;
-    }
-    setBusy(true);
-    try {
-      const r = await subscribeMe({});
-      setSubscribed(true);
-      window.alert(
-        r.state === "confirmed"
-          ? "Aboneliğiniz etkin."
-          : "Onay e-postası gönderildi; bağlantıya tıklayınca abonelik başlar.",
-      );
-    } catch {
-      window.alert("İşlem tamamlanamadı. Lütfen daha sonra tekrar deneyin.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return { label, toggle, busy, subscribed };
-}
 
 function FooterNewsletter() {
   return <NewsletterForm source="footer" />;
@@ -295,7 +226,21 @@ const FOOTER_MORE: NavItem[] = [
   { to: "/iade-politikasi", label: "İade Politikası" },
 ];
 
-function NavDropdown({ label, links }: { label: string; links: NavItem[] }) {
+type MenuEntry = { label: string; to?: string; onClick?: () => void };
+
+function NavDropdown({
+  label,
+  links,
+  triggerClassName,
+  align = "left",
+  hideChevron = false,
+}: {
+  label: string;
+  links: MenuEntry[];
+  triggerClassName?: string;
+  align?: "left" | "right";
+  hideChevron?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -324,14 +269,22 @@ function NavDropdown({ label, links }: { label: string; links: NavItem[] }) {
         aria-expanded={open}
         aria-haspopup="true"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 text-foreground/75 transition-colors hover:text-accent"
+        className={
+          triggerClassName ??
+          "flex items-center gap-1 text-foreground/75 transition-colors hover:text-accent"
+        }
       >
         {label}
-        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} strokeWidth={1.8} />
+        {!hideChevron && (
+          <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} strokeWidth={1.8} />
+        )}
       </button>
       {open && (
-        <div className="absolute left-0 mt-2 flex w-44 flex-col rounded-md border border-border bg-background shadow-sm">
-          {links.map((l, i) => (
+        <div
+          className={`absolute ${align === "right" ? "right-0" : "left-0"} mt-2 flex w-44 flex-col rounded-md border border-border bg-background shadow-sm`}
+        >
+          {links.map((l, i) =>
+            l.to ? (
             <Link
               key={l.to}
               to={l.to}
@@ -340,7 +293,17 @@ function NavDropdown({ label, links }: { label: string; links: NavItem[] }) {
             >
               {l.label}
             </Link>
-          ))}
+            ) : (
+              <button
+                key={l.label}
+                type="button"
+                onClick={() => { setOpen(false); l.onClick?.(); }}
+                className={`px-4 py-2 text-left text-sm hover:text-accent ${i < links.length - 1 ? "border-b border-border/60" : ""}`}
+              >
+                {l.label}
+              </button>
+            ),
+          )}
         </div>
       )}
     </div>
@@ -349,21 +312,32 @@ function NavDropdown({ label, links }: { label: string; links: NavItem[] }) {
 
 function SiteHeader() {
   const [email, setEmail] = useState<string | null>(null);
+  const [fullName, setFullName] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const newsletter = useNewsletterMenuAction(email);
   useEffect(() => {
     const check = async (uid: string | undefined) => {
       if (!uid) { setIsAdmin(false); return; }
       const { data } = await supabase.rpc("has_role", { _user_id: uid, _role: "admin" });
       setIsAdmin(!!data);
     };
+    const loadName = async (uid: string | undefined) => {
+      if (!uid) { setFullName(null); return; }
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", uid)
+        .maybeSingle();
+      setFullName((data as { full_name?: string | null } | null)?.full_name?.trim() || null);
+    };
     supabase.auth.getUser().then(({ data }) => {
       setEmail(data.user?.email ?? null);
       check(data.user?.id);
+      loadName(data.user?.id);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       setEmail(session?.user?.email ?? null);
       check(session?.user?.id);
+      loadName(session?.user?.id);
     });
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -413,26 +387,17 @@ function SiteHeader() {
             ),
           )}
           {email ? (
-            <details className="relative">
-              <summary className="cursor-pointer list-none rounded-md border border-border px-3 py-1.5 text-xs tracking-wide">
-                {email.split("@")[0]}
-              </summary>
-              <div className="absolute right-0 mt-2 flex w-44 flex-col rounded-md border border-border bg-background shadow-sm">
-                <Link to="/hesabim" className="border-b border-border/60 px-4 py-2 text-sm hover:text-accent">Hesabım</Link>
-                {isAdmin && (
-                  <Link to="/admin" className="border-b border-border/60 px-4 py-2 text-sm hover:text-accent">Admin</Link>
-                )}
-                <button type="button" onClick={signOut} className="border-b border-border/60 px-4 py-2 text-left text-sm hover:text-accent">Çıkış</button>
-                <button
-                  type="button"
-                  onClick={newsletter.toggle}
-                  disabled={newsletter.busy || newsletter.subscribed === null}
-                  className="px-4 py-2 text-left text-sm hover:text-accent disabled:opacity-60"
-                >
-                  {newsletter.label}
-                </button>
-              </div>
-            </details>
+            <NavDropdown
+              label={fullName ?? email.split("@")[0]}
+              align="right"
+              hideChevron
+              triggerClassName="cursor-pointer rounded-md border border-border px-3 py-1.5 text-xs tracking-wide"
+              links={[
+                { to: "/hesabim", label: "Hesabım" },
+                ...(isAdmin ? [{ to: "/admin", label: "Admin" }] : []),
+                { label: "Çıkış", onClick: signOut },
+              ]}
+            />
           ) : (
             <Link to="/auth" className="rounded-md border border-accent px-3 py-1.5 text-xs tracking-wide text-accent hover:bg-accent hover:text-accent-foreground">
               Giriş Yap
@@ -441,9 +406,9 @@ function SiteHeader() {
         </nav>
         <MobileMenu
           email={email}
+          fullName={fullName}
           isAdmin={isAdmin}
           onSignOut={signOut}
-          newsletter={newsletter}
         />
       </div>
     </header>
@@ -452,14 +417,14 @@ function SiteHeader() {
 
 function MobileMenu({
   email,
+  fullName,
   isAdmin,
   onSignOut,
-  newsletter,
 }: {
   email: string | null;
+  fullName: string | null;
   isAdmin: boolean;
   onSignOut: () => void;
-  newsletter: { label: string; toggle: () => void; busy: boolean; subscribed: boolean | null };
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -543,22 +508,17 @@ function MobileMenu({
           ))}
           {email ? (
             <>
+              <div className="border-b border-border/60 px-4 pb-1 pt-2 text-xs tracking-[0.2em] text-muted-foreground">
+                {(fullName ?? email.split("@")[0]).toLocaleUpperCase("tr-TR")}
+              </div>
               <Link to="/hesabim" className="border-b border-border/60 px-4 py-2.5 text-sm" onClick={() => setOpen(false)}>Hesabım</Link>
               {isAdmin && (<Link to="/admin" className="border-b border-border/60 px-4 py-2.5 text-sm" onClick={() => setOpen(false)}>Admin</Link>)}
               <button
                 type="button"
                 onClick={() => { setOpen(false); onSignOut(); }}
-                className="border-b border-border/60 px-4 py-2.5 text-left text-sm"
+                className="px-4 py-2.5 text-left text-sm"
               >
                 Çıkış
-              </button>
-              <button
-                type="button"
-                disabled={newsletter.busy || newsletter.subscribed === null}
-                className="px-4 py-2.5 text-left text-sm disabled:opacity-60"
-                onClick={() => { setOpen(false); newsletter.toggle(); }}
-              >
-                {newsletter.label}
               </button>
             </>
           ) : (
