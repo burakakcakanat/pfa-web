@@ -1,8 +1,10 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { createCheckout } from "@/lib/checkout.functions";
+import { usePaymentsEnabled } from "@/lib/use-payments-enabled";
 
 type Props = {
   productSlug?: string;
@@ -19,6 +21,7 @@ export function BuyButton({ productSlug, bundleSlug, bookLang, label = "Satın A
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const paymentsEnabled = usePaymentsEnabled();
 
   async function onClick() {
     setError(null);
@@ -47,6 +50,28 @@ export function BuyButton({ productSlug, bundleSlug, bookLang, label = "Satın A
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!paymentsEnabled) {
+    return (
+      <div className="flex flex-col items-start gap-2">
+        <button
+          type="button"
+          disabled
+          aria-disabled="true"
+          className={`${className ?? "btn-primary"} cursor-not-allowed opacity-50`}
+        >
+          Yakında
+        </button>
+        <span className="max-w-xs text-xs leading-relaxed text-muted-foreground">
+          Online satın alma yakında açılıyor. O zamana kadar{" "}
+          <Link to="/iletisim" className="underline underline-offset-4 hover:text-foreground">
+            iletişim
+          </Link>{" "}
+          sayfasından bize yazabilirsiniz.
+        </span>
+      </div>
+    );
   }
 
   return (

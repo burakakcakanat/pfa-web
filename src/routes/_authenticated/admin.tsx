@@ -1740,7 +1740,7 @@ function SiteSettingsTab() {
   const [msg, setMsg] = useState<string | null>(null);
   useEffect(() => {
     fetchList().then((data) => {
-      const out: Record<string, string> = { social_instagram: "", social_linkedin: "", social_x: "", social_youtube: "", podcast_program_url: "", admin_notification_email: "" };
+      const out: Record<string, string> = { social_instagram: "", social_linkedin: "", social_x: "", social_youtube: "", podcast_program_url: "", admin_notification_email: "", payments_enabled: "false" };
       for (const r of data as any[]) out[r.key] = r.value ?? "";
       setRows(out);
     });
@@ -1759,6 +1759,27 @@ function SiteSettingsTab() {
   };
   return (
     <div className="space-y-6">
+    <Card title="Ödeme Sistemi">
+      <label className="flex items-start gap-3 text-sm">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={(rows.payments_enabled ?? "false") === "true"}
+          onChange={(e) => upd("payments_enabled", e.target.checked ? "true" : "false")}
+        />
+        <span>
+          <span className="font-medium">Online satın alma açık (payments_enabled)</span>
+          <span className="mt-1 block text-xs text-muted-foreground">
+            Kapalı olduğunda sitedeki tüm satın alma butonları "Yakında" olarak devre dışı görünür;
+            ürünler ve fiyatlar görünmeye devam eder. Ücretsiz akışlar (7Q pilot) etkilenmez.
+          </span>
+        </span>
+      </label>
+      <div className="mt-4 flex items-center gap-3">
+        <Button onClick={submit} disabled={busy}>{busy ? "Kaydediliyor…" : "Kaydet"}</Button>
+        {msg && <span className="text-sm text-muted-foreground">{msg}</span>}
+      </div>
+    </Card>
     <Card title="Sosyal Medya Bağlantıları">
       <div className="grid gap-3 md:grid-cols-2">
         <div><Label>Instagram URL</Label><Input placeholder="https://instagram.com/…" value={rows.social_instagram ?? ""} onChange={(e) => upd("social_instagram", e.target.value)} /></div>

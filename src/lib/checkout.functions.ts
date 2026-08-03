@@ -34,6 +34,16 @@ export const createCheckout = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
+    // Global purchase switch — while off, no checkout session and no order row.
+    const { data: flag } = await supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "payments_enabled")
+      .maybeSingle();
+    if ((flag?.value ?? "false") !== "true") {
+      throw new Error("Online satın alma henüz açık değil.");
+    }
+
     const stripeSecret = process.env.STRIPE_SECRET_KEY;
     if (!stripeSecret) {
       throw new Error("Stripe yapılandırılmamış. Proje ayarlarından STRIPE_SECRET_KEY ekleyin.");

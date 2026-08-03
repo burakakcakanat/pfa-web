@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { usePaymentsEnabled } from "@/lib/use-payments-enabled";
 
 export const Route = createFileRoute("/seanslar")({
   head: () => ({
@@ -62,6 +64,7 @@ function SessionsPage() {
   const [slot, setSlot] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const dates = nextWeekdays(10);
+  const paymentsEnabled = usePaymentsEnabled();
 
   return (
     <div className="container-page py-20">
@@ -174,13 +177,33 @@ function SessionsPage() {
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={!date || !slot}
-                  className="btn-primary hover:btn-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Rezervasyon & Ödemeye Geç
-                </button>
+                {paymentsEnabled ? (
+                  <button
+                    type="submit"
+                    disabled={!date || !slot}
+                    className="btn-primary hover:btn-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Rezervasyon &amp; Ödemeye Geç
+                  </button>
+                ) : (
+                  <div className="flex flex-col items-start gap-2">
+                    <button
+                      type="button"
+                      disabled
+                      aria-disabled="true"
+                      className="btn-primary cursor-not-allowed opacity-50"
+                    >
+                      Yakında
+                    </button>
+                    <span className="max-w-xs text-xs leading-relaxed text-muted-foreground">
+                      Online satın alma yakında açılıyor. O zamana kadar{" "}
+                      <Link to="/iletisim" className="underline underline-offset-4 hover:text-foreground">
+                        iletişim
+                      </Link>{" "}
+                      sayfasından bize yazabilirsiniz.
+                    </span>
+                  </div>
+                )}
               </form>
             )}
           </div>
