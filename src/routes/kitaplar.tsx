@@ -288,6 +288,14 @@ function AmazonRow({ label, edition }: { label: string; edition: BooksPayload["e
 
 function GiftLauncher({ productSlug, productTitle, priceLabel }: { productSlug: string; productTitle: string; priceLabel: string }) {
   const [open, setOpen] = useState(false);
+  const paymentsEnabled = usePaymentsEnabled();
+  if (!paymentsEnabled) {
+    return (
+      <span className="cursor-not-allowed text-xs text-muted-foreground/70">
+        Hediye Et · yakında
+      </span>
+    );
+  }
   return (
     <>
       <button
