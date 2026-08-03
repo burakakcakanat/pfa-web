@@ -171,7 +171,7 @@ function HomePage() {
             <img
               src={pfaMapAsset.url}
               alt="Bekadan Aydınlanmaya Bilinç Döngüsü — yedi işlevsel bilinç seviyesi haritası"
-              className="mx-auto block h-auto w-full max-w-none align-bottom"
+              className="mx-auto block h-auto w-full max-w-none align-bottom opacity-90 brightness-95 contrast-[0.95]"
               loading="lazy"
             />
           </figure>
