@@ -77,8 +77,8 @@ function BlogPage() {
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">İçerik Merkezi</h1>
       </header>
 
-      <div className="mx-auto mt-10 max-w-3xl">
-        <NewsletterForm variant="banner" source="blog" />
+      <div className="mx-auto mt-10 max-w-xl">
+        <NewsletterForm source="blog" />
       </div>
 
       <div

@@ -19,7 +19,7 @@ export function AssessmentNextSteps({ showFullAssessment = true }: { showFullAss
             Ücretsiz. Yeni yazılar, ölçek ve webinar duyuruları e-posta ile gelir.
           </p>
           <div className="mt-4">
-            <NewsletterForm variant="banner" source="assessment-result" />
+            <NewsletterForm source="assessment-result" />
           </div>
         </div>
 
