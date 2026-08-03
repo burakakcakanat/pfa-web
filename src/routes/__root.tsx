@@ -552,15 +552,14 @@ function MobileMenu({
               >
                 Çıkış
               </button>
-              <Link
-                to="/hesabim"
-                search={{ tab: "profile" }}
-                hash="bulten"
-                className="px-4 py-2.5 text-sm"
-                onClick={() => setOpen(false)}
+              <button
+                type="button"
+                disabled={newsletter.busy || newsletter.subscribed === null}
+                className="px-4 py-2.5 text-left text-sm disabled:opacity-60"
+                onClick={() => { setOpen(false); newsletter.toggle(); }}
               >
-                {newsletterLabel}
-              </Link>
+                {newsletter.label}
+              </button>
             </>
           ) : (
             <Link to="/auth" className="px-4 py-2.5 text-sm text-accent" onClick={() => setOpen(false)}>Giriş Yap</Link>

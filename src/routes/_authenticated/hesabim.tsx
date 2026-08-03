@@ -164,7 +164,6 @@ function AccountPage() {
               {msg && <span className="text-xs text-muted-foreground">{msg}</span>}
             </div>
           </div>
-          <NewsletterPreferences />
           </div>
         )}
 
