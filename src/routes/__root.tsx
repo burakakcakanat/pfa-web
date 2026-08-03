@@ -403,6 +403,7 @@ function SiteHeader() {
               links={[
                 { to: "/hesabim", label: "Hesabım" },
                 ...(isAdmin ? [{ to: "/admin", label: "Admin" }] : []),
+                { label: "Bülten", node: <NewsletterMenuItem /> },
                 { label: "Çıkış", onClick: signOut },
               ]}
             />
