@@ -5,7 +5,7 @@ export default defineTool({
   name: "submit_inquiry",
   title: "Başvuru / iletişim talebi gönder",
   description:
-    "Değerlendirme (PFA Ölçeği), seans rezervasyonu, webinar kaydı veya genel iletişim için başvuru gönderir. Başvuru sunucu loglarına düşer; Burak ekibi e-posta ile geri döner.",
+    "Değerlendirme (PFA Ölçeği), seans rezervasyonu, webinar kaydı veya genel iletişim için başvuru gönderir. Başvuru, sitedeki iletişim formuyla aynı yere (admin panelindeki iletişim kutusu) kaydedilir; Burak ekibi e-posta ile geri döner.",
   inputSchema: {
     type: z
       .enum(["assessment", "session", "webinar", "training", "contact"])
@@ -32,15 +32,41 @@ export default defineTool({
     idempotentHint: false,
     openWorldHint: false,
   },
-  handler: (input) => {
+  handler: async (input) => {
     const receivedAt = new Date().toISOString();
-    console.log("[PFA MCP submit_inquiry]", { receivedAt, ...input });
+
+    // Başvuru, site iletişim formuyla aynı tabloya yazılır; böylece admin
+    // panelinde görünür ve gerçekten yanıtlanabilir.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const details = [
+      input.preferred_date ? `Tercih edilen tarih: ${input.preferred_date}` : null,
+      input.preferred_time ? `Tercih edilen saat: ${input.preferred_time}` : null,
+    ].filter(Boolean);
+    const { error } = await supabaseAdmin.from("contact_messages").insert({
+      full_name: input.name,
+      email: input.email,
+      subject: `MCP başvurusu — ${input.type}`,
+      message: [input.message, ...details].join("\n"),
+    });
+    if (error) {
+      console.error("[PFA MCP submit_inquiry] persist failed", error.message);
+      return {
+        isError: true,
+        content: [
+          {
+            type: "text" as const,
+            text: "Başvuru kaydedilemedi. Lütfen kısa süre sonra tekrar deneyin veya info@psychofunctionalanalysis.com adresine yazın.",
+          },
+        ],
+      };
+    }
+
     const confirmation = {
       status: "received" as const,
       received_at: receivedAt,
       type: input.type,
       message:
-        "Başvurunuz alındı. Burak veya ekibi kısa süre içinde belirttiğiniz e-postadan sizinle iletişime geçecek.",
+        "Başvurunuz kaydedildi. Burak veya ekibi kısa süre içinde belirttiğiniz e-postadan sizinle iletişime geçecek.",
     };
     return {
       content: [{ type: "text", text: JSON.stringify(confirmation, null, 2) }],
