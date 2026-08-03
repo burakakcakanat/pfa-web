@@ -48,7 +48,7 @@ function SevenqIntro() {
       </div>
 
       <div className="mx-auto mt-12 grid max-w-4xl gap-6 md:grid-cols-3">
-        <InfoCard title="Kaç madde?" body="Yetmiş beş civarında kısa cümle, seviye seviye gruplanır; her ekranda bir seviye." />
+        <InfoCard title="Kaç madde?" body="Pilot form 75 madde: L1–L5 onar, L6 on iki (3a/3b ve 9a/9b bölünmüş biçimde test ediliyor), L7 on üç (üç yedek aday dâhil). Seviye seviye gruplanır; her ekranda bir seviye." />
         <InfoCard title="Ne kadar sürer?" body="Yaklaşık 15–20 dakika. Yanıtlar anında kaydedilir; yarıda bırakıp dönebilirsiniz." />
         <InfoCard title="Ne çıkar?" body="7Q skoru ve akort göstergesi, yedi seviye profili, beş kapasite radarı, seviye × kapasite haritası ve üç gelişim önerisi." />
       </div>
