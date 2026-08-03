@@ -528,30 +528,52 @@ export const upsertWebinarSession = createServerFn({ method: "POST" })
       .object({
         id: z.string().uuid().optional(),
         product_id: z.string().uuid(),
-        title: z.string().min(1).max(300),
-        starts_at: z.string(),
+        title: z.string().trim().min(1, "Başlık boş bırakılamaz.").max(300),
+        starts_at: z.string().min(1, "Tarih ve saat gerekli."),
         capacity: z.number().int().nullable().optional(),
-        join_url: z.string().url().nullable().optional(),
-        notes: z.string().max(2000).nullable().optional(),
-        banner_url: z.string().url().nullable().optional(),
+        // Şema eklemeden http(s) ön eki tamamlanır; katı URL doğrulaması
+        // kayıtları sessizce engellemesin.
+        join_url: normalizedUrl,
+        notes: z.string().max(4000).nullable().optional(),
+        banner_url: normalizedUrl,
+        // Fiyatın tek kaynağı products.price_cents; buradan yalnızca güncellenir.
+        price_cents: z.number().int().min(0).nullable().optional(),
       })
       .parse(d),
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context.supabase, context.userId);
-    if (data.id) {
-      const { id, ...patch } = data;
-      const { error } = await context.supabase
+    const iso = new Date(data.starts_at).toISOString();
+    const { id, price_cents, starts_at: _s, ...rest } = data;
+    const row = { ...rest, starts_at: iso };
+    let saved;
+    if (id) {
+      const { data: r, error } = await context.supabase
         .from("webinar_sessions")
-        .update(patch)
-        .eq("id", id);
+        .update(row)
+        .eq("id", id)
+        .select("*")
+        .maybeSingle();
       if (error) throw new Error(error.message);
+      if (!r) throw new Error("Oturum güncellenemedi (kayıt bulunamadı veya yetki yok).");
+      saved = r;
     } else {
-      const { id: _i, ...ins } = data;
-      const { error } = await context.supabase.from("webinar_sessions").insert(ins);
+      const { data: r, error } = await context.supabase
+        .from("webinar_sessions")
+        .insert(row)
+        .select("*")
+        .single();
       if (error) throw new Error(error.message);
+      saved = r;
     }
-    return { ok: true };
+    if (price_cents !== undefined) {
+      const { error: perr } = await context.supabase
+        .from("products")
+        .update({ price_cents: price_cents ?? 0 })
+        .eq("id", data.product_id);
+      if (perr) throw new Error(`Fiyat güncellenemedi: ${perr.message}`);
+    }
+    return { ok: true, session: saved };
   });
 
 export const deleteWebinarSession = createServerFn({ method: "POST" })
