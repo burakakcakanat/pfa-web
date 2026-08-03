@@ -21,6 +21,7 @@ export const Route = createFileRoute("/ulke-lisansi")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: CANONICAL },
       { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
     links: [{ rel: "canonical", href: CANONICAL }],
   }),
