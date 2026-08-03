@@ -15,6 +15,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { BRAND_TAGLINE } from "@/lib/brand";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Instagram, Linkedin, Youtube, Twitter, ChevronDown } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { getMyNewsletterStatus } from "@/lib/newsletter-status.functions";
+
+/** Oturumdaki kullanıcının bülten durumuna göre menü etiketi. */
+function useNewsletterMenuLabel(email: string | null) {
+  const status = useServerFn(getMyNewsletterStatus);
+  const [subscribed, setSubscribed] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!email) { setSubscribed(null); return; }
+    let alive = true;
+    status({})
+      .then((r) => { if (alive) setSubscribed(Boolean(r.subscribed)); })
+      .catch(() => { if (alive) setSubscribed(null); });
+    return () => { alive = false; };
+  }, [email, status]);
+  return subscribed === null
+    ? "Bülten Ayarları"
+    : subscribed
+      ? "Abonelikten Ayrıl"
+      : "Bültene Abone Ol";
+}
 
 function FooterNewsletter() {
   return <NewsletterForm source="footer" />;
