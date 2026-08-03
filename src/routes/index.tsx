@@ -21,10 +21,10 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Psİko-Fonksİyonel Analİz, insan bilincini yedi işlevsel seviyeye ayırır — Bekadan Aydınlanmaya uzanan bir harita.",
+          "Psiko-Fonksiyonel Analiz, insan bilincini yedi işlevsel seviyeye ayırır — Bekadan Aydınlanmaya uzanan bir harita.",
       },
       { property: "og:title", content: "PFA — İnsan Bilincinin İşlevsel Haritası" },
-      { property: "og:description", content: "Psİko-Fonksİyonel Analİz: bilincin yedi seviyeli işlevsel haritası." },
+      { property: "og:description", content: "Psiko-Fonksiyonel Analiz: bilincin yedi seviyeli işlevsel haritası." },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://psychofunctionalanalysis.com/" },
     ],
@@ -91,7 +91,7 @@ function HomePage() {
         <div className="container-page relative py-20 md:py-28">
           <div className="mx-auto max-w-3xl text-center">
             <div className="text-[1.09375rem] font-medium uppercase tracking-[0.35em] text-accent md:text-xl">
-              Psİko-Fonksİyonel Analİz
+              Psiko-Fonksiyonel Analiz
             </div>
             <h1 className="mt-6 font-serif text-4xl leading-[1.08] text-foreground md:text-6xl">
               İnsan bilincinin

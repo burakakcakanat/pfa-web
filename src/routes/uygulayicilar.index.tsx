@@ -21,7 +21,7 @@ const practitionersQuery = () =>
 export const Route = createFileRoute("/uygulayicilar/")({
   head: () => ({
     meta: [
-      { title: "PFA Uygulayıcı Rehberi — Psİko-Fonksİyonel Analİz" },
+      { title: "PFA Uygulayıcı Rehberi — Psiko-Fonksiyonel Analiz" },
       {
         name: "description",
         content:

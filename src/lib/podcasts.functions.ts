@@ -28,9 +28,24 @@ export const listPublishedPodcasts = createServerFn({ method: "GET" }).handler(a
   return data ?? [];
 });
 
+// Only these keys may be read through this public endpoint. site_settings also
+// holds the admin notification address and the cron token, which must never be
+// reachable from the browser.
+const PUBLIC_SETTING_KEYS = new Set([
+  "podcast_program_url",
+  "sevenq_pilot_open",
+  "newsletter_bg_image_url",
+  "newsletter_bg_side",
+]);
+
+function isPublicSettingKey(key: string) {
+  return PUBLIC_SETTING_KEYS.has(key) || key.startsWith("social_");
+}
+
 export const getPublicSiteSetting = createServerFn({ method: "POST" })
   .inputValidator((d: { key: string }) => d)
   .handler(async ({ data }) => {
+    if (!isPublicSettingKey(data.key)) return null;
     const sb = publicClient();
     const { data: row } = await sb.from("site_settings").select("value").eq("key", data.key).maybeSingle();
     return row?.value ?? null;

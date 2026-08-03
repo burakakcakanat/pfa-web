@@ -1298,7 +1298,7 @@ function ShareKitModal({ session, onClose }: { session: any; onClose: () => void
   });
   const priceLine = typeof priceCents === "number" ? `\n💰 $${(priceCents / 100).toFixed(0)}` : "";
   const defaultText =
-    `${session.title}\n📅 ${dateStr} (İstanbul)${priceLine}\n\n${session.notes ? session.notes.split("\n")[0] : "PFA — Psİko-Fonksİyonel Analİz webinarı."}\n\nKayıt: ${publicUrl}`;
+    `${session.title}\n📅 ${dateStr} (İstanbul)${priceLine}\n\n${session.notes ? session.notes.split("\n")[0] : "PFA — Psiko-Fonksiyonel Analiz webinarı."}\n\nKayıt: ${publicUrl}`;
   const [text, setText] = useState(defaultText);
   const encoded = encodeURIComponent(text);
   const [copied, setCopied] = useState<string | null>(null);
@@ -3625,7 +3625,7 @@ function IssueEditor({ initial, emailConfigured, error, onCancel, onSave, onSend
         <div>
           <Label>Önizleme</Label>
           <div className="mt-2 rounded-md border border-border bg-[#fffdf7] p-6 text-sm text-[#1a2a2e]">
-            <div className="mb-4 text-center text-xs uppercase tracking-[0.2em] text-[#0f766e]">PFA — Psİko-Fonksİyonel Analİz</div>
+            <div className="mb-4 text-center text-xs uppercase tracking-[0.2em] text-[#0f766e]">PFA — Psiko-Fonksiyonel Analiz</div>
             <div className="prose prose-sm max-w-none">
               <ReactMarkdown>{content}</ReactMarkdown>
             </div>
