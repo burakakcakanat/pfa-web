@@ -35,6 +35,7 @@ import { Route as WebinarlarBilincSeviyeleriRouteImport } from './routes/webinar
 import { Route as UygulayicilarIdRouteImport } from './routes/uygulayicilar.$id'
 import { Route as HediyeTokenRouteImport } from './routes/hediye.$token'
 import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
+import { Route as BultenOnaylaRouteImport } from './routes/bulten.onayla'
 import { Route as BultenAyrilRouteImport } from './routes/bulten.ayril'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthSifreYenileRouteImport } from './routes/auth_.sifre-yenile'
@@ -181,6 +182,11 @@ const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
   path: '/degerlendirme/mini',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BultenOnaylaRoute = BultenOnaylaRouteImport.update({
+  id: '/bulten/onayla',
+  path: '/bulten/onayla',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BultenAyrilRoute = BultenAyrilRouteImport.update({
   id: '/bulten/ayril',
   path: '/bulten/ayril',
@@ -289,6 +295,7 @@ export interface FileRoutesByFullPath {
   '/auth/sifre-yenile': typeof AuthSifreYenileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/bulten/ayril': typeof BultenAyrilRoute
+  '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
@@ -331,6 +338,7 @@ export interface FileRoutesByTo {
   '/auth/sifre-yenile': typeof AuthSifreYenileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/bulten/ayril': typeof BultenAyrilRoute
+  '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
@@ -375,6 +383,7 @@ export interface FileRoutesById {
   '/auth_/sifre-yenile': typeof AuthSifreYenileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/bulten/ayril': typeof BultenAyrilRoute
+  '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
@@ -419,6 +428,7 @@ export interface FileRouteTypes {
     | '/auth/sifre-yenile'
     | '/blog/$slug'
     | '/bulten/ayril'
+    | '/bulten/onayla'
     | '/degerlendirme/mini'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
@@ -461,6 +471,7 @@ export interface FileRouteTypes {
     | '/auth/sifre-yenile'
     | '/blog/$slug'
     | '/bulten/ayril'
+    | '/bulten/onayla'
     | '/degerlendirme/mini'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
@@ -504,6 +515,7 @@ export interface FileRouteTypes {
     | '/auth_/sifre-yenile'
     | '/blog/$slug'
     | '/bulten/ayril'
+    | '/bulten/onayla'
     | '/degerlendirme_/mini'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
@@ -545,6 +557,7 @@ export interface RootRouteChildren {
   AuthSifreYenileRoute: typeof AuthSifreYenileRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BultenAyrilRoute: typeof BultenAyrilRoute
+  BultenOnaylaRoute: typeof BultenOnaylaRoute
   DegerlendirmeMiniRoute: typeof DegerlendirmeMiniRoute
   HediyeTokenRoute: typeof HediyeTokenRoute
   UygulayicilarIdRoute: typeof UygulayicilarIdRoute
@@ -743,6 +756,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DegerlendirmeMiniRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bulten/onayla': {
+      id: '/bulten/onayla'
+      path: '/bulten/onayla'
+      fullPath: '/bulten/onayla'
+      preLoaderRoute: typeof BultenOnaylaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/bulten/ayril': {
       id: '/bulten/ayril'
       path: '/bulten/ayril'
@@ -898,6 +918,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSifreYenileRoute: AuthSifreYenileRoute,
   BlogSlugRoute: BlogSlugRoute,
   BultenAyrilRoute: BultenAyrilRoute,
+  BultenOnaylaRoute: BultenOnaylaRoute,
   DegerlendirmeMiniRoute: DegerlendirmeMiniRoute,
   HediyeTokenRoute: HediyeTokenRoute,
   UygulayicilarIdRoute: UygulayicilarIdRoute,
