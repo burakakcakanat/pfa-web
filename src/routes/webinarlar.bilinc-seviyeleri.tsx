@@ -13,6 +13,30 @@ export const Route = createFileRoute("/webinarlar/bilinc-seviyeleri")({
           "Kendi haritanızı okumayı öğreten 4 canlı online oturumluk PFA gelişim programı.",
       },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Course",
+          name: "Bilinç Seviyeleri Çalışmaları",
+          description:
+            "Kendi haritanızı okumayı öğreten 4 canlı online oturumluk PFA gelişim programı.",
+          url: "https://psychofunctionalanalysis.com/webinarlar/bilinc-seviyeleri",
+          inLanguage: "tr",
+          provider: {
+            "@type": "Organization",
+            name: "Psiko-Fonksiyonel Analiz (PFA)",
+            url: "https://psychofunctionalanalysis.com",
+          },
+          hasCourseInstance: {
+            "@type": "CourseInstance",
+            courseMode: "online",
+            courseWorkload: "PT4H",
+          },
+        }),
+      },
+    ],
   }),
   component: Page,
 });

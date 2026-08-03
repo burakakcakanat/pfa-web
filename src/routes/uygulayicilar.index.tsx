@@ -35,6 +35,25 @@ export const Route = createFileRoute("/uygulayicilar/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "PFA Uygulayıcı Rehberi",
+          description:
+            "PFA yaklaşımını uygulayan, eğitim ve değerlendirme sürecinden geçmiş uygulayıcıların kürasyonlu rehberi.",
+          url: "https://psychofunctionalanalysis.com/uygulayicilar",
+          inLanguage: "tr",
+          isPartOf: {
+            "@type": "WebSite",
+            name: "Psiko-Fonksiyonel Analiz (PFA)",
+            url: "https://psychofunctionalanalysis.com",
+          },
+        }),
+      },
+    ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(practitionersQuery()),
   component: PractitionersPage,

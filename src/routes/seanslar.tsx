@@ -16,6 +16,30 @@ export const Route = createFileRoute("/seanslar")({
       { property: "og:url", content: "https://psychofunctionalanalysis.com/seanslar" },
     ],
     links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/seanslar" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Service",
+          name: "Birebir PFA Danışmanlık Seansı",
+          serviceType: "Danışmanlık",
+          description:
+            "60 dakikalık online birebir PFA danışmanlık oturumu. Europe/Istanbul saati; hafta içi 10:00–18:00.",
+          url: "https://psychofunctionalanalysis.com/seanslar",
+          provider: {
+            "@type": "Organization",
+            name: "Psiko-Fonksiyonel Analiz (PFA)",
+            url: "https://psychofunctionalanalysis.com",
+          },
+          areaServed: { "@type": "Country", name: "Türkiye" },
+          availableChannel: {
+            "@type": "ServiceChannel",
+            serviceUrl: "https://psychofunctionalanalysis.com/seanslar",
+          },
+        }),
+      },
+    ],
   }),
   component: SessionsPage,
 });
