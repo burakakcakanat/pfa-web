@@ -508,22 +508,17 @@ function MobileMenu({
           ))}
           {email ? (
             <>
+              <div className="border-b border-border/60 px-4 pb-1 pt-2 text-xs tracking-[0.2em] text-muted-foreground">
+                {(fullName ?? email.split("@")[0]).toLocaleUpperCase("tr-TR")}
+              </div>
               <Link to="/hesabim" className="border-b border-border/60 px-4 py-2.5 text-sm" onClick={() => setOpen(false)}>Hesabım</Link>
               {isAdmin && (<Link to="/admin" className="border-b border-border/60 px-4 py-2.5 text-sm" onClick={() => setOpen(false)}>Admin</Link>)}
               <button
                 type="button"
                 onClick={() => { setOpen(false); onSignOut(); }}
-                className="border-b border-border/60 px-4 py-2.5 text-left text-sm"
+                className="px-4 py-2.5 text-left text-sm"
               >
                 Çıkış
-              </button>
-              <button
-                type="button"
-                disabled={newsletter.busy || newsletter.subscribed === null}
-                className="px-4 py-2.5 text-left text-sm disabled:opacity-60"
-                onClick={() => { setOpen(false); newsletter.toggle(); }}
-              >
-                {newsletter.label}
               </button>
             </>
           ) : (
