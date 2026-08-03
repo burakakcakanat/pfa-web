@@ -1496,96 +1496,214 @@ function WebinarsTab() {
   );
 }
 
-function WebinarForm({ initial, products, onSave, onCancel }: { initial: any; products: any[]; onSave: (d: any) => void; onCancel: () => void }) {
+function WebinarForm({ initial, products, onSave, onCancel }: { initial: any; products: any[]; onSave: (d: any) => Promise<void>; onCancel: () => void }) {
   const [d, setD] = useState(initial);
-  const createUpload = useServerFn(createWebinarBannerUploadUrl);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const upd = (k: string, v: any) => setD({ ...d, [k]: v });
-  const uploadBanner = async (file: File) => {
-    if (!d.id) { alert("Önce oturumu kaydedin, sonra görsel yükleyin."); return; }
+  const priceInput = d.price_cents == null ? "" : String(d.price_cents / 100);
+
+  const submit = async () => {
+    setError(null);
+    if (!d.product_id) { setError("Ürün seçilmedi."); return; }
+    if (!d.title?.trim()) { setError("Başlık boş bırakılamaz."); return; }
+    if (!d.starts_at || Number.isNaN(new Date(d.starts_at).getTime())) {
+      setError("Tarih ve saat geçersiz."); return;
+    }
     setBusy(true);
     try {
-      const { path, token, publicUrl } = await createUpload({ data: { session_id: d.id, filename: file.name } });
-      const { error } = await supabase.storage.from("webinar-banners").uploadToSignedUrl(path, token, file, { upsert: true });
-      if (error) throw error;
-      upd("banner_url", publicUrl);
+      await onSave({
+        ...(d.id ? { id: d.id } : {}),
+        product_id: d.product_id,
+        title: d.title.trim(),
+        starts_at: new Date(d.starts_at).toISOString(),
+        capacity: d.capacity || null,
+        join_url: d.join_url?.trim() || null,
+        notes: d.notes?.trim() || null,
+        banner_url: d.banner_url?.trim() || null,
+        price_cents: d.price_cents == null ? 0 : d.price_cents,
+      });
     } catch (e: any) {
-      alert("Yükleme hatası: " + (e?.message ?? "bilinmiyor"));
-    } finally { setBusy(false); }
+      setError(e?.message ?? "Bilinmeyen hata.");
+    } finally {
+      setBusy(false);
+    }
   };
+
   return (
     <div className="grid gap-3 md:grid-cols-2">
       <div><Label>Ürün</Label>
-        <Select value={d.product_id} onValueChange={(v) => upd("product_id", v)}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+        <Select value={d.product_id} onValueChange={(v) => {
+          const p = products.find((x) => x.id === v);
+          setD({ ...d, product_id: v, price_cents: p?.price_cents ?? 0 });
+        }}>
+          <SelectTrigger><SelectValue placeholder="Ürün seçin" /></SelectTrigger>
           <SelectContent>{products.map((p) => (<SelectItem key={p.id} value={p.id}>{p.name_tr}</SelectItem>))}</SelectContent>
         </Select>
       </div>
-      <div><Label>Başlık</Label><Input value={d.title} onChange={(e) => upd("title", e.target.value)} /></div>
-      <div><Label>Tarih & Saat</Label><Input type="datetime-local" value={d.starts_at} onChange={(e) => upd("starts_at", e.target.value)} /></div>
+      <div><Label>Başlık</Label><Input value={d.title ?? ""} onChange={(e) => upd("title", e.target.value)} /></div>
+      <div><Label>Tarih & Saat</Label><Input type="datetime-local" value={d.starts_at ?? ""} onChange={(e) => upd("starts_at", e.target.value)} /></div>
       <div><Label>Kapasite</Label><Input type="number" value={d.capacity ?? ""} onChange={(e) => upd("capacity", e.target.value ? parseInt(e.target.value) : null)} /></div>
-      <div className="md:col-span-2"><Label>Katılım linki</Label><Input value={d.join_url ?? ""} onChange={(e) => upd("join_url", e.target.value)} /></div>
-      <div className="md:col-span-2"><Label>Notlar</Label><Textarea value={d.notes ?? ""} onChange={(e) => upd("notes", e.target.value)} /></div>
+      <div>
+        <Label>Ücret (USD)</Label>
+        <Input
+          type="number"
+          min={0}
+          step="1"
+          placeholder="0"
+          value={priceInput}
+          onChange={(e) => upd("price_cents", e.target.value === "" ? 0 : Math.max(0, Math.round(parseFloat(e.target.value) * 100)))}
+        />
+        <p className="mt-1 text-xs text-muted-foreground">
+          Ürün fiyatına yazılır (tek kaynak). {formatWebinarPrice(d.price_cents) === FREE_LABEL_TR ? `0 veya boş → sitede "${FREE_LABEL_TR}" görünür.` : `Sitede ${formatWebinarPrice(d.price_cents)} görünür.`}
+        </p>
+      </div>
+      <div className="md:col-span-2"><Label>Katılım linki</Label><Input placeholder="https://…" value={d.join_url ?? ""} onChange={(e) => upd("join_url", e.target.value)} /></div>
+      <div className="md:col-span-2"><Label>Notlar</Label><Textarea rows={4} value={d.notes ?? ""} onChange={(e) => upd("notes", e.target.value)} /></div>
       <div className="md:col-span-2">
         <Label>Webinar Görseli</Label>
-        <div className="mt-2 flex items-center gap-3">
-          {d.banner_url && <img src={d.banner_url} alt="banner" className="h-20 w-auto rounded border border-border" />}
-          <input
-            type="file"
-            accept="image/*"
-            disabled={busy || !d.id}
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadBanner(f); }}
-            className="text-sm"
-          />
-          {!d.id && <span className="text-xs text-muted-foreground">Önce kaydedin, sonra görsel yükleyin.</span>}
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          {d.banner_url
+            ? <img src={d.banner_url} alt="Webinar görseli" className="h-20 w-auto rounded border border-border" />
+            : <div className="flex h-20 w-32 items-center justify-center rounded border border-dashed border-border text-xs text-muted-foreground">Görsel yok</div>}
+          <MediaPickerButton label={d.banner_url ? "Görseli Değiştir" : "Kütüphaneden Seç"} onPick={(m) => upd("banner_url", m.public_url)} />
+          {d.banner_url && (
+            <Button type="button" size="sm" variant="outline" onClick={() => upd("banner_url", "")}>Görseli Kaldır</Button>
+          )}
         </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Görsel formun bir parçası; oturumla birlikte tek kaydetmede saklanır.
+        </p>
       </div>
+      {error && (
+        <div className="md:col-span-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
       <div className="flex gap-2 md:col-span-2">
-        <Button onClick={() => onSave({ ...d, starts_at: new Date(d.starts_at).toISOString(), capacity: d.capacity || null, join_url: d.join_url || null, notes: d.notes || null, banner_url: d.banner_url || null })}>Kaydet</Button>
-        <Button variant="outline" onClick={onCancel}>İptal</Button>
+        <Button onClick={submit} disabled={busy}>{busy ? "Kaydediliyor…" : "Kaydet"}</Button>
+        <Button variant="outline" onClick={onCancel} disabled={busy}>İptal</Button>
       </div>
+      {d.title && d.starts_at && !Number.isNaN(new Date(d.starts_at).getTime()) && (
+        <div className="md:col-span-2">
+          <WebinarShareDrafts session={d} products={products} />
+        </div>
+      )}
     </div>
   );
 }
 
 // ============== SHARE KIT ==============
+function webinarPublicUrl(products: any[], productId: string): string {
+  const slug = products.find((p) => p.id === productId)?.slug ?? "";
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://psychofunctionalanalysis.com";
+  const path = slug === "pfa-pro-lisans-paketi" ? "/webinarlar/pfa-pro"
+    : slug === "bilinc-seviyeleri-calismalari" ? "/webinarlar/bilinc-seviyeleri"
+    : "/webinarlar";
+  return `${origin}${path}`;
+}
+
+function CopyRow({ value, label }: { value: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant="outline"
+      onClick={async () => {
+        await navigator.clipboard.writeText(value);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }}
+    >
+      {copied ? "Kopyalandı ✓" : label}
+    </Button>
+  );
+}
+
+async function downloadFromUrl(url: string, filename: string) {
+  try {
+    const r = await fetch(url);
+    const b = await r.blob();
+    const objectUrl = URL.createObjectURL(b);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(objectUrl);
+  } catch {
+    window.open(url, "_blank");
+  }
+}
+
+function WebinarShareDrafts({ session, products }: { session: any; products: any[] }) {
+  const url = webinarPublicUrl(products, session.product_id);
+  const drafts = useMemo(
+    () =>
+      buildWebinarDrafts({
+        title: session.title,
+        startsAt: new Date(session.starts_at).toISOString(),
+        priceCents: session.price_cents,
+        notes: session.notes,
+        url,
+      }),
+    [session.title, session.starts_at, session.price_cents, session.notes, url],
+  );
+  const [texts, setTexts] = useState(drafts);
+  useEffect(() => { setTexts(drafts); }, [drafts]);
+  const upd = (k: keyof typeof texts, v: string) => setTexts({ ...texts, [k]: v });
+
+  return (
+    <Card title="Paylaşım metinleri">
+      <p className="mb-4 text-xs text-muted-foreground">
+        Metinler bu formdaki alanlardan üretilir; düzenleyip kopyalayabilirsiniz.
+      </p>
+      <div className="space-y-5">
+        <div>
+          <Label>LinkedIn</Label>
+          <Textarea rows={7} value={texts.linkedin} onChange={(e) => upd("linkedin", e.target.value)} />
+          <div className="mt-2 flex flex-wrap gap-2">
+            <CopyRow value={texts.linkedin} label="Metni Kopyala" />
+            <a className="btn-primary hover:btn-primary-hover rounded-md px-3 py-1.5 text-sm" href={shareLinks(texts.linkedin, url).linkedin} target="_blank" rel="noreferrer">LinkedIn'de paylaş</a>
+          </div>
+        </div>
+        <div>
+          <Label>WhatsApp</Label>
+          <Textarea rows={4} value={texts.whatsapp} onChange={(e) => upd("whatsapp", e.target.value)} />
+          <div className="mt-2 flex flex-wrap gap-2">
+            <CopyRow value={texts.whatsapp} label="Metni Kopyala" />
+            <a className="btn-primary hover:btn-primary-hover rounded-md px-3 py-1.5 text-sm" href={shareLinks(texts.whatsapp, url).whatsapp} target="_blank" rel="noreferrer">WhatsApp'ta paylaş</a>
+          </div>
+        </div>
+        <div>
+          <Label>Instagram</Label>
+          <Textarea rows={7} value={texts.instagram} onChange={(e) => upd("instagram", e.target.value)} />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <CopyRow value={texts.instagram} label="Başlığı Kopyala" />
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={!session.banner_url}
+              onClick={() => downloadFromUrl(session.banner_url, `webinar-${(session.title ?? "gorsel").slice(0, 40)}.jpg`)}
+            >
+              Görseli İndir
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              Instagram için hazırla: başlığı kopyalayın, görseli indirin, uygulamadan paylaşın.
+            </span>
+          </div>
+          {!session.banner_url && (
+            <p className="mt-1 text-xs text-muted-foreground">Görsel seçilmedi — indirme kapalı.</p>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 function ShareKitModal({ session, onClose }: { session: any; onClose: () => void }) {
-  const productSlug = session.product?.slug ?? "";
-  const publicUrl = useMemo(() => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const path = productSlug === "pfa-pro-lisans-paketi" ? "/webinarlar/pfa-pro"
-      : productSlug === "bilinc-seviyeleri-calismalari" ? "/webinarlar/bilinc-seviyeleri"
-      : "/webinarlar";
-    return `${origin}${path}`;
-  }, [productSlug]);
-  const priceCents = session.product?.price_cents;
-  const dateStr = new Date(session.starts_at).toLocaleString("tr-TR", {
-    dateStyle: "long", timeStyle: "short", timeZone: "Europe/Istanbul",
-  });
-  const priceLine = typeof priceCents === "number" ? `\n💰 $${(priceCents / 100).toFixed(0)}` : "";
-  const defaultText =
-    `${session.title}\n📅 ${dateStr} (İstanbul)${priceLine}\n\n${session.notes ? session.notes.split("\n")[0] : "PFA — Psiko-Fonksiyonel Analiz webinarı."}\n\nKayıt: ${publicUrl}`;
-  const [text, setText] = useState(defaultText);
-  const encoded = encodeURIComponent(text);
-  const [copied, setCopied] = useState<string | null>(null);
-  const copy = async (what: string, value: string) => {
-    await navigator.clipboard.writeText(value);
-    setCopied(what);
-    setTimeout(() => setCopied(null), 1500);
-  };
-  const downloadImage = async () => {
-    if (!session.banner_url) { alert("Bu oturuma görsel yüklenmemiş."); return; }
-    try {
-      const r = await fetch(session.banner_url);
-      const b = await r.blob();
-      const url = URL.createObjectURL(b);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `webinar-${session.id}.jpg`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch { alert("Görsel indirilemedi."); }
-  };
+  const products = session.product ? [session.product] : [];
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-border bg-card p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
@@ -1594,23 +1712,12 @@ function ShareKitModal({ session, onClose }: { session: any; onClose: () => void
           <Button size="sm" variant="outline" onClick={onClose}>Kapat</Button>
         </div>
         {session.banner_url && (
-          <img src={session.banner_url} alt="banner" className="mb-4 max-h-56 w-auto rounded border border-border" />
+          <img src={session.banner_url} alt="Webinar görseli" className="mb-4 max-h-56 w-auto rounded border border-border" />
         )}
-        <Label>Paylaşım metni</Label>
-        <Textarea rows={8} value={text} onChange={(e) => setText(e.target.value)} />
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
-          <a className="btn-primary hover:btn-primary-hover text-center" href={`https://wa.me/?text=${encoded}`} target="_blank" rel="noreferrer">WhatsApp'ta Paylaş</a>
-          <a className="btn-primary hover:btn-primary-hover text-center" href={`https://twitter.com/intent/tweet?text=${encoded}`} target="_blank" rel="noreferrer">X'te Paylaş</a>
-          <a className="btn-primary hover:btn-primary-hover text-center" href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(publicUrl)}`} target="_blank" rel="noreferrer">LinkedIn'de Paylaş</a>
-          <Button variant="outline" onClick={() => copy("text", text)}>{copied === "text" ? "Kopyalandı ✓" : "Metni Kopyala"}</Button>
-          <Button variant="outline" onClick={() => copy("link", publicUrl)}>{copied === "link" ? "Kopyalandı ✓" : "Linki Kopyala"}</Button>
-          <Button variant="outline" onClick={downloadImage} disabled={!session.banner_url}>Görseli İndir</Button>
-        </div>
-        <p className="mt-4 rounded-md bg-muted p-3 text-xs text-muted-foreground">
-          <span className="font-medium">Instagram için:</span> Instagram web ön-paylaşımı desteklemiyor —
-          "Görseli İndir" + "Metni Kopyala" ile mobil uygulamadan paylaşın.
-          Tam otomatik paylaşım için platform API'leri gerekir; bu kit tek tıkla manuel paylaşımdır.
-        </p>
+        <WebinarShareDrafts
+          session={{ ...session, price_cents: session.product?.price_cents ?? null }}
+          products={products}
+        />
       </div>
     </div>
   );
