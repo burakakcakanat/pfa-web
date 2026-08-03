@@ -607,7 +607,9 @@ export type Database = {
       }
       newsletter_subscribers: {
         Row: {
+          confirm_token: string
           confirmed: boolean
+          confirmed_at: string | null
           consent: boolean
           created_at: string
           email: string
@@ -621,7 +623,9 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          confirm_token?: string
           confirmed?: boolean
+          confirmed_at?: string | null
           consent?: boolean
           created_at?: string
           email: string
@@ -635,7 +639,9 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          confirm_token?: string
           confirmed?: boolean
+          confirmed_at?: string | null
           consent?: boolean
           created_at?: string
           email?: string
@@ -1344,6 +1350,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      webinar_reminders: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          reminder_sent_at: string
+          updated_at: string
+          user_id: string | null
+          webinar_session_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          reminder_sent_at?: string
+          updated_at?: string
+          user_id?: string | null
+          webinar_session_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          reminder_sent_at?: string
+          updated_at?: string
+          user_id?: string | null
+          webinar_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webinar_reminders_webinar_session_id_fkey"
+            columns: ["webinar_session_id"]
+            isOneToOne: false
+            referencedRelation: "webinar_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       webinar_sessions: {
         Row: {

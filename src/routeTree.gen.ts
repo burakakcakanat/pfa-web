@@ -35,6 +35,7 @@ import { Route as WebinarlarBilincSeviyeleriRouteImport } from './routes/webinar
 import { Route as UygulayicilarIdRouteImport } from './routes/uygulayicilar.$id'
 import { Route as HediyeTokenRouteImport } from './routes/hediye.$token'
 import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
+import { Route as BultenOnaylaRouteImport } from './routes/bulten.onayla'
 import { Route as BultenAyrilRouteImport } from './routes/bulten.ayril'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthSifreYenileRouteImport } from './routes/auth_.sifre-yenile'
@@ -43,6 +44,7 @@ import { Route as AuthenticatedHesabimRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as ApiPublicWebinarRemindersRouteImport } from './routes/api/public/webinar-reminders'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as AuthenticatedRaporSessionIdRouteImport } from './routes/_authenticated/rapor.$sessionId'
 import { Route as AuthenticatedDegerlendirmeTamRouteImport } from './routes/_authenticated/degerlendirme.tam'
@@ -181,6 +183,11 @@ const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
   path: '/degerlendirme/mini',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BultenOnaylaRoute = BultenOnaylaRouteImport.update({
+  id: '/bulten/onayla',
+  path: '/bulten/onayla',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BultenAyrilRoute = BultenAyrilRouteImport.update({
   id: '/bulten/ayril',
   path: '/bulten/ayril',
@@ -222,6 +229,12 @@ const Char91DotmcpChar93ListToolsRoute =
   Char91DotmcpChar93ListToolsRouteImport.update({
     id: '/.mcp/list-tools',
     path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicWebinarRemindersRoute =
+  ApiPublicWebinarRemindersRouteImport.update({
+    id: '/api/public/webinar-reminders',
+    path: '/api/public/webinar-reminders',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
@@ -289,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/auth/sifre-yenile': typeof AuthSifreYenileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/bulten/ayril': typeof BultenAyrilRoute
+  '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
@@ -303,6 +317,7 @@ export interface FileRoutesByFullPath {
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
   '/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
   '/api/public/media/$file': typeof ApiPublicMediaFileRoute
 }
@@ -331,6 +346,7 @@ export interface FileRoutesByTo {
   '/auth/sifre-yenile': typeof AuthSifreYenileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/bulten/ayril': typeof BultenAyrilRoute
+  '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
@@ -345,6 +361,7 @@ export interface FileRoutesByTo {
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
   '/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
   '/api/public/media/$file': typeof ApiPublicMediaFileRoute
 }
@@ -375,6 +392,7 @@ export interface FileRoutesById {
   '/auth_/sifre-yenile': typeof AuthSifreYenileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/bulten/ayril': typeof BultenAyrilRoute
+  '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
@@ -389,6 +407,7 @@ export interface FileRoutesById {
   '/_authenticated/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
   '/_authenticated/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/_authenticated/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
   '/api/public/media/$file': typeof ApiPublicMediaFileRoute
 }
@@ -419,6 +438,7 @@ export interface FileRouteTypes {
     | '/auth/sifre-yenile'
     | '/blog/$slug'
     | '/bulten/ayril'
+    | '/bulten/onayla'
     | '/degerlendirme/mini'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
@@ -433,6 +453,7 @@ export interface FileRouteTypes {
     | '/degerlendirme/tam'
     | '/rapor/$sessionId'
     | '/api/public/stripe-webhook'
+    | '/api/public/webinar-reminders'
     | '/7q/rapor/$sessionId'
     | '/api/public/media/$file'
   fileRoutesByTo: FileRoutesByTo
@@ -461,6 +482,7 @@ export interface FileRouteTypes {
     | '/auth/sifre-yenile'
     | '/blog/$slug'
     | '/bulten/ayril'
+    | '/bulten/onayla'
     | '/degerlendirme/mini'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
@@ -475,6 +497,7 @@ export interface FileRouteTypes {
     | '/degerlendirme/tam'
     | '/rapor/$sessionId'
     | '/api/public/stripe-webhook'
+    | '/api/public/webinar-reminders'
     | '/7q/rapor/$sessionId'
     | '/api/public/media/$file'
   id:
@@ -504,6 +527,7 @@ export interface FileRouteTypes {
     | '/auth_/sifre-yenile'
     | '/blog/$slug'
     | '/bulten/ayril'
+    | '/bulten/onayla'
     | '/degerlendirme_/mini'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
@@ -518,6 +542,7 @@ export interface FileRouteTypes {
     | '/_authenticated/degerlendirme/tam'
     | '/_authenticated/rapor/$sessionId'
     | '/api/public/stripe-webhook'
+    | '/api/public/webinar-reminders'
     | '/_authenticated/7q/rapor/$sessionId'
     | '/api/public/media/$file'
   fileRoutesById: FileRoutesById
@@ -545,6 +570,7 @@ export interface RootRouteChildren {
   AuthSifreYenileRoute: typeof AuthSifreYenileRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BultenAyrilRoute: typeof BultenAyrilRoute
+  BultenOnaylaRoute: typeof BultenOnaylaRoute
   DegerlendirmeMiniRoute: typeof DegerlendirmeMiniRoute
   HediyeTokenRoute: typeof HediyeTokenRoute
   UygulayicilarIdRoute: typeof UygulayicilarIdRoute
@@ -556,6 +582,7 @@ export interface RootRouteChildren {
   WebinarlarIndexRoute: typeof WebinarlarIndexRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
+  ApiPublicWebinarRemindersRoute: typeof ApiPublicWebinarRemindersRoute
   ApiPublicMediaFileRoute: typeof ApiPublicMediaFileRoute
 }
 
@@ -743,6 +770,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DegerlendirmeMiniRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bulten/onayla': {
+      id: '/bulten/onayla'
+      path: '/bulten/onayla'
+      fullPath: '/bulten/onayla'
+      preLoaderRoute: typeof BultenOnaylaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/bulten/ayril': {
       id: '/bulten/ayril'
       path: '/bulten/ayril'
@@ -797,6 +831,13 @@ declare module '@tanstack/react-router' {
       path: '/.mcp/list-tools'
       fullPath: '/.mcp/list-tools'
       preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/webinar-reminders': {
+      id: '/api/public/webinar-reminders'
+      path: '/api/public/webinar-reminders'
+      fullPath: '/api/public/webinar-reminders'
+      preLoaderRoute: typeof ApiPublicWebinarRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/stripe-webhook': {
@@ -898,6 +939,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSifreYenileRoute: AuthSifreYenileRoute,
   BlogSlugRoute: BlogSlugRoute,
   BultenAyrilRoute: BultenAyrilRoute,
+  BultenOnaylaRoute: BultenOnaylaRoute,
   DegerlendirmeMiniRoute: DegerlendirmeMiniRoute,
   HediyeTokenRoute: HediyeTokenRoute,
   UygulayicilarIdRoute: UygulayicilarIdRoute,
@@ -909,6 +951,7 @@ const rootRouteChildren: RootRouteChildren = {
   WebinarlarIndexRoute: WebinarlarIndexRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
+  ApiPublicWebinarRemindersRoute: ApiPublicWebinarRemindersRoute,
   ApiPublicMediaFileRoute: ApiPublicMediaFileRoute,
 }
 export const routeTree = rootRouteImport

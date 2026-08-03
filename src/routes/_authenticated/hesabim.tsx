@@ -7,6 +7,7 @@ import { getProDashboard, createProInvite } from "@/lib/pro.functions";
 import { listMyEbooks, getEbookUrl } from "@/lib/ebooks.functions";
 import { listMyGifts } from "@/lib/gifts.functions";
 import { PractitionerAccountTab } from "@/components/practitioner-account";
+import { NewsletterPreferences } from "@/components/newsletter-preferences";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
   validateSearch: (s: Record<string, unknown>): { tab?: string } =>
@@ -147,6 +148,7 @@ function AccountPage() {
 
       <div className="mt-8 max-w-3xl">
         {tab === "profile" && (
+          <div className="space-y-6">
           <div className="space-y-4 rounded-lg border border-border bg-card p-6">
             <label className="block text-sm"><span className="mb-1 block text-foreground/80">E-posta</span>
               <input readOnly value={profile?.email ?? ""} className="w-full rounded-md border border-border bg-muted/40 px-3 py-2" /></label>
@@ -159,6 +161,8 @@ function AccountPage() {
               <button type="button" onClick={saveProfile} disabled={saving} className="btn-primary disabled:opacity-60">{saving ? "..." : "Kaydet"}</button>
               {msg && <span className="text-xs text-muted-foreground">{msg}</span>}
             </div>
+          </div>
+          <NewsletterPreferences />
           </div>
         )}
 

@@ -19,6 +19,7 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
   const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState(""); // honeypot
   const [state, setState] = useState<"idle" | "loading" | "ok">("idle");
+  const [pending, setPending] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [suppressed, setSuppressed] = useState(false);
@@ -64,10 +65,11 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
     }
     setState("loading");
     try {
-      await subscribe({ data: { email, segment: "merakli", consent, source, website } });
+      const res = await subscribe({ data: { email, segment: "merakli", consent, source, website } });
       setState("ok");
+      setPending(res?.state !== "confirmed");
       try { window.localStorage.setItem(SUBSCRIBED_KEY, "1"); } catch { /* ignore */ }
-      window.setTimeout(() => setCollapsed(true), 6000);
+      window.setTimeout(() => setCollapsed(true), 8000);
     } catch (e: unknown) {
       setState("idle");
       setErr(e instanceof Error ? e.message : "Bir hata oluştu.");
@@ -79,14 +81,16 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
   return (
     <div
       ref={wrapRef}
-      className="grid overflow-hidden transition-all duration-500 ease-in-out"
+      className="grid w-full min-w-0 max-w-full overflow-hidden transition-all duration-500 ease-in-out"
       style={{ gridTemplateRows: collapsed ? "0fr" : "1fr", opacity: collapsed ? 0 : 1 }}
       aria-hidden={collapsed}
     >
       <div className="min-h-0">
         {state === "ok" ? (
           <div className="rounded-lg border border-accent/40 bg-accent/10 p-4 text-sm text-foreground/85">
-            Teşekkürler — aboneliğiniz alındı; onay e-postası gönderildi.
+            {pending
+              ? "Teşekkürler — onay e-postası gönderildi. Aboneliğin başlaması için e-postadaki bağlantıya tıklayın."
+              : "Teşekkürler — aboneliğiniz etkin; ilk sayı e-posta adresinize gönderildi."}
           </div>
         ) : (
           <form onSubmit={onSubmit} className="rounded-lg border border-border bg-card/70 p-4">
@@ -105,7 +109,7 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
               aria-hidden="true"
             />
 
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <div className="mt-3 flex w-full min-w-0 flex-col gap-2 sm:flex-row">
               <input
                 type="email"
                 required
@@ -113,14 +117,14 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 aria-label="E-posta adresi"
-                className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="w-full min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
               />
-              <button className="btn-primary h-10 whitespace-nowrap px-4" disabled={state === "loading"}>
+              <button className="btn-primary h-10 shrink-0 whitespace-nowrap px-4" disabled={state === "loading"}>
                 {state === "loading" ? "Gönderiliyor…" : "Abone Ol"}
               </button>
             </div>
 
-            <label className="mt-2 flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground">
+            <label className="mt-2 flex items-start gap-2 break-words text-[11px] leading-relaxed text-muted-foreground">
               <input
                 type="checkbox"
                 checked={consent}

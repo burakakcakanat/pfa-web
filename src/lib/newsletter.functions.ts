@@ -2,6 +2,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { parseFriendly } from "@/lib/zod-friendly";
+import {
+  confirmCore,
+  filterSuppressed,
+  loadArtwork,
+  mdToHtml,
+  sendResendEmail,
+  siteBase,
+  subscribeCore,
+  unsubscribeCore,
+  wrapEmailHtml,
+} from "@/lib/newsletter-core.server";
 
 const SEGMENTS = ["merakli", "profesyonel", "kurumsal"] as const;
 const TARGETS = ["merakli", "profesyonel", "kurumsal", "tumu"] as const;
@@ -27,81 +38,25 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     if (data.website && data.website.trim() !== "") {
       // honeypot triggered — pretend success
-      return { ok: true };
+      return { ok: true as const, state: "pending" as const, emailSent: false };
     }
     if (!data.consent) throw new Error("KVKK onayı gerekli.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const email = data.email.toLowerCase().trim();
-
-    // Explicit new opt-in lifts any previous global suppression for this address.
-    await supabaseAdmin.from("newsletter_suppressions").delete().eq("email", email);
-
-    // upsert-like: check if exists
-    const { data: existing } = await supabaseAdmin
-      .from("newsletter_subscribers")
-      .select("id, unsubscribed_at")
-      .eq("email", email)
-      .maybeSingle();
-
-    if (existing) {
-      await supabaseAdmin
-        .from("newsletter_subscribers")
-        .update({
-          segment: data.segment,
-          full_name: data.full_name ?? null,
-          consent: true,
-          source: data.source ?? "footer",
-          unsubscribed_at: null,
-        })
-        .eq("id", existing.id);
-      return { ok: true };
-    }
-
-    const { error } = await supabaseAdmin.from("newsletter_subscribers").insert({
-      email,
+    return subscribeCore(supabaseAdmin, {
+      email: data.email,
       full_name: data.full_name ?? null,
       segment: data.segment,
-      consent: true,
       source: data.source ?? "footer",
     });
-    if (error && !/duplicate|unique/i.test(error.message)) throw new Error(error.message);
-    // Yeni aboneye, kayıt olduğu gün 1 No'lu bülten (hoş geldin) gönderilir.
-    // Hata olursa abonelik akışı bozulmaz.
-    try {
-      await sendWelcomeIssue(supabaseAdmin, email);
-    } catch (e) {
-      console.error("[newsletter] welcome send failed", email, e);
-    }
-    return { ok: true };
   });
 
-// İlk (en eski) bülten sayısını hoş geldin mektubu olarak gönderir.
-async function sendWelcomeIssue(supabaseAdmin: any, email: string) {
-  if (!process.env.RESEND_API_KEY_DIRECT) return;
-  const { data: issue } = await supabaseAdmin
-    .from("newsletter_issues")
-    .select("title, content_md")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  if (!issue) return;
-  const { data: sub } = await supabaseAdmin
-    .from("newsletter_subscribers")
-    .select("unsubscribe_token")
-    .eq("email", email)
-    .maybeSingle();
-  const base = process.env.SITE_URL || "https://psychofunctionalanalysis.com";
-  const unsubUrl = sub?.unsubscribe_token
-    ? `${base}/bulten/ayril?token=${sub.unsubscribe_token}`
-    : `${base}/bulten/ayril`;
-  const art = await loadArtwork(supabaseAdmin);
-  const html = wrapEmailHtml(
-    mdToHtml(issue.content_md).replace(/{{unsubscribe_url}}/g, unsubUrl),
-    unsubUrl,
-    art,
-  );
-  await sendResendEmail(email, issue.title, html);
-}
+// -------- PUBLIC: confirm (double opt-in) --------
+export const confirmNewsletter = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => z.object({ token: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    return confirmCore(supabaseAdmin, data.token);
+  });
 
 // -------- PUBLIC: unsubscribe --------
 // Standalone, token-based, NO auth required. Global: opting out stops every
@@ -116,17 +71,7 @@ export const unsubscribeNewsletter = createServerFn({ method: "POST" })
       .eq("unsubscribe_token", data.token)
       .maybeSingle();
     if (!row) return { ok: false };
-    const email = row.email.toLowerCase().trim();
-    // 1) mark EVERY row for this address as unsubscribed (all segments)
-    await supabaseAdmin
-      .from("newsletter_subscribers")
-      .update({ unsubscribed_at: new Date().toISOString() })
-      .eq("email", email);
-    // 2) permanent global suppression, independent of subscriber rows
-    await supabaseAdmin
-      .from("newsletter_suppressions")
-      .upsert({ email, unsubscribed_at: new Date().toISOString(), source: "link" }, { onConflict: "email" });
-    return { ok: true };
+    return unsubscribeCore(supabaseAdmin, row.email, "link");
   });
 
 // -------- ADMIN --------
@@ -137,7 +82,7 @@ export const listNewsletterSubscribers = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("newsletter_subscribers")
-      .select("id, email, full_name, segment, source, consent, unsubscribed_at, created_at")
+      .select("id, email, full_name, segment, source, consent, confirmed, confirmed_at, unsubscribed_at, created_at")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -265,174 +210,6 @@ export const listNewsletterUnsubscribed = createServerFn({ method: "GET" })
     return { rows, activeCount: active, unsubscribedCount: rows.length };
   });
 
-// Hard guard: never dispatch to an address that opted out, whatever the
-// recipient list says. Returns the allowed list plus how many were blocked.
-async function filterSuppressed<T extends { email: string }>(
-  supabaseAdmin: any,
-  recipients: T[],
-): Promise<{ allowed: T[]; suppressed: number }> {
-  if (recipients.length === 0) return { allowed: [], suppressed: 0 };
-  const emails = [...new Set(recipients.map((r) => r.email.toLowerCase().trim()))];
-  const blocked = new Set<string>();
-  const CHUNK = 200;
-  for (let i = 0; i < emails.length; i += CHUNK) {
-    const chunk = emails.slice(i, i + CHUNK);
-    const [{ data: supp }, { data: unsub }] = await Promise.all([
-      supabaseAdmin.from("newsletter_suppressions").select("email").in("email", chunk),
-      supabaseAdmin
-        .from("newsletter_subscribers")
-        .select("email, unsubscribed_at")
-        .in("email", chunk)
-        .not("unsubscribed_at", "is", null),
-    ]);
-    for (const r of supp ?? []) blocked.add(String(r.email).toLowerCase());
-    for (const r of unsub ?? []) blocked.add(String(r.email).toLowerCase());
-  }
-  const seen = new Set<string>();
-  const allowed: T[] = [];
-  let suppressed = 0;
-  for (const r of recipients) {
-    const e = r.email.toLowerCase().trim();
-    if (blocked.has(e)) { suppressed += 1; continue; }
-    if (seen.has(e)) continue;
-    seen.add(e);
-    allowed.push(r);
-  }
-  return { allowed, suppressed };
-}
-
-// Minimal, safe markdown -> HTML renderer for email bodies.
-function mdToHtml(md: string): string {
-  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const lines = md.split(/\r?\n/);
-  const out: string[] = [];
-  let inList = false;
-  for (const raw of lines) {
-    const line = raw.trimEnd();
-    if (/^\s*[-*]\s+/.test(line)) {
-      if (!inList) { out.push("<ul>"); inList = true; }
-      out.push(`<li>${inline(esc(line.replace(/^\s*[-*]\s+/, "")))}</li>`);
-      continue;
-    }
-    if (inList) { out.push("</ul>"); inList = false; }
-    if (!line.trim()) { out.push(""); continue; }
-    if (/^#\s+/.test(line)) { out.push(`<h1>${inline(esc(line.replace(/^#\s+/, "")))}</h1>`); continue; }
-    if (/^##\s+/.test(line)) { out.push(`<h2>${inline(esc(line.replace(/^##\s+/, "")))}</h2>`); continue; }
-    if (/^###\s+/.test(line)) { out.push(`<h3>${inline(esc(line.replace(/^###\s+/, "")))}</h3>`); continue; }
-    out.push(`<p>${inline(esc(line))}</p>`);
-  }
-  if (inList) out.push("</ul>");
-  return out.join("\n");
-}
-function inline(s: string): string {
-  return s
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#0f766e">$1</a>')
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*([^*]+)\*/g, "<em>$1</em>");
-}
-
-type Artwork = {
-  url: string;
-  side: "left" | "right" | "top" | "bottom";
-  width: number;
-  opacity: number;
-  alt: string;
-} | null;
-
-async function loadArtwork(supabaseAdmin: any): Promise<Artwork> {
-  try {
-    const { data } = await supabaseAdmin
-      .from("site_settings")
-      .select("key, value")
-      .in("key", [
-        "newsletter_bg_image_url",
-        "newsletter_bg_side",
-        "newsletter_bg_width",
-        "newsletter_bg_opacity",
-        "newsletter_bg_alt",
-      ]);
-    const map: Record<string, string> = {};
-    for (const r of data ?? []) if (r.value) map[r.key] = String(r.value).trim();
-    const url = map["newsletter_bg_image_url"];
-    if (!url || !/^https?:\/\//i.test(url)) return null;
-    const rawSide = map["newsletter_bg_side"];
-    const side: "left" | "right" | "top" | "bottom" =
-      rawSide === "left" || rawSide === "top" || rawSide === "bottom" ? rawSide : "right";
-    const width = Math.min(560, Math.max(40, Number(map["newsletter_bg_width"]) || 96));
-    const opacity = Math.min(100, Math.max(5, Number(map["newsletter_bg_opacity"]) || 50)) / 100;
-    return { url, side, width, opacity, alt: map["newsletter_bg_alt"] ?? "" };
-  } catch {
-    return null;
-  }
-}
-
-// Artwork is always a real <img> (never a CSS background, which Outlook and
-// several webmail clients drop). Blocked/broken images collapse to an empty
-// strip: no broken-image icon, no layout shift, letter stays readable.
-function artworkCell(art: Artwork): string {
-  if (!art) return "";
-  const w = Math.round(art.width);
-  return `<td width="${w}" valign="top" style="width:${w}px;padding:0;line-height:0;font-size:0;background:#fffdf7">
-    <img src="${art.url}" width="${w}" alt="${escAttr(art.alt)}" border="0" style="display:block;width:${w}px;max-width:${w}px;height:auto;border:0;outline:none;text-decoration:none;opacity:${art.opacity}" />
-  </td>`;
-}
-
-function escAttr(s: string): string {
-  return (s ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-}
-
-function artworkEdgeRow(art: Artwork): string {
-  if (!art) return "";
-  const w = Math.min(560, Math.round(art.width));
-  return `<tr><td align="center" style="padding:0;line-height:0;font-size:0;background:#fffdf7">
-    <img src="${art.url}" width="${w}" alt="${escAttr(art.alt)}" border="0" style="display:block;width:${w}px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;opacity:${art.opacity}" />
-  </td></tr>`;
-}
-
-function wrapEmailHtml(bodyHtml: string, unsubscribeUrl: string, art: Artwork = null): string {
-  const sideArt = art && (art.side === "left" || art.side === "right") ? art : null;
-  const left = sideArt?.side === "left" ? artworkCell(sideArt) : "";
-  const right = sideArt?.side === "right" ? artworkCell(sideArt) : "";
-  const topRow = art?.side === "top" ? artworkEdgeRow(art) : "";
-  const bottomRow = art?.side === "bottom" ? artworkEdgeRow(art) : "";
-  const bodyRow = sideArt
-    ? `<tr><td style="padding:0">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-          ${left}
-          <td valign="top" style="padding:28px 32px;font-size:15px;line-height:1.7">${bodyHtml}</td>
-          ${right}
-        </tr></table>
-      </td></tr>`
-    : `<tr><td style="padding:28px 32px;font-size:15px;line-height:1.7">${bodyHtml}</td></tr>`;
-  return `<!doctype html><html><body style="margin:0;background:#f7f3ea;font-family:Inter,system-ui,sans-serif;color:#1a2a2e;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f3ea;padding:32px 12px;">
-    <tr><td align="center">
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fffdf7;border:1px solid #e6dfcf;border-radius:8px;overflow:hidden">
-        <tr><td style="padding:24px 32px;border-bottom:1px solid #eee5d0;text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:20px;letter-spacing:.14em;color:#0f766e">PFA — PSİKO-FONKSİYONEL ANALİZ</td></tr>
-        ${topRow}
-        ${bodyRow}
-        ${bottomRow}
-        <tr><td style="padding:20px 32px;border-top:1px solid #eee5d0;font-size:11px;color:#6b6355;text-align:center">
-          Bu e-postayı PFA bültenine abone olduğunuz için aldınız.<br/>
-          <a href="${unsubscribeUrl}" style="color:#6b6355;text-decoration:underline">Abonelikten ayrıl</a>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table></body></html>`;
-}
-
-async function sendResendEmail(to: string, subject: string, html: string) {
-  const { sendEmail } = await import("@/lib/email/send.server");
-  const r = await sendEmail({ to, subject, html });
-  if (!r.ok) {
-    const reason = r.error ?? "send_failed";
-    throw new Error(
-      reason === "email_not_configured"
-        ? "E-posta gönderimi yapılandırılmamış (RESEND_API_KEY_DIRECT eksik)."
-        : `E-posta gönderilemedi: ${reason}`,
-    );
-  }
-}
 
 export const sendNewsletterTest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -452,7 +229,7 @@ export const sendNewsletterTest = createServerFn({ method: "POST" })
     const { data: userRes } = await context.supabase.auth.getUser();
     const email = userRes.user?.email;
     if (!email) throw new Error("Yönetici e-postası bulunamadı.");
-    const base = process.env.SITE_URL || "https://psychofunctionalanalysis.com";
+    const base = siteBase();
     // Use the admin's OWN real token when they are a subscriber, so the test
     // mail's unsubscribe link actually works instead of being a dead dummy.
     const { data: own } = await supabaseAdmin
@@ -493,6 +270,8 @@ export const sendNewsletterIssue = createServerFn({ method: "POST" })
       .from("newsletter_subscribers")
       .select("email, unsubscribe_token, segment")
       .eq("consent", true)
+      // Çift onay: yalnızca aboneliğini onaylamış adreslere gönderilir.
+      .eq("confirmed", true)
       .is("unsubscribed_at", null);
     if (issue.segment !== "tumu") q = q.eq("segment", issue.segment);
     const { data: subs, error: subsErr } = await q;
@@ -504,7 +283,7 @@ export const sendNewsletterIssue = createServerFn({ method: "POST" })
       `[newsletter] issue=${data.issueId} candidates=${(subs ?? []).length} suppressed=${suppressed} recipients=${recipients.length}`,
     );
 
-    const base = process.env.SITE_URL || "https://psychofunctionalanalysis.com";
+    const base = siteBase();
     const art = await loadArtwork(supabaseAdmin);
     let sent = 0;
     const BATCH = 50;
