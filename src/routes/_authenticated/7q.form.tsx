@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { SevenqRunner } from "@/components/sevenq-runner";
 import { BuyButton } from "@/components/buy-button";
 import { getSevenqAccess, startSevenqSession, completeSevenqSession } from "@/lib/sevenq.functions";
+import { ResearchConsentBlock } from "@/components/research-consent-block";
+import { EMPTY_CONSENT, type ResearchConsentInput } from "@/lib/research-consent";
 
 export const Route = createFileRoute("/_authenticated/7q/form")({
   validateSearch: (search: Record<string, unknown>): { invite?: string } =>
@@ -28,20 +30,32 @@ function SevenqFormPage() {
   const [session, setSession] = useState<{ session_id: string; answers: { question_id: string; value: number }[] } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [consent, setConsent] = useState<ResearchConsentInput>(EMPTY_CONSENT);
+  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
         const a = await checkAccess({ data: undefined as unknown as never });
         setAccess(a);
-        if (!a.allowed) return;
-        const s = await start({ data: { invite: invite ?? null } });
-        setSession(s as typeof session);
       } catch (e) {
         setErr(e instanceof Error ? e.message : "Bir hata oluştu.");
       }
     })();
-  }, [checkAccess, start, invite]);
+  }, [checkAccess]);
+
+  async function beginSession() {
+    setErr(null);
+    setStarting(true);
+    try {
+      const s = await start({ data: { invite: invite ?? null, consent } });
+      setSession(s as typeof session);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Bir hata oluştu.");
+    } finally {
+      setStarting(false);
+    }
+  }
 
   async function onComplete() {
     if (!session) return;
@@ -89,7 +103,29 @@ function SevenqFormPage() {
   }
 
   if (!session) {
-    return <div className="container-page py-20 text-center text-sm text-muted-foreground">Oturum hazırlanıyor…</div>;
+    return (
+      <div className="container-page py-16">
+        <header className="mx-auto mb-8 max-w-3xl text-center">
+          <div className="text-xs tracking-[0.3em] text-accent">7Q PROFİLİ</div>
+          <h1 className="mt-3 font-serif text-3xl md:text-4xl">Başlamadan önce</h1>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Envanter Likert tipi maddelerden oluşur ve yarıda bırakıp sonra devam edebilirsiniz.
+          </p>
+        </header>
+        <div className="mx-auto max-w-3xl space-y-6">
+          <ResearchConsentBlock value={consent} onChange={setConsent} />
+          <div className="text-center">
+            <button type="button" onClick={beginSession} disabled={starting} className="btn-primary disabled:opacity-60">
+              {starting ? "Hazırlanıyor…" : "Envanteri Başlat"}
+            </button>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Onay vermeseniz de envanteri doldurabilir ve raporunuzu görebilirsiniz.
+            </p>
+          </div>
+          {err && <p className="text-center text-sm text-destructive">{err}</p>}
+        </div>
+      </div>
+    );
   }
 
   return (

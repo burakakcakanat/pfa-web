@@ -8,6 +8,7 @@ import { listMyEbooks, getEbookUrl } from "@/lib/ebooks.functions";
 import { listMyGifts } from "@/lib/gifts.functions";
 import { PractitionerAccountTab } from "@/components/practitioner-account";
 import { NewsletterPreferences } from "@/components/newsletter-preferences";
+import { ResearchPreferences } from "@/components/research-preferences";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
   validateSearch: (s: Record<string, unknown>): { tab?: string } =>
@@ -53,6 +54,7 @@ const TABS = [
   { id: "reports", label: "Raporlarım" },
   { id: "ebooks", label: "E-Book'larım" },
   { id: "webinars", label: "Webinar Kayıtlarım" },
+  { id: "research", label: "Araştırma" },
 ] as const;
 
 function AccountPage() {
