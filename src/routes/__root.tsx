@@ -515,7 +515,11 @@ function SiteFooter() {
   const [socials, setSocials] = useState<Record<string, string>>({});
   useEffect(() => {
     let alive = true;
-    supabase.from("site_settings").select("key, value").then(({ data }) => {
+    supabase
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["social_instagram", "social_linkedin", "social_x", "social_youtube"])
+      .then(({ data }) => {
       if (!alive) return;
       const out: Record<string, string> = {};
       for (const r of (data ?? []) as any[]) if (r.value) out[r.key] = r.value;
