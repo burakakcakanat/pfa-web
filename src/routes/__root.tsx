@@ -350,7 +350,7 @@ function NavDropdown({ label, links }: { label: string; links: NavItem[] }) {
 function SiteHeader() {
   const [email, setEmail] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const newsletterLabel = useNewsletterMenuLabel(email);
+  const newsletter = useNewsletterMenuAction(email);
   useEffect(() => {
     const check = async (uid: string | undefined) => {
       if (!uid) { setIsAdmin(false); return; }
@@ -423,7 +423,14 @@ function SiteHeader() {
                   <Link to="/admin" className="border-b border-border/60 px-4 py-2 text-sm hover:text-accent">Admin</Link>
                 )}
                 <button type="button" onClick={signOut} className="border-b border-border/60 px-4 py-2 text-left text-sm hover:text-accent">Çıkış</button>
-                <Link to="/hesabim" search={{ tab: "profile" }} hash="bulten" className="px-4 py-2 text-sm hover:text-accent">{newsletterLabel}</Link>
+                <button
+                  type="button"
+                  onClick={newsletter.toggle}
+                  disabled={newsletter.busy || newsletter.subscribed === null}
+                  className="px-4 py-2 text-left text-sm hover:text-accent disabled:opacity-60"
+                >
+                  {newsletter.label}
+                </button>
               </div>
             </details>
           ) : (
@@ -432,7 +439,12 @@ function SiteHeader() {
             </Link>
           )}
         </nav>
-        <MobileMenu email={email} isAdmin={isAdmin} onSignOut={signOut} newsletterLabel={newsletterLabel} />
+        <MobileMenu
+          email={email}
+          isAdmin={isAdmin}
+          onSignOut={signOut}
+          newsletter={newsletter}
+        />
       </div>
     </header>
   );
@@ -442,12 +454,12 @@ function MobileMenu({
   email,
   isAdmin,
   onSignOut,
-  newsletterLabel,
+  newsletter,
 }: {
   email: string | null;
   isAdmin: boolean;
   onSignOut: () => void;
-  newsletterLabel: string;
+  newsletter: { label: string; toggle: () => void; busy: boolean; subscribed: boolean | null };
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
