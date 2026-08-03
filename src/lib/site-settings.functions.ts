@@ -50,8 +50,12 @@ export const getUpcomingWebinarForProduct = createServerFn({ method: "POST" })
         },
       },
     });
-    const { data: prod } = await supa.from("products").select("id").eq("slug", data.slug).maybeSingle();
-    if (!prod) return null;
+    const { data: prod } = await supa
+      .from("products")
+      .select("id, price_cents")
+      .eq("slug", data.slug)
+      .maybeSingle();
+    if (!prod) return { session: null, price_cents: null };
     const { data: sess } = await supa
       .from("webinar_sessions_public")
       .select("id, title, starts_at, banner_url")
@@ -60,5 +64,5 @@ export const getUpcomingWebinarForProduct = createServerFn({ method: "POST" })
       .order("starts_at", { ascending: true })
       .limit(1)
       .maybeSingle();
-    return sess ?? null;
+    return { session: sess ?? null, price_cents: prod.price_cents ?? null };
   });
