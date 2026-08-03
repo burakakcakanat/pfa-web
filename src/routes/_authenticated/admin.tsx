@@ -1123,6 +1123,7 @@ function QuestionsTab() {
         </Button>
       </div>
       <InstrumentVersionPanel instrument="pfa" state={versionState} onChanged={reload} />
+      <InstrumentVersionExplorer />
       {editing && (
         <Card title={editing.id ? "Soruyu Düzenle" : "Yeni Soru"}>
           <QuestionForm
