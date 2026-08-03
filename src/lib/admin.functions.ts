@@ -477,6 +477,31 @@ export const bumpInstrumentVersion = createServerFn({ method: "POST" })
     return { version: Number(version) };
   });
 
+export const getInstrumentVersionInventory = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { loadVersionInventory } = await import("./instrument-versions.server");
+    return { versions: await loadVersionInventory() };
+  });
+
+export const diffInstrumentVersions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        instrument: z.enum(["pfa", "sevenq"]),
+        from: z.number().int().min(1),
+        to: z.number().int().min(1),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { diffVersions } = await import("./instrument-versions.server");
+    return diffVersions(data.instrument, data.from, data.to);
+  });
+
 // -------- WEBINAR SESSIONS --------
 export const listWebinarSessions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
