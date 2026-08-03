@@ -155,7 +155,7 @@ function HomePage() {
           <div className="text-xs tracking-[0.3em] text-accent">
             BİLİNÇ HARİTASI
           </div>
-          <h2 className="mt-2 font-serif text-3xl md:text-4xl">
+          <h2 className="mt-2 font-serif text-3xl text-foreground/80 md:text-4xl">
             Bekadan Aydınlanmaya Bilinç Döngüsü
           </h2>
           <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-foreground/80">
