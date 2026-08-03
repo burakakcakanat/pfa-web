@@ -4,6 +4,7 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense, useMemo, useState } from "react";
 import { ClipboardList, MessagesSquare, Plus } from "lucide-react";
 import { BuyButton } from "@/components/buy-button";
+import { usePaymentsEnabled } from "@/lib/use-payments-enabled";
 import { GiftModal } from "@/components/gift-modal";
 import { getBooksData, type BooksPayload } from "@/lib/books.functions";
 import {
