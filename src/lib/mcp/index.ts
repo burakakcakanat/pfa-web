@@ -6,18 +6,19 @@ import sessionAvailabilityTool from "./tools/session-availability";
 import submitInquiryTool from "./tools/submit-inquiry";
 import pfaOverviewTool from "./tools/pfa-overview";
 
-const supabaseUrl = (
-  process.env['SUPABASE_URL'] ??
-  process.env['VITE_SUPABASE_URL'] ??
-  "https://supabase.invalid"
-).replace(/\/+$/, "");
+// The OAuth issuer MUST be the direct Supabase host. On publish, SUPABASE_URL is
+// rewritten to the `.lovable.cloud` proxy, which mcp-js rejects as an RFC 8414
+// issuer mismatch. The project ref is the only Supabase value that survives
+// publish unchanged, and Vite inlines it as a literal at build time.
+const projectRef = import.meta.env['VITE_SUPABASE_PROJECT_ID'] ?? "project-ref-unset";
+const issuerUrl = `https://${projectRef}.supabase.co/auth/v1`;
 
 export default defineMcp({
   name: "pfa-mcp",
   title: "Psiko-Fonksiyonel Analiz (PFA)",
   version: "0.1.0",
   auth: auth.oauth.issuer({
-    issuer: `${supabaseUrl}/auth/v1`,
+    issuer: issuerUrl,
     acceptedAudiences: "authenticated",
     resourceName: "Psiko-Fonksiyonel Analiz (PFA)",
   }),
