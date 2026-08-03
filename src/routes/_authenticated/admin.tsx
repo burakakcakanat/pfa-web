@@ -38,6 +38,8 @@ import {
   setProQuota,
   listAdminQuestions,
   upsertQuestion,
+  getInstrumentVersionState,
+  bumpInstrumentVersion,
   listWebinarSessions,
   upsertWebinarSession,
   deleteWebinarSession,
