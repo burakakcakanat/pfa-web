@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BuyButton } from "@/components/buy-button";
 import { getUpcomingWebinarForProduct } from "@/lib/site-settings.functions";
+import { formatWebinarPrice } from "@/lib/social-drafts";
 
 export const Route = createFileRoute("/webinarlar/bilinc-seviyeleri")({
   loader: () => getUpcomingWebinarForProduct({ data: { slug: "bilinc-seviyeleri-calismalari" } }),
@@ -55,7 +56,12 @@ const KAZANIMLAR = [
 ];
 
 function Page() {
-  const session = Route.useLoaderData() as { id: string; title: string; starts_at: string; banner_url: string | null } | null;
+  const loaded = Route.useLoaderData() as {
+    session: { id: string; title: string; starts_at: string; banner_url: string | null } | null;
+    price_cents: number | null;
+  };
+  const session = loaded?.session ?? null;
+  const priceLabel = formatWebinarPrice(loaded?.price_cents);
   return (
     <div className="container-page py-20">
       <div className="mx-auto max-w-3xl">
@@ -117,7 +123,7 @@ function Page() {
         </Section>
 
         <div className="mt-10 flex flex-wrap items-center gap-6 rounded-lg border border-border bg-card p-6">
-          <div className="font-serif text-4xl">$150</div>
+          <div className="font-serif text-4xl">{priceLabel}</div>
           <BuyButton productSlug="bilinc-seviyeleri-calismalari" label="Kayıt Ol" />
         </div>
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ShareButtons } from "@/components/share-buttons";
 
 export type MediaEpisode = {
   id: string;
@@ -8,6 +9,8 @@ export type MediaEpisode = {
   embed_url: string;
   external_url: string;
   kind: "podcast" | "video";
+  /** Paylaşım için mutlak bağlantı; verilmezse harici bağlantı kullanılır. */
+  share_url?: string;
 };
 
 export function MediaEpisodeCard({ ep }: { ep: MediaEpisode }) {
@@ -51,6 +54,11 @@ export function MediaEpisodeCard({ ep }: { ep: MediaEpisode }) {
           className="block w-full"
         />
       </div>
+      <ShareButtons
+        title={`${ep.title} — PFA ${isPodcast ? "Podcast" : "Video"}`}
+        url={ep.share_url ?? ep.external_url}
+        className="mt-4"
+      />
     </article>
   );
 }

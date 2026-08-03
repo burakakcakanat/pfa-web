@@ -191,43 +191,55 @@ export type Database = {
         Row: {
           category: string
           content: string
+          content_en: string | null
           cover_image_url: string | null
+          cover_image_url_en: string | null
           created_at: string
           id: string
           published: boolean
           published_at: string
           seo_description: string
+          seo_description_en: string | null
           slug: string
           sort_order: number
           title: string
+          title_en: string | null
           updated_at: string
         }
         Insert: {
           category?: string
           content: string
+          content_en?: string | null
           cover_image_url?: string | null
+          cover_image_url_en?: string | null
           created_at?: string
           id?: string
           published?: boolean
           published_at?: string
           seo_description: string
+          seo_description_en?: string | null
           slug: string
           sort_order?: number
           title: string
+          title_en?: string | null
           updated_at?: string
         }
         Update: {
           category?: string
           content?: string
+          content_en?: string | null
           cover_image_url?: string | null
+          cover_image_url_en?: string | null
           created_at?: string
           id?: string
           published?: boolean
           published_at?: string
           seo_description?: string
+          seo_description_en?: string | null
           slug?: string
           sort_order?: number
           title?: string
+          title_en?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -850,34 +862,40 @@ export type Database = {
         Row: {
           created_at: string
           description: string
+          description_en: string | null
           episode_number: number
           id: string
           published: boolean
           spotify_embed_url: string
           spotify_url: string
           title: string
+          title_en: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           description?: string
+          description_en?: string | null
           episode_number: number
           id?: string
           published?: boolean
           spotify_embed_url: string
           spotify_url: string
           title: string
+          title_en?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           description?: string
+          description_en?: string | null
           episode_number?: number
           id?: string
           published?: boolean
           spotify_embed_url?: string
           spotify_url?: string
           title?: string
+          title_en?: string | null
           updated_at?: string
         }
         Relationships: []

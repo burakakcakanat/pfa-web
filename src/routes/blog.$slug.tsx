@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import ReactMarkdown from "react-markdown";
 import { getBlogPost } from "@/lib/blog.functions";
+import { ShareButtons } from "@/components/share-buttons";
 
 const fmt = new Intl.DateTimeFormat("tr-TR", { dateStyle: "long" });
 
@@ -56,6 +57,7 @@ export const Route = createFileRoute("/blog/$slug")({
 
 function BlogPostPage() {
   const { post } = Route.useLoaderData();
+  const shareUrl = `https://psychofunctionalanalysis.com/blog/${post.slug}`;
   return (
     <article className="container-page py-16">
       <div className="mx-auto max-w-[65ch]">
@@ -71,6 +73,7 @@ function BlogPostPage() {
         <h1 className="mt-3 font-serif text-4xl leading-tight md:text-5xl">
           {post.title}
         </h1>
+        <ShareButtons title={post.title} url={shareUrl} className="mt-6" />
         {post.cover_image_url && (
           <img
             src={post.cover_image_url}
@@ -131,6 +134,9 @@ function BlogPostPage() {
           >
             {post.content}
           </ReactMarkdown>
+        </div>
+        <div className="mt-14 border-t border-border pt-6">
+          <ShareButtons title={post.title} url={shareUrl} />
         </div>
       </div>
     </article>

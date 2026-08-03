@@ -91,7 +91,6 @@ import {
 } from "@/lib/admin.functions";
 import { resolveBundlePrice, fmtUsd, MARKETPLACE_NAMES, AMAZON_DOMAINS } from "@/lib/bundles";
 import {
-  createWebinarBannerUploadUrl,
   refreshWebinarBannerUrl,
   listSiteSettings,
   upsertSiteSetting,
@@ -131,6 +130,15 @@ import {
   listNewsletterUnsubscribed,
 } from "@/lib/newsletter.functions";
 import { MediaLibraryManager, MediaPickerButton } from "@/components/media-library";
+import {
+  FREE_LABEL_TR,
+  buildInstagramCaptionEn,
+  buildInstagramCaptionTr,
+  buildWebinarDrafts,
+  formatWebinarPrice,
+  openingLine,
+  shareLinks,
+} from "@/lib/social-drafts";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -1430,6 +1438,7 @@ function WebinarsTab() {
   const [regList, setRegList] = useState<any[] | null>(null);
   const [regTitle, setRegTitle] = useState("");
   const [sharing, setSharing] = useState<any | null>(null);
+  const [err, setErr] = useState<string | null>(null);
   const reload = useCallback(() => { fetchList().then(setData); }, [fetchList]);
   useEffect(() => { reload(); }, [reload]);
   const openRegs = async (p: any) => { setRegTitle(p.name_tr); setRegList(await regs({ data: { product_id: p.id } })); };
@@ -1441,8 +1450,13 @@ function WebinarsTab() {
             <Button key={p.id} size="sm" variant="outline" onClick={() => openRegs(p)}>{p.name_tr} kayıtları</Button>
           ))}
         </div>
-        <Button onClick={() => setEditing({ product_id: data.products[0]?.id ?? "", title: "", starts_at: new Date().toISOString().slice(0,16), capacity: null, join_url: "", notes: "" })}>Yeni Oturum</Button>
+        <Button onClick={() => { setErr(null); setEditing({ product_id: data.products[0]?.id ?? "", title: "", starts_at: new Date().toISOString().slice(0,16), capacity: null, join_url: "", notes: "", banner_url: "", price_cents: data.products[0]?.price_cents ?? 0 }); }}>Yeni Oturum</Button>
       </div>
+      {err && (
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          Kaydedilemedi: {err}
+        </div>
+      )}
       {regList && (
         <Card title={`Kayıtlı: ${regTitle}`}>
           <Button size="sm" variant="outline" className="mb-2" onClick={() => setRegList(null)}>Kapat</Button>
@@ -1458,20 +1472,25 @@ function WebinarsTab() {
             initial={editing}
             products={data.products}
             onCancel={() => setEditing(null)}
-            onSave={async (d) => { await save({ data: d }); setEditing(null); reload(); }}
+            onSave={async (d) => {
+              setErr(null);
+              await save({ data: d });
+              setEditing(null);
+              reload();
+            }}
           />
         </Card>
       )}
       <Table>
-        <TableHeader><TableRow><TableHead>Başlık</TableHead><TableHead>Ürün</TableHead><TableHead>Tarih</TableHead><TableHead>Kapasite</TableHead><TableHead></TableHead></TableRow></TableHeader>
+        <TableHeader><TableRow><TableHead>Başlık</TableHead><TableHead>Ürün</TableHead><TableHead>Tarih</TableHead><TableHead>Ücret</TableHead><TableHead>Kapasite</TableHead><TableHead></TableHead></TableRow></TableHeader>
         <TableBody>
           {data.sessions.map((s) => {
             const p = data.products.find((x) => x.id === s.product_id);
             return (
               <TableRow key={s.id}>
-                <TableCell>{s.title}</TableCell><TableCell>{p?.name_tr ?? "—"}</TableCell><TableCell>{fmtDate(s.starts_at)}</TableCell><TableCell>{s.capacity ?? "—"}</TableCell>
+                <TableCell>{s.title}</TableCell><TableCell>{p?.name_tr ?? "—"}</TableCell><TableCell>{fmtDate(s.starts_at)}</TableCell><TableCell>{formatWebinarPrice(p?.price_cents)}</TableCell><TableCell>{s.capacity ?? "—"}</TableCell>
                 <TableCell className="flex gap-1">
-                  <Button size="sm" variant="outline" onClick={() => setEditing({ ...s, starts_at: new Date(s.starts_at).toISOString().slice(0,16) })}>Düzenle</Button>
+                  <Button size="sm" variant="outline" onClick={() => { setErr(null); setEditing({ ...s, starts_at: new Date(s.starts_at).toISOString().slice(0,16), price_cents: p?.price_cents ?? 0 }); }}>Düzenle</Button>
                   <Button size="sm" variant="outline" onClick={() => setSharing({ ...s, product: p })}>Paylaş</Button>
                   <Button size="sm" variant="destructive" onClick={async () => { if (confirm("Silinsin mi?")) { await del({ data: { id: s.id } }); reload(); } }}>Sil</Button>
                 </TableCell>
@@ -1485,96 +1504,214 @@ function WebinarsTab() {
   );
 }
 
-function WebinarForm({ initial, products, onSave, onCancel }: { initial: any; products: any[]; onSave: (d: any) => void; onCancel: () => void }) {
+function WebinarForm({ initial, products, onSave, onCancel }: { initial: any; products: any[]; onSave: (d: any) => Promise<void>; onCancel: () => void }) {
   const [d, setD] = useState(initial);
-  const createUpload = useServerFn(createWebinarBannerUploadUrl);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const upd = (k: string, v: any) => setD({ ...d, [k]: v });
-  const uploadBanner = async (file: File) => {
-    if (!d.id) { alert("Önce oturumu kaydedin, sonra görsel yükleyin."); return; }
+  const priceInput = d.price_cents == null ? "" : String(d.price_cents / 100);
+
+  const submit = async () => {
+    setError(null);
+    if (!d.product_id) { setError("Ürün seçilmedi."); return; }
+    if (!d.title?.trim()) { setError("Başlık boş bırakılamaz."); return; }
+    if (!d.starts_at || Number.isNaN(new Date(d.starts_at).getTime())) {
+      setError("Tarih ve saat geçersiz."); return;
+    }
     setBusy(true);
     try {
-      const { path, token, publicUrl } = await createUpload({ data: { session_id: d.id, filename: file.name } });
-      const { error } = await supabase.storage.from("webinar-banners").uploadToSignedUrl(path, token, file, { upsert: true });
-      if (error) throw error;
-      upd("banner_url", publicUrl);
+      await onSave({
+        ...(d.id ? { id: d.id } : {}),
+        product_id: d.product_id,
+        title: d.title.trim(),
+        starts_at: new Date(d.starts_at).toISOString(),
+        capacity: d.capacity || null,
+        join_url: d.join_url?.trim() || null,
+        notes: d.notes?.trim() || null,
+        banner_url: d.banner_url?.trim() || null,
+        price_cents: d.price_cents == null ? 0 : d.price_cents,
+      });
     } catch (e: any) {
-      alert("Yükleme hatası: " + (e?.message ?? "bilinmiyor"));
-    } finally { setBusy(false); }
+      setError(e?.message ?? "Bilinmeyen hata.");
+    } finally {
+      setBusy(false);
+    }
   };
+
   return (
     <div className="grid gap-3 md:grid-cols-2">
       <div><Label>Ürün</Label>
-        <Select value={d.product_id} onValueChange={(v) => upd("product_id", v)}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+        <Select value={d.product_id} onValueChange={(v) => {
+          const p = products.find((x) => x.id === v);
+          setD({ ...d, product_id: v, price_cents: p?.price_cents ?? 0 });
+        }}>
+          <SelectTrigger><SelectValue placeholder="Ürün seçin" /></SelectTrigger>
           <SelectContent>{products.map((p) => (<SelectItem key={p.id} value={p.id}>{p.name_tr}</SelectItem>))}</SelectContent>
         </Select>
       </div>
-      <div><Label>Başlık</Label><Input value={d.title} onChange={(e) => upd("title", e.target.value)} /></div>
-      <div><Label>Tarih & Saat</Label><Input type="datetime-local" value={d.starts_at} onChange={(e) => upd("starts_at", e.target.value)} /></div>
+      <div><Label>Başlık</Label><Input value={d.title ?? ""} onChange={(e) => upd("title", e.target.value)} /></div>
+      <div><Label>Tarih & Saat</Label><Input type="datetime-local" value={d.starts_at ?? ""} onChange={(e) => upd("starts_at", e.target.value)} /></div>
       <div><Label>Kapasite</Label><Input type="number" value={d.capacity ?? ""} onChange={(e) => upd("capacity", e.target.value ? parseInt(e.target.value) : null)} /></div>
-      <div className="md:col-span-2"><Label>Katılım linki</Label><Input value={d.join_url ?? ""} onChange={(e) => upd("join_url", e.target.value)} /></div>
-      <div className="md:col-span-2"><Label>Notlar</Label><Textarea value={d.notes ?? ""} onChange={(e) => upd("notes", e.target.value)} /></div>
+      <div>
+        <Label>Ücret (USD)</Label>
+        <Input
+          type="number"
+          min={0}
+          step="1"
+          placeholder="0"
+          value={priceInput}
+          onChange={(e) => upd("price_cents", e.target.value === "" ? 0 : Math.max(0, Math.round(parseFloat(e.target.value) * 100)))}
+        />
+        <p className="mt-1 text-xs text-muted-foreground">
+          Ürün fiyatına yazılır (tek kaynak). {formatWebinarPrice(d.price_cents) === FREE_LABEL_TR ? `0 veya boş → sitede "${FREE_LABEL_TR}" görünür.` : `Sitede ${formatWebinarPrice(d.price_cents)} görünür.`}
+        </p>
+      </div>
+      <div className="md:col-span-2"><Label>Katılım linki</Label><Input placeholder="https://…" value={d.join_url ?? ""} onChange={(e) => upd("join_url", e.target.value)} /></div>
+      <div className="md:col-span-2"><Label>Notlar</Label><Textarea rows={4} value={d.notes ?? ""} onChange={(e) => upd("notes", e.target.value)} /></div>
       <div className="md:col-span-2">
         <Label>Webinar Görseli</Label>
-        <div className="mt-2 flex items-center gap-3">
-          {d.banner_url && <img src={d.banner_url} alt="banner" className="h-20 w-auto rounded border border-border" />}
-          <input
-            type="file"
-            accept="image/*"
-            disabled={busy || !d.id}
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadBanner(f); }}
-            className="text-sm"
-          />
-          {!d.id && <span className="text-xs text-muted-foreground">Önce kaydedin, sonra görsel yükleyin.</span>}
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          {d.banner_url
+            ? <img src={d.banner_url} alt="Webinar görseli" className="h-20 w-auto rounded border border-border" />
+            : <div className="flex h-20 w-32 items-center justify-center rounded border border-dashed border-border text-xs text-muted-foreground">Görsel yok</div>}
+          <MediaPickerButton label={d.banner_url ? "Görseli Değiştir" : "Kütüphaneden Seç"} onPick={(m) => upd("banner_url", m.public_url)} />
+          {d.banner_url && (
+            <Button type="button" size="sm" variant="outline" onClick={() => upd("banner_url", "")}>Görseli Kaldır</Button>
+          )}
         </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Görsel formun bir parçası; oturumla birlikte tek kaydetmede saklanır.
+        </p>
       </div>
+      {error && (
+        <div className="md:col-span-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
       <div className="flex gap-2 md:col-span-2">
-        <Button onClick={() => onSave({ ...d, starts_at: new Date(d.starts_at).toISOString(), capacity: d.capacity || null, join_url: d.join_url || null, notes: d.notes || null, banner_url: d.banner_url || null })}>Kaydet</Button>
-        <Button variant="outline" onClick={onCancel}>İptal</Button>
+        <Button onClick={submit} disabled={busy}>{busy ? "Kaydediliyor…" : "Kaydet"}</Button>
+        <Button variant="outline" onClick={onCancel} disabled={busy}>İptal</Button>
       </div>
+      {d.title && d.starts_at && !Number.isNaN(new Date(d.starts_at).getTime()) && (
+        <div className="md:col-span-2">
+          <WebinarShareDrafts session={d} products={products} />
+        </div>
+      )}
     </div>
   );
 }
 
 // ============== SHARE KIT ==============
+function webinarPublicUrl(products: any[], productId: string): string {
+  const slug = products.find((p) => p.id === productId)?.slug ?? "";
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://psychofunctionalanalysis.com";
+  const path = slug === "pfa-pro-lisans-paketi" ? "/webinarlar/pfa-pro"
+    : slug === "bilinc-seviyeleri-calismalari" ? "/webinarlar/bilinc-seviyeleri"
+    : "/webinarlar";
+  return `${origin}${path}`;
+}
+
+function CopyRow({ value, label }: { value: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant="outline"
+      onClick={async () => {
+        await navigator.clipboard.writeText(value);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }}
+    >
+      {copied ? "Kopyalandı ✓" : label}
+    </Button>
+  );
+}
+
+async function downloadFromUrl(url: string, filename: string) {
+  try {
+    const r = await fetch(url);
+    const b = await r.blob();
+    const objectUrl = URL.createObjectURL(b);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(objectUrl);
+  } catch {
+    window.open(url, "_blank");
+  }
+}
+
+function WebinarShareDrafts({ session, products }: { session: any; products: any[] }) {
+  const url = webinarPublicUrl(products, session.product_id);
+  const drafts = useMemo(
+    () =>
+      buildWebinarDrafts({
+        title: session.title,
+        startsAt: new Date(session.starts_at).toISOString(),
+        priceCents: session.price_cents,
+        notes: session.notes,
+        url,
+      }),
+    [session.title, session.starts_at, session.price_cents, session.notes, url],
+  );
+  const [texts, setTexts] = useState(drafts);
+  useEffect(() => { setTexts(drafts); }, [drafts]);
+  const upd = (k: keyof typeof texts, v: string) => setTexts({ ...texts, [k]: v });
+
+  return (
+    <Card title="Paylaşım metinleri">
+      <p className="mb-4 text-xs text-muted-foreground">
+        Metinler bu formdaki alanlardan üretilir; düzenleyip kopyalayabilirsiniz.
+      </p>
+      <div className="space-y-5">
+        <div>
+          <Label>LinkedIn</Label>
+          <Textarea rows={7} value={texts.linkedin} onChange={(e) => upd("linkedin", e.target.value)} />
+          <div className="mt-2 flex flex-wrap gap-2">
+            <CopyRow value={texts.linkedin} label="Metni Kopyala" />
+            <a className="btn-primary hover:btn-primary-hover rounded-md px-3 py-1.5 text-sm" href={shareLinks(texts.linkedin, url).linkedin} target="_blank" rel="noreferrer">LinkedIn'de paylaş</a>
+          </div>
+        </div>
+        <div>
+          <Label>WhatsApp</Label>
+          <Textarea rows={4} value={texts.whatsapp} onChange={(e) => upd("whatsapp", e.target.value)} />
+          <div className="mt-2 flex flex-wrap gap-2">
+            <CopyRow value={texts.whatsapp} label="Metni Kopyala" />
+            <a className="btn-primary hover:btn-primary-hover rounded-md px-3 py-1.5 text-sm" href={shareLinks(texts.whatsapp, url).whatsapp} target="_blank" rel="noreferrer">WhatsApp'ta paylaş</a>
+          </div>
+        </div>
+        <div>
+          <Label>Instagram</Label>
+          <Textarea rows={7} value={texts.instagram} onChange={(e) => upd("instagram", e.target.value)} />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <CopyRow value={texts.instagram} label="Başlığı Kopyala" />
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={!session.banner_url}
+              onClick={() => downloadFromUrl(session.banner_url, `webinar-${(session.title ?? "gorsel").slice(0, 40)}.jpg`)}
+            >
+              Görseli İndir
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              Instagram için hazırla: başlığı kopyalayın, görseli indirin, uygulamadan paylaşın.
+            </span>
+          </div>
+          {!session.banner_url && (
+            <p className="mt-1 text-xs text-muted-foreground">Görsel seçilmedi — indirme kapalı.</p>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 function ShareKitModal({ session, onClose }: { session: any; onClose: () => void }) {
-  const productSlug = session.product?.slug ?? "";
-  const publicUrl = useMemo(() => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const path = productSlug === "pfa-pro-lisans-paketi" ? "/webinarlar/pfa-pro"
-      : productSlug === "bilinc-seviyeleri-calismalari" ? "/webinarlar/bilinc-seviyeleri"
-      : "/webinarlar";
-    return `${origin}${path}`;
-  }, [productSlug]);
-  const priceCents = session.product?.price_cents;
-  const dateStr = new Date(session.starts_at).toLocaleString("tr-TR", {
-    dateStyle: "long", timeStyle: "short", timeZone: "Europe/Istanbul",
-  });
-  const priceLine = typeof priceCents === "number" ? `\n💰 $${(priceCents / 100).toFixed(0)}` : "";
-  const defaultText =
-    `${session.title}\n📅 ${dateStr} (İstanbul)${priceLine}\n\n${session.notes ? session.notes.split("\n")[0] : "PFA — Psiko-Fonksiyonel Analiz webinarı."}\n\nKayıt: ${publicUrl}`;
-  const [text, setText] = useState(defaultText);
-  const encoded = encodeURIComponent(text);
-  const [copied, setCopied] = useState<string | null>(null);
-  const copy = async (what: string, value: string) => {
-    await navigator.clipboard.writeText(value);
-    setCopied(what);
-    setTimeout(() => setCopied(null), 1500);
-  };
-  const downloadImage = async () => {
-    if (!session.banner_url) { alert("Bu oturuma görsel yüklenmemiş."); return; }
-    try {
-      const r = await fetch(session.banner_url);
-      const b = await r.blob();
-      const url = URL.createObjectURL(b);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `webinar-${session.id}.jpg`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch { alert("Görsel indirilemedi."); }
-  };
+  const products = session.product ? [session.product] : [];
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-border bg-card p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
@@ -1583,23 +1720,12 @@ function ShareKitModal({ session, onClose }: { session: any; onClose: () => void
           <Button size="sm" variant="outline" onClick={onClose}>Kapat</Button>
         </div>
         {session.banner_url && (
-          <img src={session.banner_url} alt="banner" className="mb-4 max-h-56 w-auto rounded border border-border" />
+          <img src={session.banner_url} alt="Webinar görseli" className="mb-4 max-h-56 w-auto rounded border border-border" />
         )}
-        <Label>Paylaşım metni</Label>
-        <Textarea rows={8} value={text} onChange={(e) => setText(e.target.value)} />
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
-          <a className="btn-primary hover:btn-primary-hover text-center" href={`https://wa.me/?text=${encoded}`} target="_blank" rel="noreferrer">WhatsApp'ta Paylaş</a>
-          <a className="btn-primary hover:btn-primary-hover text-center" href={`https://twitter.com/intent/tweet?text=${encoded}`} target="_blank" rel="noreferrer">X'te Paylaş</a>
-          <a className="btn-primary hover:btn-primary-hover text-center" href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(publicUrl)}`} target="_blank" rel="noreferrer">LinkedIn'de Paylaş</a>
-          <Button variant="outline" onClick={() => copy("text", text)}>{copied === "text" ? "Kopyalandı ✓" : "Metni Kopyala"}</Button>
-          <Button variant="outline" onClick={() => copy("link", publicUrl)}>{copied === "link" ? "Kopyalandı ✓" : "Linki Kopyala"}</Button>
-          <Button variant="outline" onClick={downloadImage} disabled={!session.banner_url}>Görseli İndir</Button>
-        </div>
-        <p className="mt-4 rounded-md bg-muted p-3 text-xs text-muted-foreground">
-          <span className="font-medium">Instagram için:</span> Instagram web ön-paylaşımı desteklemiyor —
-          "Görseli İndir" + "Metni Kopyala" ile mobil uygulamadan paylaşın.
-          Tam otomatik paylaşım için platform API'leri gerekir; bu kit tek tıkla manuel paylaşımdır.
-        </p>
+        <WebinarShareDrafts
+          session={{ ...session, price_cents: session.product?.price_cents ?? null }}
+          products={products}
+        />
       </div>
     </div>
   );
@@ -1676,16 +1802,36 @@ function BlogTab() {
   const save = useServerFn(upsertPost);
   const [rows, setRows] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
+  const [ig, setIg] = useState<{ post: any; lang: "tr" | "en" } | null>(null);
   const reload = useCallback(() => { fetchList().then(setRows); }, [fetchList]);
   useEffect(() => { reload(); }, [reload]);
   return (
     <div className="space-y-4">
+      {ig && <InstagramPrepModal post={ig.post} lang={ig.lang} onClose={() => setIg(null)} />}
       <div className="flex justify-end">
         <Button onClick={() => setEditing({ slug: "", title: "", seo_description: "", content: "", cover_image_url: "", published: false, sort_order: (rows.length + 1) })}>Yeni Yazı</Button>
       </div>
       {editing && (
         <Card title={editing.id ? "Yazıyı Düzenle" : "Yeni Yazı"}>
-          <BlogForm initial={editing} onCancel={() => setEditing(null)} onSave={async (d) => { await save({ data: d }); setEditing(null); reload(); }} />
+          <BlogForm
+            initial={editing}
+            onCancel={() => setEditing(null)}
+            onSave={async (d) => {
+              const blank = (v: any) => (typeof v === "string" && v.trim() === "" ? null : v);
+              await save({
+                data: {
+                  ...d,
+                  cover_image_url: blank(d.cover_image_url),
+                  title_en: blank(d.title_en),
+                  seo_description_en: blank(d.seo_description_en),
+                  content_en: blank(d.content_en),
+                  cover_image_url_en: blank(d.cover_image_url_en),
+                },
+              });
+              setEditing(null);
+              reload();
+            }}
+          />
         </Card>
       )}
       <Table>
@@ -1699,11 +1845,69 @@ function BlogTab() {
               <TableCell>
                 <Switch checked={p.published} onCheckedChange={async (v) => { await save({ data: { id: p.id, slug: p.slug, title: p.title, seo_description: p.seo_description, content: p.content, published: v, sort_order: p.sort_order, cover_image_url: p.cover_image_url } }); reload(); }} />
               </TableCell>
-              <TableCell><Button size="sm" variant="outline" onClick={() => setEditing(p)}>Düzenle</Button></TableCell>
+              <TableCell className="flex flex-wrap gap-1">
+                <Button size="sm" variant="outline" onClick={() => setEditing(p)}>Düzenle</Button>
+                <Button size="sm" variant="outline" onClick={() => setIg({ post: p, lang: "tr" })}>Instagram TR</Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!hasEnglish(p)}
+                  title={hasEnglish(p) ? "İngilizce içerikten başlık üret" : "İngilizce içerik girilmedi"}
+                  onClick={() => setIg({ post: p, lang: "en" })}
+                >
+                  Instagram GLB
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+    </div>
+  );
+}
+
+function hasEnglish(p: any): boolean {
+  return Boolean((p.title_en ?? "").trim() && (p.content_en ?? "").trim());
+}
+
+function InstagramPrepModal({ post, lang, onClose }: { post: any; lang: "tr" | "en"; onClose: () => void }) {
+  const url = `https://psychofunctionalanalysis.com/blog/${post.slug}`;
+  const image = (lang === "en" ? post.cover_image_url_en : null) ?? post.cover_image_url ?? "";
+  const caption = useMemo(() => {
+    const input = lang === "en"
+      ? { title: post.title_en, opening: openingLine(post.seo_description_en || post.content_en), url }
+      : { title: post.title, opening: openingLine(post.seo_description || post.content), url };
+    return lang === "en" ? buildInstagramCaptionEn(input) : buildInstagramCaptionTr(input);
+  }, [post, lang, url]);
+  const [text, setText] = useState(caption);
+  useEffect(() => { setText(caption); }, [caption]);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-lg border border-border bg-card p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="font-serif text-xl text-primary">
+            Instagram için hazırla — {lang === "en" ? "GLB (EN)" : "TR"}
+          </h3>
+          <Button size="sm" variant="outline" onClick={onClose}>Kapat</Button>
+        </div>
+        {image && <img src={image} alt="" className="mb-4 max-h-56 w-auto rounded border border-border" />}
+        <Label>Başlık (caption)</Label>
+        <Textarea rows={9} value={text} onChange={(e) => setText(e.target.value)} />
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <CopyRow value={text} label="Başlığı Kopyala" />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={!image}
+            onClick={() => downloadFromUrl(image, `${post.slug}-instagram.jpg`)}
+          >
+            Görseli İndir
+          </Button>
+          <CopyRow value={url} label="Linki Kopyala" />
+        </div>
+        {!image && <p className="mt-2 text-xs text-muted-foreground">Kapak görseli yok — indirme kapalı.</p>}
+      </div>
     </div>
   );
 }
@@ -1723,6 +1927,21 @@ function BlogForm({ initial, onSave, onCancel }: { initial: any; onSave: (d: any
           <div className="flex items-center gap-2">
             <Input value={d.cover_image_url ?? ""} onChange={(e) => upd("cover_image_url", e.target.value)} />
             <MediaPickerButton onPick={(m) => upd("cover_image_url", m.public_url)} />
+          </div>
+        </div>
+        <div className="md:col-span-2 rounded-md border border-border/70 p-3">
+          <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">İngilizce (GLB) — opsiyonel</div>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            <div><Label>Title (EN)</Label><Input value={d.title_en ?? ""} onChange={(e) => upd("title_en", e.target.value)} /></div>
+            <div><Label>SEO description (EN)</Label><Input value={d.seo_description_en ?? ""} onChange={(e) => upd("seo_description_en", e.target.value)} /></div>
+            <div className="md:col-span-2"><Label>Content (EN)</Label><Textarea rows={6} value={d.content_en ?? ""} onChange={(e) => upd("content_en", e.target.value)} /></div>
+            <div className="md:col-span-2">
+              <Label>Cover image URL (EN)</Label>
+              <div className="flex items-center gap-2">
+                <Input value={d.cover_image_url_en ?? ""} onChange={(e) => upd("cover_image_url_en", e.target.value)} />
+                <MediaPickerButton onPick={(m) => upd("cover_image_url_en", m.public_url)} />
+              </div>
+            </div>
           </div>
         </div>
         <div><Label>Sıra</Label><Input type="number" value={d.sort_order} onChange={(e) => upd("sort_order", parseInt(e.target.value) || 0)} /></div>
