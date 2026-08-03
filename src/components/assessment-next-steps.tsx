@@ -13,15 +13,7 @@ export function AssessmentNextSteps({ showFullAssessment = true }: { showFullAss
         Buradan nasıl devam etmek istediğinize kendiniz karar verin.
       </p>
       <div className={`mt-6 grid gap-4 ${showFullAssessment ? "md:grid-cols-3" : "mx-auto max-w-3xl md:grid-cols-2"}`}>
-        <div className="flex flex-col rounded-lg border border-border bg-card p-6">
-          <div className="text-xs uppercase tracking-[0.25em] text-accent">Bültene Katıl</div>
-          <p className="mt-3 flex-1 text-sm leading-relaxed text-foreground/80">
-            Ücretsiz. Yeni yazılar, ölçek ve webinar duyuruları e-posta ile gelir.
-          </p>
-          <div className="mt-4">
-            <NewsletterForm source="assessment-result" />
-          </div>
-        </div>
+        <NewsletterForm source="assessment-result" />
 
         {showFullAssessment && (
         <div className="flex flex-col rounded-lg border border-border bg-card p-6">
