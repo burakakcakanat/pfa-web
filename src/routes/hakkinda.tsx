@@ -15,6 +15,25 @@ export const Route = createFileRoute("/hakkinda")({
       { property: "og:url", content: "https://psychofunctionalanalysis.com/hakkinda" },
     ],
     links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/hakkinda" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: "Burak Akçakanat",
+          jobTitle: "PFA modelinin yaratıcısı",
+          description:
+            "Psİko-Fonksİyonel Analİz (PFA) modelinin yaratıcısı; 2001'de başlayan, yirmi üç yılı aşan bir bilinç araştırması.",
+          url: "https://psychofunctionalanalysis.com/hakkinda",
+          worksFor: {
+            "@type": "Organization",
+            name: "Psiko-Fonksiyonel Analiz (PFA)",
+            url: "https://psychofunctionalanalysis.com",
+          },
+        }),
+      },
+    ],
   }),
   component: AboutPage,
 });
