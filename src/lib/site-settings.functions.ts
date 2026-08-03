@@ -39,7 +39,7 @@ export const getUpcomingWebinarForProduct = createServerFn({ method: "POST" })
     const { data: prod } = await supa.from("products").select("id").eq("slug", data.slug).maybeSingle();
     if (!prod) return null;
     const { data: sess } = await supa
-      .from("webinar_sessions")
+      .from("webinar_sessions_public")
       .select("id, title, starts_at, banner_url")
       .eq("product_id", prod.id)
       .gte("starts_at", new Date().toISOString())
