@@ -1813,7 +1813,25 @@ function BlogTab() {
       </div>
       {editing && (
         <Card title={editing.id ? "Yazıyı Düzenle" : "Yeni Yazı"}>
-          <BlogForm initial={editing} onCancel={() => setEditing(null)} onSave={async (d) => { await save({ data: d }); setEditing(null); reload(); }} />
+          <BlogForm
+            initial={editing}
+            onCancel={() => setEditing(null)}
+            onSave={async (d) => {
+              const blank = (v: any) => (typeof v === "string" && v.trim() === "" ? null : v);
+              await save({
+                data: {
+                  ...d,
+                  cover_image_url: blank(d.cover_image_url),
+                  title_en: blank(d.title_en),
+                  seo_description_en: blank(d.seo_description_en),
+                  content_en: blank(d.content_en),
+                  cover_image_url_en: blank(d.cover_image_url_en),
+                },
+              });
+              setEditing(null);
+              reload();
+            }}
+          />
         </Card>
       )}
       <Table>
