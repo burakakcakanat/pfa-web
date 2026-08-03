@@ -349,6 +349,7 @@ function SiteHeader() {
               </summary>
               <div className="absolute right-0 mt-2 flex w-44 flex-col rounded-md border border-border bg-background shadow-sm">
                 <Link to="/hesabim" className="border-b border-border/60 px-4 py-2 text-sm hover:text-accent">Hesabım</Link>
+                <Link to="/hesabim" search={{ tab: "profile" }} hash="bulten" className="border-b border-border/60 px-4 py-2 text-sm hover:text-accent">Bülten Ayarları</Link>
                 {isAdmin && (
                   <Link to="/admin" className="border-b border-border/60 px-4 py-2 text-sm hover:text-accent">Admin</Link>
                 )}
