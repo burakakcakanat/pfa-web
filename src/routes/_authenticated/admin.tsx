@@ -404,6 +404,7 @@ function ProductsTab() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [catFilter, setCatFilter] = useState<string>("all");
   const [bundleData, setBundleData] = useState<{ bundles: any[]; products: any[] }>({ bundles: [], products: [] });
   const [bundleDrafts, setBundleDrafts] = useState<Record<string, any>>({});
 
