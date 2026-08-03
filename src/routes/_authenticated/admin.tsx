@@ -1092,7 +1092,6 @@ function QuestionsTab() {
   }, [fetchList, fetchVersions]);
   useEffect(() => { reload(); }, [reload]);
   const locked = Boolean(versionState?.locked?.pfa);
-  const currentVersion = (versionState?.versions ?? []).find((v: any) => v.instrument === "pfa" && v.is_current);
   const filtered = useMemo(
     () => rows.filter((r) => level === "all" || r.level === parseInt(level)),
     [rows, level],
