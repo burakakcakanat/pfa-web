@@ -7,6 +7,8 @@ import { AssessmentResult } from "@/components/assessment-result";
 import { AssessmentNextSteps } from "@/components/assessment-next-steps";
 import { saveAssessment } from "@/lib/assessment.functions";
 import { computeScores } from "@/lib/assessment-scoring";
+import { ResearchConsentBlock } from "@/components/research-consent-block";
+import { EMPTY_CONSENT, type ResearchConsentInput } from "@/lib/research-consent";
 
 const STORAGE_KEY = "pfa_pending_mini_answers";
 
@@ -31,6 +33,7 @@ function MiniTestPage() {
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [result, setResult] = useState<LocalResult | null>(null);
+  const [consent, setConsent] = useState<ResearchConsentInput>(EMPTY_CONSENT);
 
   async function onComplete(answers: { question_id: string; value: number }[]) {
     setErr(null);
@@ -51,13 +54,13 @@ function MiniTestPage() {
       if (!data.user) {
         // Keep answers so the result survives sign-up (/rapor-finalize picks them up).
         if (typeof window !== "undefined") {
-          window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, ts: Date.now() }));
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, consent, ts: Date.now() }));
         }
         setResult({ level_scores: scores.level_scores, intelligence_scores: scores.intelligence_scores });
         if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
-      const res = await save({ data: { type: "mini", answers } });
+      const res = await save({ data: { type: "mini", answers, consent } });
       await navigate({ to: "/rapor/$sessionId", params: { sessionId: res.session_id } });
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Bir hata oluştu.");
@@ -112,6 +115,9 @@ function MiniTestPage() {
         </p>
       </header>
       <AssessmentRunner variant="mini" onComplete={onComplete} submitting={submitting} />
+      <div className="mx-auto mt-8 max-w-2xl">
+        <ResearchConsentBlock value={consent} onChange={setConsent} />
+      </div>
       {err && <div className="mx-auto mt-4 max-w-2xl rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">{err}</div>}
       <p className="mx-auto mt-10 max-w-2xl text-center text-xs text-muted-foreground">
         Bu değerlendirme klinik bir tanı aracı değildir; işlevsel farkındalık için bir gelişim aracıdır.

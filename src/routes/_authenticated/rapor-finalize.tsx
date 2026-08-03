@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { saveAssessment } from "@/lib/assessment.functions";
+import { EMPTY_CONSENT, type ResearchConsentInput } from "@/lib/research-consent";
 
 const STORAGE_KEY = "pfa_pending_mini_answers";
 
@@ -24,8 +25,13 @@ function FinalizePage() {
           await navigate({ to: "/degerlendirme" });
           return;
         }
-        const parsed = JSON.parse(raw) as { answers: { question_id: string; value: number }[] };
-        const res = await save({ data: { type: "mini", answers: parsed.answers } });
+        const parsed = JSON.parse(raw) as {
+          answers: { question_id: string; value: number }[];
+          consent?: ResearchConsentInput;
+        };
+        const res = await save({
+          data: { type: "mini", answers: parsed.answers, consent: parsed.consent ?? EMPTY_CONSENT },
+        });
         window.localStorage.removeItem(STORAGE_KEY);
         await navigate({ to: "/rapor/$sessionId", params: { sessionId: res.session_id }, replace: true });
       } catch (e) {
