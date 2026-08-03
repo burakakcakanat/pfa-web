@@ -433,6 +433,51 @@ export const upsertQuestion = createServerFn({ method: "POST" })
   });
 
 // -------- WEBINAR SESSIONS --------
+export const getInstrumentVersionState = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: versions }, locked] = await Promise.all([
+      supabaseAdmin
+        .from("instrument_versions")
+        .select("instrument, version, label, notes, is_current, created_at")
+        .order("instrument")
+        .order("version", { ascending: false }),
+      Promise.all([
+        supabaseAdmin.rpc("instrument_version_locked", { _instrument: "pfa" }),
+        supabaseAdmin.rpc("instrument_version_locked", { _instrument: "sevenq" }),
+      ]),
+    ]);
+    return {
+      versions: versions ?? [],
+      locked: { pfa: Boolean(locked[0].data), sevenq: Boolean(locked[1].data) },
+    };
+  });
+
+export const bumpInstrumentVersion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        instrument: z.enum(["pfa", "sevenq"]),
+        label: z.string().max(120).nullable().optional(),
+        notes: z.string().max(2000).nullable().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data: version, error } = await (context.supabase as any).rpc("bump_instrument_version", {
+      _instrument: data.instrument,
+      _label: data.label ?? null,
+      _notes: data.notes ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return { version: Number(version) };
+  });
+
+// -------- WEBINAR SESSIONS --------
 export const listWebinarSessions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

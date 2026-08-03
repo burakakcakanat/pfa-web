@@ -235,6 +235,7 @@ function AccountPage() {
         )}
 
         {tab === "clients" && <ClientsTab />}
+        {tab === "research" && <ResearchPreferences />}
         {tab === "practitioner" && (
           <PractitionerAccountTab onGoToClients={() => setTab("clients")} />
         )}
