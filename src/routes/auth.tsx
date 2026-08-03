@@ -29,8 +29,9 @@ function AuthPage() {
   async function onGoogle() {
     setError(null);
     try {
+      const target = isSafeRedirect(redirect) ? redirect! : "/hesabim";
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}${target.startsWith("/.lovable/oauth/consent") ? target : ""}`,
       });
       if ("error" in result && result.error) throw result.error;
     } catch (err) {
@@ -75,7 +76,9 @@ function AuthPage() {
           password,
           options: {
             data: { full_name: fullName },
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: isSafeRedirect(redirect)
+              ? `${window.location.origin}${redirect}`
+              : window.location.origin,
           },
         });
         if (error) throw error;
