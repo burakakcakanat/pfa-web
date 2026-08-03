@@ -12,6 +12,25 @@ export const Route = createFileRoute("/egitim")({
       },
       { name: "robots", content: "noindex, nofollow" },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Course",
+          name: "PFA Temel Eğitimi",
+          description:
+            "Dokuz modüllük online PFA programı: giriş, yedi bilinç seviyesi ve entegrasyon. Terapistler, koçlar ve eğitimciler için.",
+          url: "https://psychofunctionalanalysis.com/egitim",
+          inLanguage: "tr",
+          provider: {
+            "@type": "Organization",
+            name: "Psiko-Fonksiyonel Analiz (PFA)",
+            url: "https://psychofunctionalanalysis.com",
+          },
+        }),
+      },
+    ],
   }),
   component: TrainingPage,
 });
