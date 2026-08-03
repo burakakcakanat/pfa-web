@@ -1430,6 +1430,7 @@ function WebinarsTab() {
   const [regList, setRegList] = useState<any[] | null>(null);
   const [regTitle, setRegTitle] = useState("");
   const [sharing, setSharing] = useState<any | null>(null);
+  const [err, setErr] = useState<string | null>(null);
   const reload = useCallback(() => { fetchList().then(setData); }, [fetchList]);
   useEffect(() => { reload(); }, [reload]);
   const openRegs = async (p: any) => { setRegTitle(p.name_tr); setRegList(await regs({ data: { product_id: p.id } })); };
@@ -1441,8 +1442,13 @@ function WebinarsTab() {
             <Button key={p.id} size="sm" variant="outline" onClick={() => openRegs(p)}>{p.name_tr} kayıtları</Button>
           ))}
         </div>
-        <Button onClick={() => setEditing({ product_id: data.products[0]?.id ?? "", title: "", starts_at: new Date().toISOString().slice(0,16), capacity: null, join_url: "", notes: "" })}>Yeni Oturum</Button>
+        <Button onClick={() => { setErr(null); setEditing({ product_id: data.products[0]?.id ?? "", title: "", starts_at: new Date().toISOString().slice(0,16), capacity: null, join_url: "", notes: "", banner_url: "", price_cents: data.products[0]?.price_cents ?? 0 }); }}>Yeni Oturum</Button>
       </div>
+      {err && (
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          Kaydedilemedi: {err}
+        </div>
+      )}
       {regList && (
         <Card title={`Kayıtlı: ${regTitle}`}>
           <Button size="sm" variant="outline" className="mb-2" onClick={() => setRegList(null)}>Kapat</Button>
@@ -1458,20 +1464,25 @@ function WebinarsTab() {
             initial={editing}
             products={data.products}
             onCancel={() => setEditing(null)}
-            onSave={async (d) => { await save({ data: d }); setEditing(null); reload(); }}
+            onSave={async (d) => {
+              setErr(null);
+              await save({ data: d });
+              setEditing(null);
+              reload();
+            }}
           />
         </Card>
       )}
       <Table>
-        <TableHeader><TableRow><TableHead>Başlık</TableHead><TableHead>Ürün</TableHead><TableHead>Tarih</TableHead><TableHead>Kapasite</TableHead><TableHead></TableHead></TableRow></TableHeader>
+        <TableHeader><TableRow><TableHead>Başlık</TableHead><TableHead>Ürün</TableHead><TableHead>Tarih</TableHead><TableHead>Ücret</TableHead><TableHead>Kapasite</TableHead><TableHead></TableHead></TableRow></TableHeader>
         <TableBody>
           {data.sessions.map((s) => {
             const p = data.products.find((x) => x.id === s.product_id);
             return (
               <TableRow key={s.id}>
-                <TableCell>{s.title}</TableCell><TableCell>{p?.name_tr ?? "—"}</TableCell><TableCell>{fmtDate(s.starts_at)}</TableCell><TableCell>{s.capacity ?? "—"}</TableCell>
+                <TableCell>{s.title}</TableCell><TableCell>{p?.name_tr ?? "—"}</TableCell><TableCell>{fmtDate(s.starts_at)}</TableCell><TableCell>{formatWebinarPrice(p?.price_cents)}</TableCell><TableCell>{s.capacity ?? "—"}</TableCell>
                 <TableCell className="flex gap-1">
-                  <Button size="sm" variant="outline" onClick={() => setEditing({ ...s, starts_at: new Date(s.starts_at).toISOString().slice(0,16) })}>Düzenle</Button>
+                  <Button size="sm" variant="outline" onClick={() => { setErr(null); setEditing({ ...s, starts_at: new Date(s.starts_at).toISOString().slice(0,16), price_cents: p?.price_cents ?? 0 }); }}>Düzenle</Button>
                   <Button size="sm" variant="outline" onClick={() => setSharing({ ...s, product: p })}>Paylaş</Button>
                   <Button size="sm" variant="destructive" onClick={async () => { if (confirm("Silinsin mi?")) { await del({ data: { id: s.id } }); reload(); } }}>Sil</Button>
                 </TableCell>
