@@ -90,6 +90,12 @@ export const TERMS_COPY: Record<"tr" | "en", LegalCopy> = {
       "Bu koşullar, psychofunctionalanalysis.com adresinde sunulan içerik, hizmet ve dijital ürünlerin kullanımını düzenler. Siteyi kullanarak veya bir ürün satın alarak aşağıdaki koşulları kabul etmiş olursunuz.",
     sections: [
       {
+        h2: "İşletmeci",
+        paras: [
+          "Bu site ve dijital ürünler Burak Akçakanat (şahıs) tarafından işletilmektedir. İletişim: info@psychofunctionalanalysis.com",
+        ],
+      },
+      {
         h2: "Hesap ve sorumluluk",
         paras: [
           "Hesabınızın güvenliği size aittir; giriş bilgilerinizi paylaşmamanız ve hesabınız üzerinden yapılan işlemlerden sorumlu olduğunuzu bilmeniz gerekir. Verdiğiniz bilgilerin doğru ve güncel olması, siparişlerin ve dijital teslimatların size ulaşabilmesi için gereklidir. Hesabınızda yetkisiz bir kullanım fark ederseniz lütfen bize yazın.",
@@ -129,6 +135,12 @@ export const TERMS_COPY: Record<"tr" | "en", LegalCopy> = {
     intro:
       "These terms govern the use of the content, services and digital products offered at psychofunctionalanalysis.com. By using the site or buying a product you accept the terms below.",
     sections: [
+      {
+        h2: "Operator",
+        paras: [
+          "This site and its digital products are operated by Burak Akcakanat (sole proprietor). Contact: info@psychofunctionalanalysis.com",
+        ],
+      },
       {
         h2: "Account and responsibility",
         paras: [
