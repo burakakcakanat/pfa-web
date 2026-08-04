@@ -256,7 +256,7 @@ function ApplicationForm({
         <input type="checkbox" name="kvkk_accepted" required className="mt-1 h-4 w-4 accent-primary" />
         <span>
           Kişisel verilerimin başvuru değerlendirmesi amacıyla işlenmesini kabul ediyorum.{" "}
-          <Link to="/hakkinda" className="underline underline-offset-4">KVKK aydınlatma metni</Link>
+          <Link to="/gizlilik" className="underline underline-offset-4">KVKK aydınlatma metni</Link>
         </span>
       </label>
 
