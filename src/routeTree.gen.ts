@@ -21,6 +21,7 @@ import { Route as KitaplarRouteImport } from './routes/kitaplar'
 import { Route as IletisimRouteImport } from './routes/iletisim'
 import { Route as IadePolitikasiRouteImport } from './routes/iade-politikasi'
 import { Route as HakkindaRouteImport } from './routes/hakkinda'
+import { Route as GizlilikRouteImport } from './routes/gizlilik'
 import { Route as EgitimRouteImport } from './routes/egitim'
 import { Route as DegerlendirmeRouteImport } from './routes/degerlendirme'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -38,6 +39,7 @@ import { Route as UygulayicilarIdRouteImport } from './routes/uygulayicilar.$id'
 import { Route as HediyeTokenRouteImport } from './routes/hediye.$token'
 import { Route as EnTermsRouteImport } from './routes/en/terms'
 import { Route as EnRefundPolicyRouteImport } from './routes/en/refund-policy'
+import { Route as EnPrivacyRouteImport } from './routes/en/privacy'
 import { Route as EnLevelsRouteImport } from './routes/en/levels'
 import { Route as EnContactRouteImport } from './routes/en/contact'
 import { Route as EnBooksRouteImport } from './routes/en/books'
@@ -124,6 +126,11 @@ const HakkindaRoute = HakkindaRouteImport.update({
   path: '/hakkinda',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GizlilikRoute = GizlilikRouteImport.update({
+  id: '/gizlilik',
+  path: '/gizlilik',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EgitimRoute = EgitimRouteImport.update({
   id: '/egitim',
   path: '/egitim',
@@ -207,6 +214,11 @@ const EnTermsRoute = EnTermsRouteImport.update({
 const EnRefundPolicyRoute = EnRefundPolicyRouteImport.update({
   id: '/refund-policy',
   path: '/refund-policy',
+  getParentRoute: () => EnRouteRoute,
+} as any)
+const EnPrivacyRoute = EnPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => EnRouteRoute,
 } as any)
 const EnLevelsRoute = EnLevelsRouteImport.update({
@@ -349,6 +361,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
+  '/gizlilik': typeof GizlilikRoute
   '/hakkinda': typeof HakkindaRoute
   '/iade-politikasi': typeof IadePolitikasiRoute
   '/iletisim': typeof IletisimRoute
@@ -375,6 +388,7 @@ export interface FileRoutesByFullPath {
   '/en/books': typeof EnBooksRoute
   '/en/contact': typeof EnContactRoute
   '/en/levels': typeof EnLevelsRoute
+  '/en/privacy': typeof EnPrivacyRoute
   '/en/refund-policy': typeof EnRefundPolicyRoute
   '/en/terms': typeof EnTermsRoute
   '/hediye/$token': typeof HediyeTokenRoute
@@ -403,6 +417,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
+  '/gizlilik': typeof GizlilikRoute
   '/hakkinda': typeof HakkindaRoute
   '/iade-politikasi': typeof IadePolitikasiRoute
   '/iletisim': typeof IletisimRoute
@@ -429,6 +444,7 @@ export interface FileRoutesByTo {
   '/en/books': typeof EnBooksRoute
   '/en/contact': typeof EnContactRoute
   '/en/levels': typeof EnLevelsRoute
+  '/en/privacy': typeof EnPrivacyRoute
   '/en/refund-policy': typeof EnRefundPolicyRoute
   '/en/terms': typeof EnTermsRoute
   '/hediye/$token': typeof HediyeTokenRoute
@@ -460,6 +476,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
+  '/gizlilik': typeof GizlilikRoute
   '/hakkinda': typeof HakkindaRoute
   '/iade-politikasi': typeof IadePolitikasiRoute
   '/iletisim': typeof IletisimRoute
@@ -486,6 +503,7 @@ export interface FileRoutesById {
   '/en/books': typeof EnBooksRoute
   '/en/contact': typeof EnContactRoute
   '/en/levels': typeof EnLevelsRoute
+  '/en/privacy': typeof EnPrivacyRoute
   '/en/refund-policy': typeof EnRefundPolicyRoute
   '/en/terms': typeof EnTermsRoute
   '/hediye/$token': typeof HediyeTokenRoute
@@ -517,6 +535,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/degerlendirme'
     | '/egitim'
+    | '/gizlilik'
     | '/hakkinda'
     | '/iade-politikasi'
     | '/iletisim'
@@ -543,6 +562,7 @@ export interface FileRouteTypes {
     | '/en/books'
     | '/en/contact'
     | '/en/levels'
+    | '/en/privacy'
     | '/en/refund-policy'
     | '/en/terms'
     | '/hediye/$token'
@@ -571,6 +591,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/degerlendirme'
     | '/egitim'
+    | '/gizlilik'
     | '/hakkinda'
     | '/iade-politikasi'
     | '/iletisim'
@@ -597,6 +618,7 @@ export interface FileRouteTypes {
     | '/en/books'
     | '/en/contact'
     | '/en/levels'
+    | '/en/privacy'
     | '/en/refund-policy'
     | '/en/terms'
     | '/hediye/$token'
@@ -627,6 +649,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/degerlendirme'
     | '/egitim'
+    | '/gizlilik'
     | '/hakkinda'
     | '/iade-politikasi'
     | '/iletisim'
@@ -653,6 +676,7 @@ export interface FileRouteTypes {
     | '/en/books'
     | '/en/contact'
     | '/en/levels'
+    | '/en/privacy'
     | '/en/refund-policy'
     | '/en/terms'
     | '/hediye/$token'
@@ -684,6 +708,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DegerlendirmeRoute: typeof DegerlendirmeRoute
   EgitimRoute: typeof EgitimRoute
+  GizlilikRoute: typeof GizlilikRoute
   HakkindaRoute: typeof HakkindaRoute
   IadePolitikasiRoute: typeof IadePolitikasiRoute
   IletisimRoute: typeof IletisimRoute
@@ -806,6 +831,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HakkindaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gizlilik': {
+      id: '/gizlilik'
+      path: '/gizlilik'
+      fullPath: '/gizlilik'
+      preLoaderRoute: typeof GizlilikRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/egitim': {
       id: '/egitim'
       path: '/egitim'
@@ -923,6 +955,13 @@ declare module '@tanstack/react-router' {
       path: '/refund-policy'
       fullPath: '/en/refund-policy'
       preLoaderRoute: typeof EnRefundPolicyRouteImport
+      parentRoute: typeof EnRouteRoute
+    }
+    '/en/privacy': {
+      id: '/en/privacy'
+      path: '/privacy'
+      fullPath: '/en/privacy'
+      preLoaderRoute: typeof EnPrivacyRouteImport
       parentRoute: typeof EnRouteRoute
     }
     '/en/levels': {
@@ -1131,6 +1170,7 @@ interface EnRouteRouteChildren {
   EnBooksRoute: typeof EnBooksRoute
   EnContactRoute: typeof EnContactRoute
   EnLevelsRoute: typeof EnLevelsRoute
+  EnPrivacyRoute: typeof EnPrivacyRoute
   EnRefundPolicyRoute: typeof EnRefundPolicyRoute
   EnTermsRoute: typeof EnTermsRoute
   EnIndexRoute: typeof EnIndexRoute
@@ -1141,6 +1181,7 @@ const EnRouteRouteChildren: EnRouteRouteChildren = {
   EnBooksRoute: EnBooksRoute,
   EnContactRoute: EnContactRoute,
   EnLevelsRoute: EnLevelsRoute,
+  EnPrivacyRoute: EnPrivacyRoute,
   EnRefundPolicyRoute: EnRefundPolicyRoute,
   EnTermsRoute: EnTermsRoute,
   EnIndexRoute: EnIndexRoute,
@@ -1156,6 +1197,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DegerlendirmeRoute: DegerlendirmeRoute,
   EgitimRoute: EgitimRoute,
+  GizlilikRoute: GizlilikRoute,
   HakkindaRoute: HakkindaRoute,
   IadePolitikasiRoute: IadePolitikasiRoute,
   IletisimRoute: IletisimRoute,
