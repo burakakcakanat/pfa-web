@@ -54,6 +54,26 @@ export function amazonUrlFor(
   return `https://${domain}/dp/${asin}`;
 }
 
+export const MARKETPLACE_NAMES_EN: Record<string, string> = {
+  us: "United States",
+  uk: "United Kingdom",
+  de: "Germany",
+  fr: "France",
+  es: "Spain",
+  it: "Italy",
+  nl: "Netherlands",
+  pl: "Poland",
+  se: "Sweden",
+  be: "Belgium",
+  ie: "Ireland",
+  jp: "Japan",
+  br: "Brazil",
+  ca: "Canada",
+  mx: "Mexico",
+  au: "Australia",
+  in: "India",
+};
+
 // Aktiflik kuralı: active && (activate_at IS NULL || activate_at <= now())
 export function isLive(row: { active: boolean | null; activate_at?: string | null }): boolean {
   if (!row.active) return false;

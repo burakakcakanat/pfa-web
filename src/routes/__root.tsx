@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -13,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND_TAGLINE } from "@/lib/brand";
+import { localeFromPathname, switchTarget, type Locale } from "@/lib/i18n";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Instagram, Linkedin, Youtube, Twitter, ChevronDown } from "lucide-react";
 
@@ -117,8 +119,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const lang = useRouterState({ select: (s) => localeFromPathname(s.location.pathname) });
   return (
-    <html lang="tr">
+    <html lang={lang}>
       <head>
         <HeadContent />
       </head>
@@ -132,17 +135,106 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const locale = useRouterState({ select: (s) => localeFromPathname(s.location.pathname) });
 
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen flex-col">
-        <SiteHeader />
+        {locale === "en" ? <EnHeader /> : <SiteHeader />}
         <main className="flex-1">
           <Outlet />
         </main>
-        <SiteFooter />
+        {locale === "en" ? <EnFooter /> : <SiteFooter />}
       </div>
     </QueryClientProvider>
+  );
+}
+
+/** Quiet TR | EN switcher. Uses a plain anchor so the document language attribute
+ *  is always correct after switching. */
+function LanguageSwitcher({ locale, className }: { locale: Locale; className?: string }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const target = switchTarget(pathname);
+  const other = locale === "en" ? "TR" : "EN";
+  return (
+    <a
+      href={target}
+      hrefLang={locale === "en" ? "tr" : "en"}
+      aria-label={locale === "en" ? "Türkçe" : "English"}
+      className={
+        className ??
+        "shrink-0 text-[0.7rem] tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent"
+      }
+    >
+      {locale === "en" ? "TR" : "TR | EN"}
+      <span className="sr-only"> — {other}</span>
+    </a>
+  );
+}
+
+const EN_NAV: NavItem[] = [
+  { to: "/en", label: "Home" },
+  { to: "/en/refund-policy", label: "Refund policy" },
+  { to: "/en/terms", label: "Terms of use" },
+];
+
+function EnHeader() {
+  return (
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-sm">
+      <div className="container-page flex h-16 items-center justify-between gap-6">
+        <a
+          href="/en"
+          className="flex shrink-0 flex-col items-start justify-center leading-none"
+          aria-label="PFA — Psycho-Functional Analysis"
+        >
+          <span
+            className="font-serif text-[28px] font-semibold text-primary sm:text-[34px]"
+            style={{ letterSpacing: "0.08em", lineHeight: 1 }}
+          >
+            PFA
+          </span>
+          <span
+            className="text-[8px] tracking-[0.22em] text-primary/80 sm:text-[9.5px] sm:tracking-[0.28em]"
+            style={{ marginTop: "3px", fontFamily: "Inter, sans-serif" }}
+          >
+            {BRAND_TAGLINE.en}
+          </span>
+        </a>
+        <nav className="flex items-center gap-4 text-[0.82rem] tracking-wide sm:gap-5">
+          {EN_NAV.map((l) => (
+            <a key={l.to} href={l.to} className="hidden text-foreground/75 transition-colors hover:text-accent sm:inline">
+              {l.label}
+            </a>
+          ))}
+          <LanguageSwitcher locale="en" />
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+function EnFooter() {
+  return (
+    <footer className="mt-24 border-t border-border/60 bg-background">
+      <div className="container-page flex flex-col gap-4 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-4">
+          {EN_NAV.slice(1).map((l) => (
+            <a key={l.to} href={l.to} className="hover:text-accent">
+              {l.label}
+            </a>
+          ))}
+          <a href="mailto:info@psychofunctionalanalysis.com" className="hover:text-accent">
+            info@psychofunctionalanalysis.com
+          </a>
+          <a href="/" hrefLang="tr" className="hover:text-accent">
+            Türkçe
+          </a>
+        </div>
+        <div className="text-xs">
+          © 2026 Burak Akçakanat — Psycho-Functional Analysis. All rights reserved.
+        </div>
+      </div>
+    </footer>
   );
 }
 
@@ -410,6 +502,7 @@ function SiteHeader() {
               Giriş Yap
             </Link>
           )}
+          <LanguageSwitcher locale="tr" />
         </nav>
         <MobileMenu
           email={email}
@@ -531,6 +624,14 @@ function MobileMenu({
           ) : (
             <Link to="/auth" className="px-4 py-2.5 text-sm text-accent" onClick={() => setOpen(false)}>Giriş Yap</Link>
           )}
+          <a
+            href="/en"
+            hrefLang="en"
+            className="border-t border-border/60 px-4 py-2.5 text-sm text-muted-foreground"
+            onClick={() => setOpen(false)}
+          >
+            English
+          </a>
         </div>
       )}
     </div>
@@ -634,7 +735,12 @@ function SiteFooter() {
       </div>
       <div className="border-t border-border/60">
         <div className="container-page py-6 text-xs text-muted-foreground">
-          © 2026 Burak Akçakanat — Psiko-Fonksiyonel Analiz. Tüm hakları saklıdır.
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span>© 2026 Burak Akçakanat — Psiko-Fonksiyonel Analiz. Tüm hakları saklıdır.</span>
+            <a href="/en" hrefLang="en" className="hover:text-accent">
+              English
+            </a>
+          </div>
         </div>
       </div>
     </footer>

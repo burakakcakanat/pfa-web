@@ -28,12 +28,15 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WebinarlarIndexRouteImport } from './routes/webinarlar.index'
 import { Route as UygulayicilarIndexRouteImport } from './routes/uygulayicilar.index'
+import { Route as EnIndexRouteImport } from './routes/en.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as R7qIndexRouteImport } from './routes/7q.index'
 import { Route as WebinarlarPfaProRouteImport } from './routes/webinarlar.pfa-pro'
 import { Route as WebinarlarBilincSeviyeleriRouteImport } from './routes/webinarlar.bilinc-seviyeleri'
 import { Route as UygulayicilarIdRouteImport } from './routes/uygulayicilar.$id'
 import { Route as HediyeTokenRouteImport } from './routes/hediye.$token'
+import { Route as EnTermsRouteImport } from './routes/en.terms'
+import { Route as EnRefundPolicyRouteImport } from './routes/en.refund-policy'
 import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
 import { Route as BultenOnaylaRouteImport } from './routes/bulten.onayla'
 import { Route as BultenAyrilRouteImport } from './routes/bulten.ayril'
@@ -150,6 +153,11 @@ const UygulayicilarIndexRoute = UygulayicilarIndexRouteImport.update({
   path: '/uygulayicilar/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnIndexRoute = EnIndexRouteImport.update({
+  id: '/en/',
+  path: '/en/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
@@ -179,6 +187,16 @@ const UygulayicilarIdRoute = UygulayicilarIdRouteImport.update({
 const HediyeTokenRoute = HediyeTokenRouteImport.update({
   id: '/hediye/$token',
   path: '/hediye/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnTermsRoute = EnTermsRouteImport.update({
+  id: '/en/terms',
+  path: '/en/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnRefundPolicyRoute = EnRefundPolicyRouteImport.update({
+  id: '/en/refund-policy',
+  path: '/en/refund-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
@@ -322,12 +340,15 @@ export interface FileRoutesByFullPath {
   '/bulten/ayril': typeof BultenAyrilRoute
   '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
+  '/en/refund-policy': typeof EnRefundPolicyRoute
+  '/en/terms': typeof EnTermsRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/7q/': typeof R7qIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/en/': typeof EnIndexRoute
   '/uygulayicilar/': typeof UygulayicilarIndexRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -369,12 +390,15 @@ export interface FileRoutesByTo {
   '/bulten/ayril': typeof BultenAyrilRoute
   '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
+  '/en/refund-policy': typeof EnRefundPolicyRoute
+  '/en/terms': typeof EnTermsRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/7q': typeof R7qIndexRoute
   '/blog': typeof BlogIndexRoute
+  '/en': typeof EnIndexRoute
   '/uygulayicilar': typeof UygulayicilarIndexRoute
   '/webinarlar': typeof WebinarlarIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -418,12 +442,15 @@ export interface FileRoutesById {
   '/bulten/ayril': typeof BultenAyrilRoute
   '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
+  '/en/refund-policy': typeof EnRefundPolicyRoute
+  '/en/terms': typeof EnTermsRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/7q/': typeof R7qIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/en/': typeof EnIndexRoute
   '/uygulayicilar/': typeof UygulayicilarIndexRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -467,12 +494,15 @@ export interface FileRouteTypes {
     | '/bulten/ayril'
     | '/bulten/onayla'
     | '/degerlendirme/mini'
+    | '/en/refund-policy'
+    | '/en/terms'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/7q/'
     | '/blog/'
+    | '/en/'
     | '/uygulayicilar/'
     | '/webinarlar/'
     | '/.lovable/oauth/consent'
@@ -514,12 +544,15 @@ export interface FileRouteTypes {
     | '/bulten/ayril'
     | '/bulten/onayla'
     | '/degerlendirme/mini'
+    | '/en/refund-policy'
+    | '/en/terms'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/7q'
     | '/blog'
+    | '/en'
     | '/uygulayicilar'
     | '/webinarlar'
     | '/.lovable/oauth/consent'
@@ -562,12 +595,15 @@ export interface FileRouteTypes {
     | '/bulten/ayril'
     | '/bulten/onayla'
     | '/degerlendirme_/mini'
+    | '/en/refund-policy'
+    | '/en/terms'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/7q/'
     | '/blog/'
+    | '/en/'
     | '/uygulayicilar/'
     | '/webinarlar/'
     | '/.lovable/oauth/consent'
@@ -608,12 +644,15 @@ export interface RootRouteChildren {
   BultenAyrilRoute: typeof BultenAyrilRoute
   BultenOnaylaRoute: typeof BultenOnaylaRoute
   DegerlendirmeMiniRoute: typeof DegerlendirmeMiniRoute
+  EnRefundPolicyRoute: typeof EnRefundPolicyRoute
+  EnTermsRoute: typeof EnTermsRoute
   HediyeTokenRoute: typeof HediyeTokenRoute
   UygulayicilarIdRoute: typeof UygulayicilarIdRoute
   WebinarlarBilincSeviyeleriRoute: typeof WebinarlarBilincSeviyeleriRoute
   WebinarlarPfaProRoute: typeof WebinarlarPfaProRoute
   R7qIndexRoute: typeof R7qIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  EnIndexRoute: typeof EnIndexRoute
   UygulayicilarIndexRoute: typeof UygulayicilarIndexRoute
   WebinarlarIndexRoute: typeof WebinarlarIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
@@ -760,6 +799,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UygulayicilarIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/en/': {
+      id: '/en/'
+      path: '/en'
+      fullPath: '/en/'
+      preLoaderRoute: typeof EnIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/': {
       id: '/blog/'
       path: '/blog'
@@ -800,6 +846,20 @@ declare module '@tanstack/react-router' {
       path: '/hediye/$token'
       fullPath: '/hediye/$token'
       preLoaderRoute: typeof HediyeTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/terms': {
+      id: '/en/terms'
+      path: '/en/terms'
+      fullPath: '/en/terms'
+      preLoaderRoute: typeof EnTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/refund-policy': {
+      id: '/en/refund-policy'
+      path: '/en/refund-policy'
+      fullPath: '/en/refund-policy'
+      preLoaderRoute: typeof EnRefundPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/degerlendirme_/mini': {
@@ -1001,12 +1061,15 @@ const rootRouteChildren: RootRouteChildren = {
   BultenAyrilRoute: BultenAyrilRoute,
   BultenOnaylaRoute: BultenOnaylaRoute,
   DegerlendirmeMiniRoute: DegerlendirmeMiniRoute,
+  EnRefundPolicyRoute: EnRefundPolicyRoute,
+  EnTermsRoute: EnTermsRoute,
   HediyeTokenRoute: HediyeTokenRoute,
   UygulayicilarIdRoute: UygulayicilarIdRoute,
   WebinarlarBilincSeviyeleriRoute: WebinarlarBilincSeviyeleriRoute,
   WebinarlarPfaProRoute: WebinarlarPfaProRoute,
   R7qIndexRoute: R7qIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
+  EnIndexRoute: EnIndexRoute,
   UygulayicilarIndexRoute: UygulayicilarIndexRoute,
   WebinarlarIndexRoute: WebinarlarIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
@@ -1020,13 +1083,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -12,11 +12,12 @@ type Props = {
   bookLang?: "tr" | "en";
   label?: string;
   className?: string;
+  locale?: "tr" | "en";
   gift?: { recipient_name: string; recipient_email: string; gift_note?: string | null } | null;
   onSuccess?: () => void;
 };
 
-export function BuyButton({ productSlug, bundleSlug, bookLang, label = "Satın Al", className, gift, onSuccess }: Props) {
+export function BuyButton({ productSlug, bundleSlug, bookLang, label = "Satın Al", className, locale = "tr", gift, onSuccess }: Props) {
   const doCheckout = useServerFn(createCheckout);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -46,7 +47,7 @@ export function BuyButton({ productSlug, bundleSlug, bookLang, label = "Satın A
         window.location.href = res.url;
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Bir hata oluştu.");
+      setError(e instanceof Error ? e.message : locale === "en" ? "Something went wrong." : "Bir hata oluştu.");
     } finally {
       setLoading(false);
     }
@@ -61,8 +62,20 @@ export function BuyButton({ productSlug, bundleSlug, bookLang, label = "Satın A
           aria-disabled="true"
           className={`${className ?? "btn-primary"} cursor-not-allowed opacity-50`}
         >
-          Yakında
+          {locale === "en" ? "Coming soon" : "Yakında"}
         </button>
+        {locale === "en" ? (
+          <span className="max-w-xs text-xs leading-relaxed text-muted-foreground">
+            Online purchasing opens shortly. Until then you can write to us at{" "}
+            <a
+              href="mailto:info@psychofunctionalanalysis.com"
+              className="underline underline-offset-4 hover:text-foreground"
+            >
+              info@psychofunctionalanalysis.com
+            </a>
+            .
+          </span>
+        ) : (
         <span className="max-w-xs text-xs leading-relaxed text-muted-foreground">
           Online satın alma yakında açılıyor. O zamana kadar{" "}
           <Link to="/iletisim" className="underline underline-offset-4 hover:text-foreground">
@@ -70,6 +83,7 @@ export function BuyButton({ productSlug, bundleSlug, bookLang, label = "Satın A
           </Link>{" "}
           sayfasından bize yazabilirsiniz.
         </span>
+        )}
       </div>
     );
   }
