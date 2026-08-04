@@ -7,12 +7,11 @@ import {
 } from "@/lib/newsletter-status.functions";
 
 /**
- * Hesap menüsündeki durum duyarlı tek bülten eylemi.
- * E-posta istemciden gönderilmez; sunucu oturumdaki kullanıcının
- * kendi adresini kullanır. Geri bildirim menü içinde sessizce verilir;
- * abonelikten çıkış için menü içi kısa bir onay adımı vardır.
+ * Tek satırlık, kompakt bülten kontrolü. Uygulamada bültene abone olma /
+ * çıkma işleminin tek yeri (e-postadaki token bağlantısı hariç).
+ * E-posta istemciden gönderilmez; sunucu oturumdaki kullanıcının adresini kullanır.
  */
-export function NewsletterMenuItem({ className }: { className?: string }) {
+export function NewsletterRow() {
   const status = useServerFn(getMyNewsletterStatus);
   const subscribeMe = useServerFn(subscribeMeToNewsletter);
   const unsubscribeMe = useServerFn(unsubscribeMeFromNewsletter);
@@ -35,8 +34,6 @@ export function NewsletterMenuItem({ className }: { className?: string }) {
     const t = setTimeout(() => setNote(null), 4000);
     return () => clearTimeout(t);
   }, [note]);
-
-  const base = className ?? "px-4 py-2 text-left text-sm hover:text-accent disabled:opacity-60";
 
   const doSubscribe = async () => {
     setBusy(true);
@@ -65,35 +62,33 @@ export function NewsletterMenuItem({ className }: { className?: string }) {
     }
   };
 
-  if (confirming) {
-    return (
-      <div className={`${base} space-y-1`}>
-        <div className="text-xs text-muted-foreground">Emin misiniz?</div>
-        <div className="flex items-center gap-3">
-          <button type="button" onClick={doUnsubscribe} className="text-sm text-accent">Evet, çık</button>
-          <button type="button" onClick={() => setConfirming(false)} className="text-sm text-muted-foreground">Vazgeç</button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col">
-      <button
-        type="button"
-        disabled={busy || subscribed === null}
-        onClick={() => (subscribed ? setConfirming(true) : doSubscribe())}
-        className={base}
-      >
-        {busy
-          ? "İşleniyor…"
-          : subscribed === null
-            ? "Bülten"
-            : subscribed
-              ? "Bültenden Çık"
-              : "Bültene Üye Ol"}
-      </button>
-      {note && <div className="px-4 pb-2 text-xs text-muted-foreground">{note}</div>}
+    <div className="text-sm">
+      <div className="flex items-center justify-between gap-4">
+        <div className="text-foreground/80">
+          Bülten{" "}
+          <span className="text-xs text-muted-foreground">
+            · {subscribed === null ? "…" : subscribed ? "Kayıtlı" : "Kayıtlı değil"}
+          </span>
+        </div>
+        {confirming ? (
+          <div className="flex items-center gap-3 text-xs">
+            <span className="text-muted-foreground">Emin misiniz?</span>
+            <button type="button" onClick={doUnsubscribe} className="text-accent">Evet, çık</button>
+            <button type="button" onClick={() => setConfirming(false)} className="text-muted-foreground">Vazgeç</button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            disabled={busy || subscribed === null}
+            onClick={() => (subscribed ? setConfirming(true) : doSubscribe())}
+            className="rounded-md border border-border px-3 py-1.5 text-xs transition hover:border-foreground disabled:opacity-60"
+          >
+            {busy ? "…" : subscribed ? "Abonelikten çık" : "Üye ol"}
+          </button>
+        )}
+      </div>
+      {note && <p className="mt-1 text-xs text-muted-foreground">{note}</p>}
     </div>
   );
 }
