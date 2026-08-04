@@ -41,6 +41,7 @@ export const REFUND_COPY: Record<"tr" | "en", LegalCopy> = {
         h2: "İade talebi ve geri ödeme",
         paras: [
           "İade taleplerinizi sipariş numaranızla birlikte info@psychofunctionalanalysis.com adresine iletebilirsiniz. Talebinizi genellikle 3 iş günü içinde değerlendiririz. Onaylanan iadeler, ödemenin yapıldığı yönteme geri aktarılır; tutarın hesabınıza yansıması bankanıza bağlı olarak birkaç iş günü sürebilir.",
+          "Bu site ve dijital ürünler Burak Akçakanat (şahıs) tarafından işletilmektedir. İletişim: info@psychofunctionalanalysis.com",
         ],
       },
     ],
@@ -75,6 +76,7 @@ export const REFUND_COPY: Record<"tr" | "en", LegalCopy> = {
         h2: "Requesting a refund and repayment",
         paras: [
           "You can send refund requests, together with your order number, to info@psychofunctionalanalysis.com. We normally review a request within 3 working days. Approved refunds are returned to the payment method used; depending on your bank, it may take a few working days for the amount to appear in your account.",
+          "This site and its digital products are operated by Burak Akcakanat (sole proprietor). Contact: info@psychofunctionalanalysis.com",
         ],
       },
     ],
