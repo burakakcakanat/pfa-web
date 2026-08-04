@@ -617,7 +617,8 @@ export const listWebinarRegistrants = createServerFn({ method: "POST" })
       .from("orders")
       .select("id, user_id, created_at, status")
       .eq("product_id", data.product_id)
-      .eq("status", "paid");
+      .eq("status", "paid")
+      .eq("is_test", false);
     const ids = Array.from(new Set((orders ?? []).map((o) => o.user_id)));
     if (ids.length === 0) return [];
     const { data: profs } = await supabaseAdmin
