@@ -23,7 +23,8 @@ export const getAdminOverview = createServerFn({ method: "GET" })
         supabaseAdmin
           .from("orders")
           .select("id, amount_cents, currency, status, product_id, created_at")
-          .eq("status", "paid"),
+          .eq("status", "paid")
+          .eq("is_test", false),
         supabaseAdmin.from("products").select("id, slug, name_tr, type"),
         supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
         supabaseAdmin
@@ -33,6 +34,7 @@ export const getAdminOverview = createServerFn({ method: "GET" })
         supabaseAdmin
           .from("orders")
           .select("id, amount_cents, currency, status, created_at, product_id, user_id")
+          .eq("is_test", false)
           .order("created_at", { ascending: false })
           .limit(10),
       ]);
