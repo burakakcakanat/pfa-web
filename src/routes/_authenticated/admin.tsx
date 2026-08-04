@@ -61,7 +61,6 @@ import {
   revokeProLicense,
   setCertificateStatus,
   runPendingPersonalizedRetry,
-  listAdminBundles,
   createTestOrder,
   deleteTestOrder,
   listTestOrders,
@@ -2246,7 +2245,7 @@ function TestOrderPanel() {
   const reload = useCallback(() => { fetchTests().then(setTests); }, [fetchTests]);
   useEffect(() => {
     fetchProducts().then(setProducts);
-    fetchBundles().then(setBundles);
+    fetchBundles().then((r: any) => setBundles(r?.bundles ?? []));
     fetchUsers({ data: {} }).then((r: any) => setUsers(Array.isArray(r) ? r : r?.rows ?? []));
     reload();
   }, [fetchProducts, fetchBundles, fetchUsers, reload]);
