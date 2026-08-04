@@ -209,13 +209,20 @@ export const getEbookUrl = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const { data: ent } = await supabase
+    // Aynı kitap birden fazla siparişte alınmış olabilir; maybeSingle() bu durumda
+    // hata döndürüp yetki hatasına yol açıyordu. Tüm hakları çekip
+    // kişiselleştirilmiş dosyası olanı (yoksa en yenisini) seçiyoruz.
+    const { data: ents } = await supabase
       .from("user_entitlements")
-      .select("id, metadata")
+      .select("id, metadata, created_at")
       .eq("user_id", userId)
       .eq("type", "ebook")
       .filter("metadata->>product_slug", "eq", data.slug)
-      .maybeSingle();
+      .order("created_at", { ascending: false });
+    const rows = ents ?? [];
+    const ent =
+      rows.find((r) => Boolean((r.metadata as Record<string, unknown> | null)?.personalized_pdf_path)) ??
+      rows[0];
     if (!ent) throw new Error("Bu e-book için yetkiniz bulunmuyor.");
 
     const meta = (ent.metadata ?? {}) as Record<string, unknown>;
