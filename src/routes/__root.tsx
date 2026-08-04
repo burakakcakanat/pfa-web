@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BRAND_TAGLINE } from "@/lib/brand";
 import { localeFromPathname, switchTarget, type Locale } from "@/lib/i18n";
 import { NewsletterForm } from "@/components/newsletter-form";
-import { Instagram, Linkedin, Youtube, Twitter, ChevronDown, BookOpen } from "lucide-react";
+import { Instagram, Linkedin, Youtube, Twitter, ChevronDown, BookOpen, Menu } from "lucide-react";
 
 function FooterNewsletter() {
   return <NewsletterForm source="footer" />;
@@ -378,6 +378,15 @@ function EnFooter() {
               className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:border-accent hover:bg-accent hover:text-accent-foreground"
             >
               <Instagram className="h-4 w-4" strokeWidth={1.6} />
+            </a>
+            <a
+              href="https://www.linkedin.com/in/burakakcakanat"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:border-accent hover:bg-accent hover:text-accent-foreground"
+            >
+              <Linkedin className="h-4 w-4" strokeWidth={1.6} />
             </a>
             <a
               href="https://www.amazon.com/author/burak-akcakanat"
