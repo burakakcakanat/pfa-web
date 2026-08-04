@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { parseFriendly } from "@/lib/zod-friendly";
+import { parseFriendly, parseFriendlyEn } from "@/lib/zod-friendly";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const schema = z.object({
@@ -9,12 +9,18 @@ const schema = z.object({
   subject: z.string().trim().max(200).optional().default(""),
   message: z.string().trim().min(10).max(4000),
   website_hp: z.string().max(0).optional().default(""),
+  locale: z.enum(["tr", "en"]).optional().default("tr"),
 });
 
 export const submitContactMessage = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => parseFriendly(schema, d))
+  .inputValidator((d: unknown) =>
+    (d as { locale?: string } | null)?.locale === "en"
+      ? parseFriendlyEn(schema, d)
+      : parseFriendly(schema, d),
+  )
   .handler(async ({ data }) => {
     if (data.website_hp && data.website_hp.length > 0) return { ok: true };
+    const en = data.locale === "en";
 
     // 1) Persist message first — this must always succeed.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -26,7 +32,11 @@ export const submitContactMessage = createServerFn({ method: "POST" })
     });
     if (insErr) {
       console.error("[contact] persist failed", insErr);
-      throw new Error("Mesajınız kaydedilemedi. Lütfen kısa süre sonra tekrar deneyin.");
+      throw new Error(
+        en
+          ? "Your message could not be saved. Please try again shortly."
+          : "Mesajınız kaydedilemedi. Lütfen kısa süre sonra tekrar deneyin.",
+      );
     }
 
     // 2) Best-effort email notification (errors never break the flow).
@@ -60,18 +70,30 @@ export const submitContactMessage = createServerFn({ method: "POST" })
       const subjectRef = data.subject
         ? `<p style="color:#6b6355;font-size:14px">Konu: <strong>${esc(data.subject)}</strong></p>`
         : "";
+      const subjectRefEn = data.subject
+        ? `<p style="color:#6b6355;font-size:14px">Subject: <strong>${esc(data.subject)}</strong></p>`
+        : "";
       await sendEmail({
         to: data.email,
         replyTo: "info@psychofunctionalanalysis.com",
-        subject: "Mesajınız bize ulaştı — PFA",
-        html: renderEmail({
-          title: "Mesajınız elimize ulaştı",
-          bodyHtml: `
+        subject: en ? "We have received your message — PFA" : "Mesajınız bize ulaştı — PFA",
+        html: en
+          ? renderEmail({
+              title: "We have received your message",
+              bodyHtml: `
+            <p>Hello ${esc(firstName)},</p>
+            <p>Thank you for writing to us. Your message has reached us and we will get back to you as soon as we can.</p>
+            ${subjectRefEn}
+            <p>Warm regards,<br/>The PFA team</p>`,
+            })
+          : renderEmail({
+              title: "Mesajınız elimize ulaştı",
+              bodyHtml: `
             <p>Merhaba ${esc(firstName)},</p>
             <p>Bize yazdığınız için teşekkür ederiz. Mesajınız elimize ulaştı ve en kısa sürede size dönüş yapacağız.</p>
             ${subjectRef}
             <p>Sevgiyle,<br/>PFA Ekibi</p>`,
-        }),
+            }),
       });
     } catch (e) {
       console.error("[email] contact sender confirmation failed", e);
