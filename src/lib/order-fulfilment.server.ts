@@ -88,7 +88,9 @@ export async function sendOrderPaidEmails(
 
   // Sipariş üzerine teslim durumunu işaretle: başarısızsa admin panelinden
   // "Bekleyen Kişisel PDF'leri Üret" ile yeniden denenip e-posta gönderilir.
-  const orderMeta = { ...(((order.metadata ?? {}) as Record<string, unknown>) ?? {}) };
+  const orderMeta: Record<string, unknown> = {
+    ...((order.metadata ?? {}) as Record<string, unknown>),
+  };
   if (artefactsBroken) {
     orderMeta.delivery_pending = true;
     orderMeta.delivery_error = artefacts.failed.join("; ");
