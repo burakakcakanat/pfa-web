@@ -121,6 +121,7 @@ import {
   type ApplicationStatus,
 } from "@/lib/practitioner-applications.functions";
 import { AdminLicenseInquiries } from "@/components/admin-license-inquiries";
+import { AdminPurchaseInquiries } from "@/components/admin-purchase-inquiries";
 import {
   listNewsletterSubscribers,
   deleteNewsletterSubscriber,
@@ -189,6 +190,7 @@ function AdminPage() {
             <TabsTrigger value="podcasts">Podcastler</TabsTrigger>
             <TabsTrigger value="ebooks">E-Kitaplar</TabsTrigger>
             <TabsTrigger value="orders">Siparişler</TabsTrigger>
+            <TabsTrigger value="purchase-inquiries">Satış Talepleri</TabsTrigger>
             <TabsTrigger value="settings">Site Ayarları</TabsTrigger>
             <TabsTrigger value="practitioners">Uygulayıcılar</TabsTrigger>
             <TabsTrigger value="newsletter">Bülten</TabsTrigger>
@@ -209,6 +211,7 @@ function AdminPage() {
             <TabsContent value="podcasts"><PodcastsTab /></TabsContent>
             <TabsContent value="ebooks"><EbooksTab /></TabsContent>
             <TabsContent value="orders"><OrdersTab /></TabsContent>
+            <TabsContent value="purchase-inquiries"><AdminPurchaseInquiries /></TabsContent>
             <TabsContent value="settings"><SiteSettingsTab /></TabsContent>
             <TabsContent value="practitioners"><PractitionersTab /></TabsContent>
             <TabsContent value="newsletter"><NewsletterTab /></TabsContent>
