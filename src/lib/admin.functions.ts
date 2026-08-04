@@ -1523,3 +1523,168 @@ export const updatePractitionerInquiryStatus = createServerFn({ method: "POST" }
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// -------- TEST ORDERS (admin only) --------
+// Gerçek ödenmiş sipariş yolunu (trigger → entitlement → imzalı PDF → e-posta)
+// uçtan uca çalıştırır; sadece is_test=true olarak işaretlenir.
+export const createTestOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        product_id: z.string().uuid().optional(),
+        bundle_slug: z.string().min(1).optional(),
+        target_user_id: z.string().uuid().optional(),
+        book_lang: z.enum(["tr", "en"]).optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    if (!data.product_id && !data.bundle_slug) throw new Error("Ürün veya paket seçin.");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const userId = data.target_user_id ?? context.userId;
+    const steps: Array<{ step: string; ok: boolean; detail?: string }> = [];
+
+    let amount = 0;
+    let currency = "usd";
+    if (data.product_id) {
+      const { data: p } = await supabaseAdmin
+        .from("products").select("price_cents, currency").eq("id", data.product_id).maybeSingle();
+      amount = p?.price_cents ?? 0;
+      currency = p?.currency ?? "usd";
+    } else if (data.bundle_slug) {
+      const { data: b } = await supabaseAdmin
+        .from("bundles").select("price_override_cents").eq("slug", data.bundle_slug).maybeSingle();
+      amount = b?.price_override_cents ?? 0;
+    }
+
+    // 1) pending sipariş
+    const { data: created, error: insErr } = await supabaseAdmin
+      .from("orders")
+      .insert({
+        user_id: userId,
+        product_id: data.product_id ?? null,
+        bundle_slug: data.bundle_slug ?? null,
+        status: "pending",
+        amount_cents: amount,
+        currency,
+        is_test: true,
+        metadata: { test: true, book_lang: data.book_lang ?? "tr" },
+      })
+      .select("id")
+      .maybeSingle();
+    if (insErr || !created) throw new Error(insErr?.message ?? "Sipariş oluşturulamadı");
+    steps.push({ step: "order_created", ok: true, detail: created.id });
+
+    // 2) paid → gerçek trigger zinciri (handle_order_paid / handle_bundle_paid)
+    const { error: payErr } = await supabaseAdmin
+      .from("orders").update({ status: "paid" }).eq("id", created.id);
+    steps.push({ step: "marked_paid", ok: !payErr, detail: payErr?.message });
+
+    // 3) entitlement kontrolü
+    const { data: ents } = await supabaseAdmin
+      .from("user_entitlements")
+      .select("id, type, metadata")
+      .eq("source_order_id", created.id);
+    steps.push({
+      step: "entitlements_granted",
+      ok: (ents ?? []).length > 0,
+      detail: (ents ?? []).map((e) => e.type).join(", ") || "yok",
+    });
+
+    // 4) e-book varsa imzalı PDF üret (gerçek üretim yolu)
+    for (const e of ents ?? []) {
+      if (e.type !== "ebook") continue;
+      const meta = (e.metadata ?? {}) as Record<string, unknown>;
+      const slug = (meta.product_slug as string | undefined) ?? "pfa-ebook-tr";
+      try {
+        const { ensurePersonalizedPdf } = await import("@/lib/ebooks.functions");
+        const { data: prof } = await supabaseAdmin
+          .from("profiles").select("full_name, email").eq("id", userId).maybeSingle();
+        const path = await ensurePersonalizedPdf({
+          entitlementId: e.id,
+          slug,
+          existingPath: (meta.personalized_pdf_path as string | undefined) ?? null,
+          fullName: (meta.recipient_name as string | undefined) || prof?.full_name || prof?.email || "",
+          email: (meta.recipient_email as string | undefined) || prof?.email || "",
+          giftNote: (meta.gift_note as string | undefined) ?? null,
+          buyerName: null,
+        });
+        steps.push({ step: `personalized_pdf:${slug}`, ok: Boolean(path), detail: path ?? "üretilemedi (master/imza/şablon eksik olabilir)" });
+      } catch (err) {
+        steps.push({ step: `personalized_pdf:${slug}`, ok: false, detail: err instanceof Error ? err.message : "hata" });
+      }
+    }
+
+    // 5) hediye kaydı (varsa)
+    const { data: gifts } = await supabaseAdmin
+      .from("ebook_gifts").select("id, claim_token").eq("order_id", created.id);
+    if ((gifts ?? []).length) {
+      steps.push({ step: "gift_created", ok: true, detail: gifts![0].claim_token });
+    }
+
+    // 6) gerçek teslim e-postaları
+    try {
+      const { sendOrderPaidEmails } = await import("@/lib/order-fulfilment.server");
+      const res = await sendOrderPaidEmails(created.id);
+      steps.push({ step: "emails_sent", ok: res.buyer || res.admin, detail: `alıcı: ${res.buyer ? "gönderildi" : "hayır"}, admin: ${res.admin ? "gönderildi" : "hayır"}` });
+    } catch (err) {
+      steps.push({ step: "emails_sent", ok: false, detail: err instanceof Error ? err.message : "hata" });
+    }
+
+    return { order_id: created.id, steps };
+  });
+
+export const deleteTestOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: order } = await supabaseAdmin
+      .from("orders").select("id, is_test").eq("id", data.id).maybeSingle();
+    if (!order) throw new Error("Sipariş bulunamadı");
+    if (!order.is_test) throw new Error("Sadece test siparişleri silinebilir.");
+
+    const { data: ents } = await supabaseAdmin
+      .from("user_entitlements").select("id, metadata").eq("source_order_id", data.id);
+    const files = (ents ?? [])
+      .map((e) => ((e.metadata ?? {}) as Record<string, unknown>).personalized_pdf_path)
+      .filter((p): p is string => typeof p === "string" && p.length > 0);
+    if (files.length) await supabaseAdmin.storage.from("ebooks").remove(files);
+
+    await supabaseAdmin.from("ebook_gifts").delete().eq("order_id", data.id);
+    await supabaseAdmin.from("user_entitlements").delete().eq("source_order_id", data.id);
+    await supabaseAdmin.from("orders").delete().eq("id", data.id);
+    return { ok: true, removed_files: files.length, removed_entitlements: (ents ?? []).length };
+  });
+
+export const listTestOrders = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: orders } = await supabaseAdmin
+      .from("orders")
+      .select("id, user_id, product_id, bundle_slug, amount_cents, currency, status, created_at")
+      .eq("is_test", true)
+      .order("created_at", { ascending: false });
+    const rows = orders ?? [];
+    if (!rows.length) return [];
+    const uids = Array.from(new Set(rows.map((o) => o.user_id)));
+    const pids = rows.map((o) => o.product_id).filter((x): x is string => !!x);
+    const [profRes, prodRes] = await Promise.all([
+      supabaseAdmin.from("profiles").select("id, email, full_name").in("id", uids),
+      pids.length
+        ? supabaseAdmin.from("products").select("id, name_tr").in("id", pids)
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
+    const pm = new Map((profRes.data ?? []).map((p: any) => [p.id, p]));
+    const dm = new Map((prodRes.data ?? []).map((p: any) => [p.id, p]));
+    return rows.map((o) => ({
+      ...o,
+      email: pm.get(o.user_id)?.email ?? null,
+      product_name: o.product_id ? dm.get(o.product_id)?.name_tr ?? "—" : o.bundle_slug ? `Paket: ${o.bundle_slug}` : "—",
+    }));
+  });
