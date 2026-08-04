@@ -867,6 +867,7 @@ export const listAdminOrders = createServerFn({ method: "POST" })
       .object({
         status: z.string().optional(),
         product_id: z.string().uuid().optional(),
+        include_test: z.boolean().optional(),
       })
       .parse(d),
   )
@@ -875,11 +876,12 @@ export const listAdminOrders = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let q = supabaseAdmin
       .from("orders")
-      .select("id, user_id, product_id, amount_cents, currency, status, stripe_session_id, created_at")
+      .select("id, user_id, product_id, amount_cents, currency, status, stripe_session_id, created_at, is_test, bundle_slug")
       .order("created_at", { ascending: false })
       .limit(500);
     if (data.status) q = q.eq("status", data.status as any);
     if (data.product_id) q = q.eq("product_id", data.product_id);
+    if (!data.include_test) q = q.eq("is_test", false);
     const { data: orders } = await q;
     const uids = Array.from(new Set((orders ?? []).map((o) => o.user_id)));
     const pids = Array.from(new Set((orders ?? []).map((o) => o.product_id).filter((x): x is string => !!x)));
