@@ -191,7 +191,7 @@ const EN_HEADER_NAV = EN_NAV.filter(
 function EnHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-sm">
-      <div className="container-page flex h-16 items-center justify-between gap-6">
+      <div className="container-page flex h-16 items-center justify-between gap-4">
         <a
           href="/en"
           className="flex shrink-0 flex-col items-start justify-center leading-none"
@@ -210,7 +210,7 @@ function EnHeader() {
             {BRAND_TAGLINE.en}
           </span>
         </a>
-        <nav className="flex min-w-0 items-center gap-3 overflow-x-auto text-[0.78rem] tracking-wide sm:gap-5 sm:text-[0.82rem]">
+        <nav className="hidden min-w-0 items-center gap-5 text-[0.82rem] tracking-wide lg:flex">
           {EN_HEADER_NAV.map((l) => (
             <a
               key={l.to}
@@ -220,10 +220,122 @@ function EnHeader() {
               {l.label}
             </a>
           ))}
+          <EnAuthLinks />
           <LanguageSwitcher locale="en" />
         </nav>
+        <EnMobileMenu />
       </div>
     </header>
+  );
+}
+
+/** Session-aware account link for the English header (desktop + mobile panel). */
+function useSessionEmail() {
+  const [email, setEmail] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setEmail(session?.user?.email ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+  return email;
+}
+
+function EnAuthLinks() {
+  const email = useSessionEmail();
+  return (
+    <a
+      href={email ? "/hesabim" : "/auth"}
+      className="shrink-0 whitespace-nowrap rounded-md border border-accent px-3 py-1.5 text-xs tracking-wide text-accent hover:bg-accent hover:text-accent-foreground"
+    >
+      {email ? "Account" : "Sign in"}
+    </a>
+  );
+}
+
+function EnMobileMenu() {
+  const email = useSessionEmail();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handlePointer = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (
+        menuRef.current &&
+        buttonRef.current &&
+        !menuRef.current.contains(target) &&
+        !buttonRef.current.contains(target)
+      ) {
+        setOpen(false);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
+    };
+    document.addEventListener("mousedown", handlePointer);
+    document.addEventListener("touchstart", handlePointer);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handlePointer);
+      document.removeEventListener("touchstart", handlePointer);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
+
+  return (
+    <div className="lg:hidden">
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls="en-mobile-nav-menu"
+        aria-label="Menu"
+        className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm"
+      >
+        <Menu className="h-4 w-4" strokeWidth={1.6} />
+        Menu
+      </button>
+      {open && (
+        <div
+          id="en-mobile-nav-menu"
+          ref={menuRef}
+          className="absolute right-4 mt-2 flex w-64 max-w-[calc(100vw-2rem)] flex-col rounded-md border border-border bg-background shadow-sm"
+        >
+          <div className="py-2">
+            {EN_HEADER_NAV.filter((l) => l.to !== "/en").map((l) => (
+              <a
+                key={l.to}
+                href={l.to}
+                onClick={() => setOpen(false)}
+                className="block whitespace-nowrap px-4 py-2 text-sm"
+              >
+                {l.label}
+              </a>
+            ))}
+          </div>
+          <div className="border-t border-border/60 py-2">
+            <a
+              href={email ? "/hesabim" : "/auth"}
+              onClick={() => setOpen(false)}
+              className="block px-4 py-2 text-sm"
+            >
+              {email ? "Account" : "Sign in"}
+            </a>
+            <div className="px-4 py-2">
+              <LanguageSwitcher locale="en" className="text-[0.7rem] tracking-[0.18em] text-muted-foreground hover:text-accent" />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
