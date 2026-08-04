@@ -295,13 +295,22 @@ function EbookRow({ slug, label, available }: { slug: string; label: string; ava
         window.open(res.url, "_blank", "noopener,noreferrer");
       } else {
         setErr(
-          action === "epub"
+          res?.errorCode
+            ? `Dosya bulunamadı. [${res.errorCode}]`
+            : action === "epub"
             ? "EPUB dosyası henüz yüklenmedi."
             : "Nüshanız hazırlanıyor. Yazar imzası ve dosya yüklendiğinde açılacak.",
         );
       }
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Hata");
+      const message = e instanceof Error ? e.message : "";
+      setErr(
+        message.includes("[EBOOK_")
+          ? message
+          : message.toLowerCase().includes("unauthorized") || message.includes("401")
+            ? "Oturum doğrulanamadı. Lütfen yeniden giriş yapın. [EBOOK_AUTH]"
+            : "E-kitap işlemi tamamlanamadı. [EBOOK_RPC]",
+      );
     } finally { setBusy(null); }
   }
 
