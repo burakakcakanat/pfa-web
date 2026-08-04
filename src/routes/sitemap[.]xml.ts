@@ -10,6 +10,24 @@ interface SitemapEntry {
   lastmod?: string;
   changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority?: string;
+  /** hreflang alternates for pages that exist in both languages. */
+  alternates?: Array<{ hreflang: string; path: string }>;
+}
+
+const BOTH: Array<{ tr: string; en: string }> = [
+  { tr: "/", en: "/en" },
+  { tr: "/kullanim-kosullari", en: "/en/terms" },
+  { tr: "/iade-politikasi", en: "/en/refund-policy" },
+];
+
+function altsFor(path: string): Array<{ hreflang: string; path: string }> | undefined {
+  const pair = BOTH.find((p) => p.tr === path || p.en === path);
+  if (!pair) return undefined;
+  return [
+    { hreflang: "tr", path: pair.tr },
+    { hreflang: "en", path: pair.en },
+    { hreflang: "x-default", path: "/" },
+  ];
 }
 
 function publicClient() {
@@ -32,7 +50,7 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const staticEntries: SitemapEntry[] = [
+        const staticEntries: SitemapEntry[] = ([
           { path: "/", changefreq: "weekly", priority: "1.0" },
           { path: "/kitaplar", changefreq: "weekly", priority: "0.9" },
           { path: "/degerlendirme", changefreq: "monthly", priority: "0.9" },
@@ -45,7 +63,10 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/uygulayici-olun", changefreq: "monthly", priority: "0.7" },
           { path: "/kullanim-kosullari", changefreq: "yearly", priority: "0.3" },
           { path: "/iade-politikasi", changefreq: "yearly", priority: "0.3" },
-        ];
+          { path: "/en", changefreq: "weekly", priority: "0.9" },
+          { path: "/en/terms", changefreq: "yearly", priority: "0.3" },
+          { path: "/en/refund-policy", changefreq: "yearly", priority: "0.3" },
+        ] as SitemapEntry[]).map((e) => ({ ...e, alternates: altsFor(e.path) }));
 
         let dynamicEntries: SitemapEntry[] = [];
         try {
@@ -69,6 +90,10 @@ export const Route = createFileRoute("/sitemap.xml")({
           [
             `  <url>`,
             `    <loc>${BASE_URL}${e.path}</loc>`,
+            ...(e.alternates ?? []).map(
+              (a) =>
+                `    <xhtml:link rel="alternate" hreflang="${a.hreflang}" href="${BASE_URL}${a.path}" />`,
+            ),
             e.lastmod ? `    <lastmod>${e.lastmod}</lastmod>` : null,
             e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
             e.priority ? `    <priority>${e.priority}</priority>` : null,
@@ -80,7 +105,7 @@ export const Route = createFileRoute("/sitemap.xml")({
 
         const xml = [
           `<?xml version="1.0" encoding="UTF-8"?>`,
-          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">`,
           ...urls,
           `</urlset>`,
         ].join("\n");
