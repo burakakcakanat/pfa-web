@@ -90,14 +90,6 @@ function EnHome() {
           <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-foreground/80">
             {C.mapIntro}
           </p>
-          <figure className="mx-auto mt-8 w-full max-w-5xl">
-            <img
-              src={torusMap.url}
-              alt="The seven-level Psycho-Functional Analysis map"
-              className="block h-auto w-full opacity-90"
-              loading="lazy"
-            />
-          </figure>
           <ol className="mt-10 grid gap-3 text-left sm:grid-cols-2 lg:grid-cols-3">
             {C.levels.map((l) => (
               <li key={l.code} className="rounded-lg border border-border/70 bg-card/70 px-4 py-4">
