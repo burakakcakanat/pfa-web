@@ -41,6 +41,7 @@ export const REFUND_COPY: Record<"tr" | "en", LegalCopy> = {
         h2: "İade talebi ve geri ödeme",
         paras: [
           "İade taleplerinizi sipariş numaranızla birlikte info@psychofunctionalanalysis.com adresine iletebilirsiniz. Talebinizi genellikle 3 iş günü içinde değerlendiririz. Onaylanan iadeler, ödemenin yapıldığı yönteme geri aktarılır; tutarın hesabınıza yansıması bankanıza bağlı olarak birkaç iş günü sürebilir.",
+          "Bu site ve dijital ürünler Burak Akçakanat (şahıs) tarafından işletilmektedir. İletişim: info@psychofunctionalanalysis.com",
         ],
       },
     ],
@@ -75,6 +76,7 @@ export const REFUND_COPY: Record<"tr" | "en", LegalCopy> = {
         h2: "Requesting a refund and repayment",
         paras: [
           "You can send refund requests, together with your order number, to info@psychofunctionalanalysis.com. We normally review a request within 3 working days. Approved refunds are returned to the payment method used; depending on your bank, it may take a few working days for the amount to appear in your account.",
+          "This site and its digital products are operated by Burak Akcakanat (sole proprietor). Contact: info@psychofunctionalanalysis.com",
         ],
       },
     ],
@@ -89,6 +91,12 @@ export const TERMS_COPY: Record<"tr" | "en", LegalCopy> = {
     intro:
       "Bu koşullar, psychofunctionalanalysis.com adresinde sunulan içerik, hizmet ve dijital ürünlerin kullanımını düzenler. Siteyi kullanarak veya bir ürün satın alarak aşağıdaki koşulları kabul etmiş olursunuz.",
     sections: [
+      {
+        h2: "İşletmeci",
+        paras: [
+          "Bu site ve dijital ürünler Burak Akçakanat (şahıs) tarafından işletilmektedir. İletişim: info@psychofunctionalanalysis.com",
+        ],
+      },
       {
         h2: "Hesap ve sorumluluk",
         paras: [
@@ -130,6 +138,12 @@ export const TERMS_COPY: Record<"tr" | "en", LegalCopy> = {
       "These terms govern the use of the content, services and digital products offered at psychofunctionalanalysis.com. By using the site or buying a product you accept the terms below.",
     sections: [
       {
+        h2: "Operator",
+        paras: [
+          "This site and its digital products are operated by Burak Akcakanat (sole proprietor). Contact: info@psychofunctionalanalysis.com",
+        ],
+      },
+      {
         h2: "Account and responsibility",
         paras: [
           "The security of your account is yours to keep: do not share your login details, and be aware that you are responsible for activity carried out through your account. The information you provide must be accurate and current so that orders and digital deliveries can reach you. If you notice unauthorised use of your account, please write to us.",
@@ -158,6 +172,138 @@ export const TERMS_COPY: Record<"tr" | "en", LegalCopy> = {
         h2: "Contact",
         paras: [
           "If you have questions about these terms, you can write to info@psychofunctionalanalysis.com.",
+        ],
+      },
+    ],
+  },
+};
+export const PRIVACY_COPY: Record<"tr" | "en", LegalCopy> = {
+  tr: {
+    eyebrow: "Yasal",
+    h1: "Gizlilik ve KVKK Aydınlatma Metni",
+    updated: "Son güncelleme: 4 Ağustos 2026",
+    intro:
+      "Bu metin, psychofunctionalanalysis.com üzerinde hangi kişisel verilerin işlendiğini, neden işlendiğini ve haklarınızı nasıl kullanabileceğinizi açıklar. Site ve dijital ürünler Burak Akçakanat (şahıs) tarafından işletilir; veri sorumlusu Burak Akçakanat'tır. İletişim: info@psychofunctionalanalysis.com",
+    sections: [
+      {
+        h2: "İşlenen veriler",
+        paras: [
+          "Hesap verileri: adınız, e-posta adresiniz ve hesabınızla ilgili temel kayıtlar. Sipariş verileri: satın aldığınız dijital ürünler, sipariş kayıtları ve erişim haklarınız. Ölçek verileri: PFA Ölçeği ve 7Q Profili yanıtlarınız ile bunlardan üretilen rapor. Bülten verileri: bülten kaydınız ve onay kaydınız. İletişim verileri: bize gönderdiğiniz form ve e-posta içerikleri.",
+          "İsteğe bağlı demografik bilgileri (yaş aralığı, cinsiyet, eğitim, meslek alanı) yalnızca siz paylaşmayı seçerseniz işleriz; hiçbiri zorunlu değildir.",
+        ],
+      },
+      {
+        h2: "İşleme amaçları",
+        paras: [
+          "Verileriniz; hesabınızı yönetmek, satın aldığınız dijital ürünleri ve erişim haklarınızı sağlamak, ölçek raporunuzu oluşturmak, işlem e-postalarını göndermek, açık onay verdiyseniz bülten göndermek ve sorularınızı yanıtlamak için işlenir.",
+        ],
+      },
+      {
+        h2: "Ölçek sonuçlarınızın gizliliği",
+        paras: [
+          "Bireysel ölçek sonuçlarınız yalnızca size ve açıkça yetkilendirdiğiniz uygulayıcıya açıktır. Yönetim tarafında ölçek yanıtlarınız görüntülenmez.",
+          "Madde düzeyindeki yanıtlarınız, yalnızca ayrıca açık rıza verdiyseniz ve kimliğinizden arındırılmış biçimde ölçek geçerlik ve güvenilirlik çalışmalarında kullanılır. Bu tamamen isteğe bağlıdır; onay vermemek raporunuza ve hizmete erişiminizi etkilemez, onayınızı Hesabım sayfasından dilediğiniz zaman geri çekebilirsiniz.",
+        ],
+      },
+      {
+        h2: "E-posta ve bülten",
+        paras: [
+          "Bültene yalnızca KVKK kapsamında açık onay vererek kaydolabilirsiniz. Her bülten e-postasındaki bağlantıdan ya da Hesabım sayfanızdan çıkabilirsiniz. Sipariş onayı, dijital teslimat ve hesap güvenliği gibi işlem e-postaları hizmetin kullanımı için gönderilir.",
+        ],
+      },
+      {
+        h2: "Hizmet sağlayıcılar",
+        paras: [
+          "Hizmeti sunabilmek için sınırlı sayıda hizmet sağlayıcı kullanırız: barındırma ve veritabanı altyapısı, e-posta gönderim servisi ve ödeme hizmeti sağlayıcısı. Bu sağlayıcılar verileri yalnızca bizim adımıza ve bu metinde belirtilen amaçlarla işler; altyapımız Avrupa Birliği'nde barındırılır. Kişisel verilerinizi reklam amacıyla üçüncü kişilere satmayız veya kiralamayız.",
+        ],
+      },
+      {
+        h2: "Saklama süresi",
+        paras: [
+          "Hesap ve sipariş kayıtları, hesabınız açık olduğu sürece ve yasal saklama yükümlülükleri gerektirdiği ölçüde saklanır. Bülten kaydı, çıkana kadar tutulur. Ölçek verileriniz, hesabınıza bağlı olarak, siz silinmesini talep edene kadar saklanır.",
+        ],
+      },
+      {
+        h2: "Haklarınız",
+        paras: [
+          "KVKK (6698 sayılı Kişisel Verilerin Korunması Kanunu) kapsamında; verilerinize erişme, düzeltilmesini, silinmesini veya işlenmesinin kısıtlanmasını isteme ve verdiğiniz onayı geri çekme hakkına sahipsiniz. Bu haklarınızı kullanmak için info@psychofunctionalanalysis.com adresine yazabilirsiniz.",
+        ],
+      },
+      {
+        h2: "Çerezler",
+        paras: [
+          "Site, oturumunuzu sürdürmek ve tercihlerinizi hatırlamak için gerekli olan teknik çerezleri ve tarayıcı depolamasını kullanır. Reklam amaçlı takip yapılmaz.",
+        ],
+      },
+      {
+        h2: "İletişim",
+        paras: [
+          "Gizlilikle ilgili tüm sorularınız için info@psychofunctionalanalysis.com adresine yazabilirsiniz.",
+        ],
+      },
+    ],
+  },
+  en: {
+    eyebrow: "Legal",
+    h1: "Privacy policy",
+    updated: "Last updated: 4 August 2026",
+    intro:
+      "This page explains which personal data is processed on psychofunctionalanalysis.com, why it is processed, and how you can exercise your rights. The site and its digital products are operated by Burak Akcakanat (sole proprietor), who is the data controller. Contact: info@psychofunctionalanalysis.com",
+    sections: [
+      {
+        h2: "Data we process",
+        paras: [
+          "Account data: your name, your email address and basic records relating to your account. Order data: the digital products you buy, order records and your access entitlements. Assessment data: your PFA Assessment and 7Q Profile answers and the report generated from them. Newsletter data: your subscription and your record of consent. Contact data: the content of forms and emails you send us.",
+          "Optional demographic details (age band, gender, education, occupational field) are processed only if you choose to share them; none of them is required.",
+        ],
+      },
+      {
+        h2: "Purposes of processing",
+        paras: [
+          "Your data is processed to manage your account, to deliver the digital products and access entitlements you have bought, to generate your assessment report, to send transactional emails, to send the newsletter where you have given explicit consent, and to answer your questions.",
+        ],
+      },
+      {
+        h2: "Confidentiality of your assessment results",
+        paras: [
+          "Your individual assessment results are visible only to you and to a practitioner you have explicitly authorised. Your assessment answers are not viewed on the administrative side.",
+          "Your item-level answers are used in validity and reliability work only where you have given separate explicit consent, and only in de-identified form. This is entirely optional: withholding consent does not affect your own report or your access to the service, and you can withdraw consent at any time from your account page.",
+        ],
+      },
+      {
+        h2: "Email and newsletter",
+        paras: [
+          "You can only join the newsletter by giving explicit consent. You can leave at any time using the link in any newsletter email or from your account page. Transactional emails such as order confirmation, digital delivery and account security are sent as part of using the service.",
+        ],
+      },
+      {
+        h2: "Service providers",
+        paras: [
+          "To run the service we use a limited number of service providers: hosting and database infrastructure, an email delivery service and a payment service provider. These providers process data only on our behalf and for the purposes set out here; our infrastructure is hosted in the European Union. We do not sell or rent your personal data to third parties for advertising.",
+        ],
+      },
+      {
+        h2: "Retention",
+        paras: [
+          "Account and order records are kept while your account is open and for as long as statutory retention obligations require. Newsletter records are kept until you unsubscribe. Your assessment data is kept with your account until you ask for it to be deleted.",
+        ],
+      },
+      {
+        h2: "Your rights",
+        paras: [
+          "Under Turkish data-protection law (KVKK, Law No. 6698 on the Protection of Personal Data) you have the right to access your data, to ask for it to be corrected, deleted or restricted, and to withdraw consent you have given. To exercise these rights, write to info@psychofunctionalanalysis.com.",
+        ],
+      },
+      {
+        h2: "Cookies",
+        paras: [
+          "The site uses the technical cookies and browser storage needed to keep you signed in and to remember your preferences. There is no advertising tracking.",
+        ],
+      },
+      {
+        h2: "Contact",
+        paras: [
+          "For any privacy question, write to info@psychofunctionalanalysis.com.",
         ],
       },
     ],

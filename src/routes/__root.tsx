@@ -180,10 +180,13 @@ const EN_NAV: NavItem[] = [
   { to: "/en/contact", label: "Contact" },
   { to: "/en/refund-policy", label: "Refund policy" },
   { to: "/en/terms", label: "Terms of use" },
+  { to: "/en/privacy", label: "Privacy policy" },
 ];
 
 /** Primary English header links (legal pages live in the footer only). */
-const EN_HEADER_NAV = EN_NAV.filter((l) => l.to !== "/en/refund-policy" && l.to !== "/en/terms");
+const EN_HEADER_NAV = EN_NAV.filter(
+  (l) => l.to !== "/en/refund-policy" && l.to !== "/en/terms" && l.to !== "/en/privacy",
+);
 
 function EnHeader() {
   return (
@@ -327,6 +330,7 @@ const FOOTER_MORE: NavItem[] = [
   { to: "/uygulayici-ekosistemi", label: "Uygulayıcı Ekosistemi" },
   { to: "/kullanim-kosullari", label: "Kullanım Koşulları" },
   { to: "/iade-politikasi", label: "İade Politikası" },
+  { to: "/gizlilik", label: "Gizlilik" },
 ];
 
 type MenuEntry = { label: string; to?: string; onClick?: () => void; node?: ReactNode };

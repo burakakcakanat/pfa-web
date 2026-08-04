@@ -16,6 +16,7 @@ export const EN_COUNTERPART: Record<string, string> = {
   "/iletisim": "/en/contact",
   "/iade-politikasi": "/en/refund-policy",
   "/kullanim-kosullari": "/en/terms",
+  "/gizlilik": "/en/privacy",
 };
 
 /** English path → its Turkish counterpart. */

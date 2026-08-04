@@ -133,7 +133,7 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
               />
               <span>
                 E-posta iletişimi için KVKK kapsamında onay veriyorum.{" "}
-                <a href="/kvkk" className="underline hover:text-accent">Aydınlatma metni</a>
+                <a href="/gizlilik" className="underline hover:text-accent">Aydınlatma metni</a>
               </span>
             </label>
 

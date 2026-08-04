@@ -21,6 +21,7 @@ const BOTH: Array<{ tr: string; en: string }> = [
   { tr: "/iletisim", en: "/en/contact" },
   { tr: "/kullanim-kosullari", en: "/en/terms" },
   { tr: "/iade-politikasi", en: "/en/refund-policy" },
+  { tr: "/gizlilik", en: "/en/privacy" },
 ];
 
 function altsFor(path: string): Array<{ hreflang: string; path: string }> | undefined {
@@ -66,6 +67,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/uygulayici-olun", changefreq: "monthly", priority: "0.7" },
           { path: "/kullanim-kosullari", changefreq: "yearly", priority: "0.3" },
           { path: "/iade-politikasi", changefreq: "yearly", priority: "0.3" },
+          { path: "/gizlilik", changefreq: "yearly", priority: "0.3" },
           { path: "/en", changefreq: "weekly", priority: "0.9" },
           { path: "/en/books", changefreq: "weekly", priority: "0.8" },
           { path: "/en/levels", changefreq: "monthly", priority: "0.8" },
@@ -73,6 +75,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/en/contact", changefreq: "yearly", priority: "0.5" },
           { path: "/en/terms", changefreq: "yearly", priority: "0.3" },
           { path: "/en/refund-policy", changefreq: "yearly", priority: "0.3" },
+          { path: "/en/privacy", changefreq: "yearly", priority: "0.3" },
         ] as SitemapEntry[]).map((e) => ({ ...e, alternates: altsFor(e.path) }));
 
         let dynamicEntries: SitemapEntry[] = [];
