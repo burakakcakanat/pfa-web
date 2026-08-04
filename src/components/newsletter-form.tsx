@@ -11,7 +11,47 @@ const SUBSCRIBED_KEY = "pfa_newsletter_subscribed";
  * assessment result CTA, footer). No variants — one component, one layout.
  * Hidden entirely for visitors already known to be subscribed.
  */
-export function NewsletterForm({ source = "footer" }: { source?: string }) {
+const COPY = {
+  tr: {
+    title: "PFA Bülteni",
+    blurb: "Ayda bir e-posta: kitaptan bölümler ve yeni blog yazılarından seçkiler.",
+    emailLabel: "E-posta adresi",
+    submit: "Abone Ol",
+    submitting: "Gönderiliyor…",
+    consentNeeded: "KVKK onayı gerekli.",
+    genericError: "Bir hata oluştu.",
+    consentPrefix: "E-posta iletişimi için KVKK kapsamında onay veriyorum.",
+    consentLink: "Aydınlatma metni",
+    consentHref: "/gizlilik",
+    okPending:
+      "Teşekkürler — onay e-postası gönderildi. Aboneliğin başlaması için e-postadaki bağlantıya tıklayın.",
+    okDone: "Teşekkürler — aboneliğiniz etkin; ilk sayı e-posta adresinize gönderildi.",
+  },
+  en: {
+    title: "PFA newsletter",
+    blurb: "One email a month: excerpts from the book and selected new articles.",
+    emailLabel: "Email address",
+    submit: "Subscribe",
+    submitting: "Sending…",
+    consentNeeded: "Please confirm your consent.",
+    genericError: "Something went wrong.",
+    consentPrefix: "I consent to receiving email communication.",
+    consentLink: "Privacy policy",
+    consentHref: "/en/privacy",
+    okPending:
+      "Thank you — a confirmation email is on its way. Click the link in it to start your subscription.",
+    okDone: "Thank you — your subscription is active; the first issue has been sent to your inbox.",
+  },
+} as const;
+
+export function NewsletterForm({
+  source = "footer",
+  locale = "tr",
+}: {
+  source?: string;
+  locale?: "tr" | "en";
+}) {
+  const t = COPY[locale];
   const subscribe = useServerFn(subscribeNewsletter);
   const status = useServerFn(getMyNewsletterStatus);
 
@@ -60,7 +100,7 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
     e.preventDefault();
     setErr(null);
     if (!consent) {
-      setErr("KVKK onayı gerekli.");
+      setErr(t.consentNeeded);
       return;
     }
     setState("loading");
@@ -72,7 +112,7 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
       window.setTimeout(() => setCollapsed(true), 8000);
     } catch (e: unknown) {
       setState("idle");
-      setErr(e instanceof Error ? e.message : "Bir hata oluştu.");
+      setErr(e instanceof Error ? e.message : t.genericError);
     }
   }
 
@@ -88,15 +128,13 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
       <div className="min-h-0">
         {state === "ok" ? (
           <div className="rounded-lg border border-accent/40 bg-accent/10 p-4 text-sm text-foreground/85">
-            {pending
-              ? "Teşekkürler — onay e-postası gönderildi. Aboneliğin başlaması için e-postadaki bağlantıya tıklayın."
-              : "Teşekkürler — aboneliğiniz etkin; ilk sayı e-posta adresinize gönderildi."}
+            {pending ? t.okPending : t.okDone}
           </div>
         ) : (
           <form onSubmit={onSubmit} className="rounded-lg border border-border bg-card/70 p-4">
-            <div className="font-serif text-lg leading-tight">PFA Bülteni</div>
+            <div className="font-serif text-lg leading-tight">{t.title}</div>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Ayda bir e-posta: kitaptan bölümler ve yeni blog yazılarından seçkiler.
+              {t.blurb}
             </p>
 
             <input
@@ -113,14 +151,14 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
               <input
                 type="email"
                 required
-                placeholder="E-posta adresi"
+                placeholder={t.emailLabel}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                aria-label="E-posta adresi"
+                aria-label={t.emailLabel}
                 className="w-full min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
               />
               <button className="btn-primary h-10 shrink-0 whitespace-nowrap px-4" disabled={state === "loading"}>
-                {state === "loading" ? "Gönderiliyor…" : "Abone Ol"}
+                {state === "loading" ? t.submitting : t.submit}
               </button>
             </div>
 
@@ -132,8 +170,8 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
                 className="mt-0.5"
               />
               <span>
-                E-posta iletişimi için KVKK kapsamında onay veriyorum.{" "}
-                <a href="/gizlilik" className="underline hover:text-accent">Aydınlatma metni</a>
+                {t.consentPrefix}{" "}
+                <a href={t.consentHref} className="underline hover:text-accent">{t.consentLink}</a>
               </span>
             </label>
 
