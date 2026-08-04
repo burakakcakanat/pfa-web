@@ -38,6 +38,10 @@ import { Route as UygulayicilarIdRouteImport } from './routes/uygulayicilar.$id'
 import { Route as HediyeTokenRouteImport } from './routes/hediye.$token'
 import { Route as EnTermsRouteImport } from './routes/en/terms'
 import { Route as EnRefundPolicyRouteImport } from './routes/en/refund-policy'
+import { Route as EnLevelsRouteImport } from './routes/en/levels'
+import { Route as EnContactRouteImport } from './routes/en/contact'
+import { Route as EnBooksRouteImport } from './routes/en/books'
+import { Route as EnAboutRouteImport } from './routes/en/about'
 import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
 import { Route as BultenOnaylaRouteImport } from './routes/bulten.onayla'
 import { Route as BultenAyrilRouteImport } from './routes/bulten.ayril'
@@ -205,6 +209,26 @@ const EnRefundPolicyRoute = EnRefundPolicyRouteImport.update({
   path: '/refund-policy',
   getParentRoute: () => EnRouteRoute,
 } as any)
+const EnLevelsRoute = EnLevelsRouteImport.update({
+  id: '/levels',
+  path: '/levels',
+  getParentRoute: () => EnRouteRoute,
+} as any)
+const EnContactRoute = EnContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => EnRouteRoute,
+} as any)
+const EnBooksRoute = EnBooksRouteImport.update({
+  id: '/books',
+  path: '/books',
+  getParentRoute: () => EnRouteRoute,
+} as any)
+const EnAboutRoute = EnAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => EnRouteRoute,
+} as any)
 const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
   id: '/degerlendirme_/mini',
   path: '/degerlendirme/mini',
@@ -347,6 +371,10 @@ export interface FileRoutesByFullPath {
   '/bulten/ayril': typeof BultenAyrilRoute
   '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
+  '/en/about': typeof EnAboutRoute
+  '/en/books': typeof EnBooksRoute
+  '/en/contact': typeof EnContactRoute
+  '/en/levels': typeof EnLevelsRoute
   '/en/refund-policy': typeof EnRefundPolicyRoute
   '/en/terms': typeof EnTermsRoute
   '/hediye/$token': typeof HediyeTokenRoute
@@ -397,6 +425,10 @@ export interface FileRoutesByTo {
   '/bulten/ayril': typeof BultenAyrilRoute
   '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
+  '/en/about': typeof EnAboutRoute
+  '/en/books': typeof EnBooksRoute
+  '/en/contact': typeof EnContactRoute
+  '/en/levels': typeof EnLevelsRoute
   '/en/refund-policy': typeof EnRefundPolicyRoute
   '/en/terms': typeof EnTermsRoute
   '/hediye/$token': typeof HediyeTokenRoute
@@ -450,6 +482,10 @@ export interface FileRoutesById {
   '/bulten/ayril': typeof BultenAyrilRoute
   '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
+  '/en/about': typeof EnAboutRoute
+  '/en/books': typeof EnBooksRoute
+  '/en/contact': typeof EnContactRoute
+  '/en/levels': typeof EnLevelsRoute
   '/en/refund-policy': typeof EnRefundPolicyRoute
   '/en/terms': typeof EnTermsRoute
   '/hediye/$token': typeof HediyeTokenRoute
@@ -503,6 +539,10 @@ export interface FileRouteTypes {
     | '/bulten/ayril'
     | '/bulten/onayla'
     | '/degerlendirme/mini'
+    | '/en/about'
+    | '/en/books'
+    | '/en/contact'
+    | '/en/levels'
     | '/en/refund-policy'
     | '/en/terms'
     | '/hediye/$token'
@@ -553,6 +593,10 @@ export interface FileRouteTypes {
     | '/bulten/ayril'
     | '/bulten/onayla'
     | '/degerlendirme/mini'
+    | '/en/about'
+    | '/en/books'
+    | '/en/contact'
+    | '/en/levels'
     | '/en/refund-policy'
     | '/en/terms'
     | '/hediye/$token'
@@ -605,6 +649,10 @@ export interface FileRouteTypes {
     | '/bulten/ayril'
     | '/bulten/onayla'
     | '/degerlendirme_/mini'
+    | '/en/about'
+    | '/en/books'
+    | '/en/contact'
+    | '/en/levels'
     | '/en/refund-policy'
     | '/en/terms'
     | '/hediye/$token'
@@ -877,6 +925,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnRefundPolicyRouteImport
       parentRoute: typeof EnRouteRoute
     }
+    '/en/levels': {
+      id: '/en/levels'
+      path: '/levels'
+      fullPath: '/en/levels'
+      preLoaderRoute: typeof EnLevelsRouteImport
+      parentRoute: typeof EnRouteRoute
+    }
+    '/en/contact': {
+      id: '/en/contact'
+      path: '/contact'
+      fullPath: '/en/contact'
+      preLoaderRoute: typeof EnContactRouteImport
+      parentRoute: typeof EnRouteRoute
+    }
+    '/en/books': {
+      id: '/en/books'
+      path: '/books'
+      fullPath: '/en/books'
+      preLoaderRoute: typeof EnBooksRouteImport
+      parentRoute: typeof EnRouteRoute
+    }
+    '/en/about': {
+      id: '/en/about'
+      path: '/about'
+      fullPath: '/en/about'
+      preLoaderRoute: typeof EnAboutRouteImport
+      parentRoute: typeof EnRouteRoute
+    }
     '/degerlendirme_/mini': {
       id: '/degerlendirme_/mini'
       path: '/degerlendirme/mini'
@@ -1051,12 +1127,20 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface EnRouteRouteChildren {
+  EnAboutRoute: typeof EnAboutRoute
+  EnBooksRoute: typeof EnBooksRoute
+  EnContactRoute: typeof EnContactRoute
+  EnLevelsRoute: typeof EnLevelsRoute
   EnRefundPolicyRoute: typeof EnRefundPolicyRoute
   EnTermsRoute: typeof EnTermsRoute
   EnIndexRoute: typeof EnIndexRoute
 }
 
 const EnRouteRouteChildren: EnRouteRouteChildren = {
+  EnAboutRoute: EnAboutRoute,
+  EnBooksRoute: EnBooksRoute,
+  EnContactRoute: EnContactRoute,
+  EnLevelsRoute: EnLevelsRoute,
   EnRefundPolicyRoute: EnRefundPolicyRoute,
   EnTermsRoute: EnTermsRoute,
   EnIndexRoute: EnIndexRoute,

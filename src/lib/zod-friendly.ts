@@ -74,3 +74,68 @@ export function parseFriendly<T>(schema: z.ZodType<T>, data: unknown): T {
     throw e;
   }
 }
+
+const FIELD_LABELS_EN: Record<string, string> = {
+  full_name: "Full name",
+  email: "Email",
+  subject: "Subject",
+  message: "Message",
+  sender_name: "Your name",
+  sender_email: "Email",
+  motivation: "Motivation letter",
+  phone: "Phone",
+  city: "City",
+  title: "Title",
+  content_md: "Content",
+};
+
+function toFriendlyMessageEn(issue: ZodIssue): string {
+  const key = String(issue.path[issue.path.length - 1] ?? "");
+  const label = FIELD_LABELS_EN[key] || "This field";
+  const anyIssue = issue as unknown as Record<string, unknown>;
+  const code = issue.code;
+
+  if (code === "invalid_type") {
+    if (anyIssue.received === "undefined" || anyIssue.received === "null") {
+      return `${label} cannot be empty.`;
+    }
+    return `${label} is invalid.`;
+  }
+  if (code === "too_small") {
+    const min = Number(anyIssue.minimum ?? 0);
+    if (String(anyIssue.type ?? "") === "string") {
+      return min <= 1
+        ? `${label} cannot be empty.`
+        : `${label} must be at least ${min} characters.`;
+    }
+    return `${label} must be at least ${min}.`;
+  }
+  if (code === "too_big") {
+    const max = Number(anyIssue.maximum ?? 0);
+    if (String(anyIssue.type ?? "") === "string") {
+      return `${label} can be at most ${max} characters.`;
+    }
+    return `${label} can be at most ${max}.`;
+  }
+  if (code === "invalid_format") {
+    const v = String(anyIssue.format ?? anyIssue.validation ?? "");
+    if (v === "email") return "Please enter a valid email address.";
+    if (v === "url") return "Please enter a valid link.";
+    return `${label} is invalid.`;
+  }
+  if (code === "invalid_value") return `Please choose a valid value for ${label.toLowerCase()}.`;
+  if (code === "custom" && typeof issue.message === "string") return issue.message;
+  return `${label} is invalid.`;
+}
+
+/** Same as parseFriendly, with British English messages for the /en surfaces. */
+export function parseFriendlyEn<T>(schema: z.ZodType<T>, data: unknown): T {
+  try {
+    return schema.parse(data);
+  } catch (e) {
+    if (e instanceof ZodError && e.issues.length > 0) {
+      throw new Error(toFriendlyMessageEn(e.issues[0]));
+    }
+    throw e;
+  }
+}
