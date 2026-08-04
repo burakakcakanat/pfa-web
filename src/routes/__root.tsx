@@ -228,24 +228,98 @@ function EnHeader() {
 }
 
 function EnFooter() {
+  const pageLinks = EN_NAV.slice(1, 5);
+  const legalLinks = EN_NAV.filter(
+    (l) => l.to === "/en/terms" || l.to === "/en/refund-policy" || l.to === "/en/privacy",
+  );
   return (
     <footer className="mt-24 border-t border-border/60 bg-background">
-      <div className="container-page flex flex-col gap-4 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-4">
-          {EN_NAV.slice(1).map((l) => (
-            <a key={l.to} href={l.to} className="hover:text-accent">
-              {l.label}
+      <div className="container-page grid gap-10 py-14 md:grid-cols-4">
+        <div className="min-w-0">
+          <a
+            href="/en"
+            className="flex flex-col items-start justify-center leading-none"
+            aria-label="PFA — Psycho-Functional Analysis"
+          >
+            <span
+              className="font-serif text-[34px] font-semibold text-primary"
+              style={{ letterSpacing: "0.08em", lineHeight: 1 }}
+            >
+              PFA
+            </span>
+            <span
+              className="text-[9.5px] tracking-[0.28em] text-primary/80"
+              style={{ marginTop: "3px", fontFamily: "Inter, sans-serif" }}
+            >
+              {BRAND_TAGLINE.en}
+            </span>
+          </a>
+          <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
+            A Map of Consciousness — from Survival to Enlightenment
+          </p>
+          <div className="mt-5 flex items-center gap-3">
+            <a
+              href="https://www.instagram.com/psychofunctionalanalysis"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:border-accent hover:bg-accent hover:text-accent-foreground"
+            >
+              <Instagram className="h-4 w-4" strokeWidth={1.6} />
             </a>
-          ))}
-          <a href="mailto:info@psychofunctionalanalysis.com" className="hover:text-accent">
-            info@psychofunctionalanalysis.com
-          </a>
-          <a href="/" hrefLang="tr" className="hover:text-accent">
-            Türkçe
-          </a>
+            <a
+              href="https://www.amazon.com/author/burak-akcakanat"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Amazon author page"
+              className="flex h-9 items-center gap-2 rounded-full border border-border px-3 text-xs text-foreground transition-colors hover:border-accent hover:bg-accent hover:text-accent-foreground"
+            >
+              <BookOpen className="h-4 w-4" strokeWidth={1.6} />
+              Amazon
+            </a>
+          </div>
         </div>
-        <div className="text-xs">
-          © 2026 Burak Akçakanat — Psycho-Functional Analysis. All rights reserved.
+        <div className="min-w-0">
+          <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Explore</div>
+          <ul className="mt-4 space-y-2 text-sm">
+            {pageLinks.map((l) => (
+              <li key={l.to}>
+                <a href={l.to} className="hover:text-accent">
+                  {l.label}
+                </a>
+              </li>
+            ))}
+            <li>
+              <a href="mailto:info@psychofunctionalanalysis.com" className="hover:text-accent">
+                info@psychofunctionalanalysis.com
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div className="min-w-0">
+          <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Legal</div>
+          <ul className="mt-4 space-y-2 text-sm">
+            {legalLinks.map((l) => (
+              <li key={l.to}>
+                <a href={l.to} className="hover:text-accent">
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="min-w-0">
+          <NewsletterForm source="footer-en" locale="en" />
+        </div>
+      </div>
+      <div className="border-t border-border/60">
+        <div className="container-page py-6 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span>© 2026 Burak Akçakanat — Psycho-Functional Analysis. All rights reserved.</span>
+            <a href="/" hrefLang="tr" className="hover:text-accent">
+              Türkçe
+            </a>
+          </div>
         </div>
       </div>
     </footer>
