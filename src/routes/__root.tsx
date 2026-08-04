@@ -748,7 +748,13 @@ function SiteFooter() {
     { key: "social_linkedin", label: "LinkedIn", Icon: Linkedin },
     { key: "social_x", label: "X", Icon: Twitter },
     { key: "social_youtube", label: "YouTube", Icon: Youtube },
-  ].filter((s) => socials[s.key]);
+  ]
+    .map((s) =>
+      s.key === "social_instagram"
+        ? { ...s, href: socials[s.key] || "https://www.instagram.com/psikofonksiyonelanaliz" }
+        : { ...s, href: socials[s.key] },
+    )
+    .filter((s) => Boolean(s.href));
   return (
     <footer className="mt-24 border-t border-border/60 bg-background">
       <div className="container-page grid gap-10 py-14 md:grid-cols-4">
@@ -782,9 +788,9 @@ function SiteFooter() {
               {socialItems.map((s) => (
                 <a
                   key={s.key}
-                  href={socials[s.key]}
+                  href={s.href}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   aria-label={s.label}
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:border-accent hover:bg-accent hover:text-accent-foreground"
                 >
