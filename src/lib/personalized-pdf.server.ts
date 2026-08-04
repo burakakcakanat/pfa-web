@@ -3,20 +3,42 @@
 import { PDFDocument, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 
-// Serif ve italic Latin-Extended TTF (Google Fonts / jsdelivr mirror).
-const FONT_REGULAR_URL =
-  "https://cdn.jsdelivr.net/gh/googlefonts/lora@main/fonts/ttf/Lora-Regular.ttf";
-const FONT_ITALIC_URL =
-  "https://cdn.jsdelivr.net/gh/googlefonts/lora@main/fonts/ttf/Lora-Italic.ttf";
+// Fontlar öncelikle Storage'dan (ebooks/fonts/*) okunur; ağ erişimi
+// gerekmez ve CDN yol değişikliklerine karşı dayanıklıdır. Yedek olarak
+// Google Fonts deposundaki değişken TTF'ler indirilir.
+const FONT_FALLBACK_URLS = {
+  regular: "https://raw.githubusercontent.com/google/fonts/main/ofl/lora/Lora%5Bwght%5D.ttf",
+  italic: "https://raw.githubusercontent.com/google/fonts/main/ofl/lora/Lora-Italic%5Bwght%5D.ttf",
+} as const;
+
+const FONT_STORAGE_PATHS = {
+  regular: "fonts/Lora-Regular.ttf",
+  italic: "fonts/Lora-Italic.ttf",
+} as const;
 
 let cachedRegular: ArrayBuffer | null = null;
 let cachedItalic: ArrayBuffer | null = null;
 
-async function loadFont(url: string, cached: ArrayBuffer | null) {
+async function loadFont(
+  variant: "regular" | "italic",
+  cached: ArrayBuffer | null,
+): Promise<ArrayBuffer> {
   if (cached) return cached;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Font indirilemedi (${res.status})`);
-  return await res.arrayBuffer();
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin.storage.from("ebooks").download(FONT_STORAGE_PATHS[variant]);
+    if (data) {
+      const buf = await data.arrayBuffer();
+      if (buf.byteLength > 10000) return buf;
+    }
+  } catch {
+    /* Storage okunamazsa CDN yedeğine geç */
+  }
+  const res = await fetch(FONT_FALLBACK_URLS[variant]);
+  if (!res.ok) throw new Error(`Font yüklenemedi (${variant}, ${res.status})`);
+  const buf = await res.arrayBuffer();
+  if (buf.byteLength < 10000) throw new Error(`Font dosyası geçersiz (${variant})`);
+  return buf;
 }
 
 export type PersonalizeInput = {
@@ -36,8 +58,8 @@ export async function generatePersonalizedPdf(input: PersonalizeInput): Promise<
   const pdf = await PDFDocument.load(input.masterPdfBytes);
   pdf.registerFontkit(fontkit);
 
-  cachedRegular = await loadFont(FONT_REGULAR_URL, cachedRegular);
-  cachedItalic = await loadFont(FONT_ITALIC_URL, cachedItalic);
+  cachedRegular = await loadFont("regular", cachedRegular);
+  cachedItalic = await loadFont("italic", cachedItalic);
 
   const regular = await pdf.embedFont(cachedRegular);
   const italic = await pdf.embedFont(cachedItalic);
