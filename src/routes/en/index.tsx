@@ -6,6 +6,7 @@ import { getBooksData, type BooksPayload } from "@/lib/books.functions";
 import { amazonUrlFor, bookSlugFor, fmtUsd, isLive, MARKETPLACE_NAMES_EN } from "@/lib/bundles";
 import { HOME_COPY } from "@/content/home-en";
 import { SITE_URL, alternateLinksForEn } from "@/lib/i18n";
+import torusMap from "@/assets/torus-map-final-2.png.asset.json";
 
 const C = HOME_COPY.en;
 const URL = `${SITE_URL}/en`;
@@ -41,7 +42,7 @@ function EnHome() {
   return (
     <div>
       <section className="bg-hero-map-bg">
-        <div className="container-page py-20 md:py-28">
+        <div className="container-page py-16 md:py-20">
           <div className="mx-auto max-w-3xl text-center">
             <div className="text-[1.09375rem] font-medium uppercase tracking-[0.35em] text-accent md:text-xl">
               {C.eyebrow}
@@ -70,6 +71,13 @@ function EnHome() {
                 </span>
               ))}
             </div>
+            <figure className="mx-auto mt-10 w-full max-w-5xl">
+              <img
+                src={torusMap.url}
+                alt="Psycho-Functional Analysis torus map, from Survival to Enlightenment"
+                className="block h-auto w-full opacity-90"
+              />
+            </figure>
           </div>
         </div>
       </section>
@@ -82,6 +90,14 @@ function EnHome() {
           <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-foreground/80">
             {C.mapIntro}
           </p>
+          <figure className="mx-auto mt-8 w-full max-w-5xl">
+            <img
+              src={torusMap.url}
+              alt="The seven-level Psycho-Functional Analysis map"
+              className="block h-auto w-full opacity-90"
+              loading="lazy"
+            />
+          </figure>
           <ol className="mt-10 grid gap-3 text-left sm:grid-cols-2 lg:grid-cols-3">
             {C.levels.map((l) => (
               <li key={l.code} className="rounded-lg border border-border/70 bg-card/70 px-4 py-4">

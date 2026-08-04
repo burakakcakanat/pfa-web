@@ -7,7 +7,7 @@ export const HOME_COPY = {
     h1a: "A functional map of",
     h1b: "human consciousness.",
     lede:
-      "PFA divides human consciousness into seven functional levels — from the survival drive of a single cell to the experience of universal unity — and pairs each one with a region of the brain, a type of intelligence and a stage of development.",
+      "PFA divides human consciousness into seven functional levels — from Survival to Enlightenment — and pairs each one with a pattern of brain activity, a type of intelligence and a stage of development.",
     metaRow: ["7 levels", "7 intelligences", "one map"],
     ctaBooks: "See the books",
     ctaMap: "Explore the map",
@@ -18,12 +18,12 @@ export const HOME_COPY = {
       "Six core levels and one integrating level. All of them are active in everyone. PFA makes it possible to see which level needs regulating and which needs developing, so a person can orient themselves.",
     levels: [
       { code: "L1", name: "Survival", intel: "Physical Intelligence (PQ)" },
-      { code: "L2", name: "Emotion & Memory", intel: "Emotional Intelligence (EQ)" },
+      { code: "L2", name: "Emotions / Memory", intel: "Emotional Intelligence (EQ)" },
       { code: "L3", name: "Rationality", intel: "Rational Intelligence (IQ)" },
-      { code: "L4", name: "Meaning", intel: "Love Intelligence (LQ)" },
-      { code: "L5", name: "Will", intel: "Creative Intelligence (CQ)" },
-      { code: "L6", name: "Flow", intel: "Wisdom Intelligence (TQ)" },
-      { code: "L7", name: "Unity", intel: "Holistic Intelligence (GQ)" },
+      { code: "L4", name: "Meaning / Love", intel: "Love Intelligence (LQ)" },
+      { code: "L5", name: "Creativity, Flow, Personal Art", intel: "Creative Intelligence (CQ)" },
+      { code: "L6", name: "Trance, Inspiration, Wisdom", intel: "Spiritual Intelligence (TQ/SQ)" },
+      { code: "L7", name: "Enlightenment", intel: "GQ" },
     ],
     levelsNote:
       "Each level has its own intelligence. Development means attunement between them, not climbing higher: no level is better than another.",
@@ -32,7 +32,7 @@ export const HOME_COPY = {
     offerTitle: "Books, the assessment and the 7Q Profile",
 
     bookTitle: "Psycho-Functional Analysis",
-    bookSubtitle: "A Map of Consciousness — From Survival to Enlightenment",
+    bookSubtitle: "A Map of Consciousness — from Survival to Enlightenment",
     bookDesc:
       "Seven functional levels, seven types of intelligence. A way of finding your bearings, written for therapists, coaches, educators and anyone who has set out to understand themselves.",
     amazonHeading: "Amazon · standard edition (unsigned)",

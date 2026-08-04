@@ -1,7 +1,7 @@
 // English page copy for the /en surfaces (books, levels, about, contact).
 // Translated faithfully from the existing Turkish content; nothing invented.
 // Locked glossary: PFA Assessment (never "Scale"), 7Q Profile, Attunement,
-// Holistic Intelligence only at L7, personalised signed copy = digital PDF.
+// personalised signed copy = digital PDF. Level names match the English book.
 
 export const BOOKS_COPY = {
   en: {
@@ -12,7 +12,7 @@ export const BOOKS_COPY = {
     pfa: {
       kicker: "PFA · Source text",
       title: "Psycho-Functional Analysis",
-      subtitle: "A Map of Consciousness — From Survival to Enlightenment",
+      subtitle: "A Map of Consciousness — from Survival to Enlightenment",
       desc:
         "Seven functional levels, seven types of intelligence. A way of finding your bearings, written for therapists, coaches, educators and anyone who has set out to understand themselves.",
     },
@@ -54,7 +54,7 @@ export const LEVELS_COPY = {
       },
       {
         code: "L2",
-        name: "Emotion & Memory",
+        name: "Emotions / Memory",
         intel: "Emotional Intelligence (EQ)",
         anchor: "Limbic system",
         body:
@@ -70,35 +70,35 @@ export const LEVELS_COPY = {
       },
       {
         code: "L4",
-        name: "Meaning",
+        name: "Meaning / Love",
         intel: "Love Intelligence (LQ)",
-        anchor: "The equator of the model",
+        anchor: "Corpus callosum",
         body:
-          "Up to here consciousness expands: body, self and mind are built. From here it integrates: the self that was built begins to reach beyond itself. Finding meaning, acceptance, compassion and mature love are the functions of this level.",
+          "Meaning and love meet at the level associated with the corpus callosum, where the hemispheres cooperate rather than operating as isolated parts.",
       },
       {
         code: "L5",
-        name: "Will",
+        name: "Creativity, Flow, Personal Art",
         intel: "Creative Intelligence (CQ)",
-        anchor: "Creativity and flow",
+        anchor: "Frontal lobes",
         body:
-          "The level of flow, inspiration and making. Where the energy left over from defending oneself runs into production, and life moves past repetition to bring something new into being.",
+          "Creativity, flow and personal art are the functions of this level, associated with the frontal lobes.",
       },
       {
         code: "L6",
-        name: "Flow",
-        intel: "Wisdom Intelligence (TQ)",
-        anchor: "Subtle guidance",
+        name: "Trance, Inspiration, Wisdom",
+        intel: "Spiritual Intelligence (TQ/SQ)",
+        anchor: "Integrated activity, not one region",
         body:
-          "The level of quiet guidance. The wise do not explain unasked and do not give unbidden — because they are now in attunement with life itself.",
+          "Trance, inspiration and wisdom arise through integrated activity rather than one dominant brain region.",
       },
       {
         code: "L7",
-        name: "Unity",
-        intel: "Holistic Intelligence (GQ)",
-        anchor: "Perception of unity",
+        name: "Enlightenment",
+        intel: "GQ",
+        anchor: "Silencing of self-referential networks; whole-brain integration",
         body:
-          "The wave, as it breaks on the shore, recognising that it was never anything other than the sea. Enlightenment is not an unreachable miracle on this map; it is the map's furthest stop.",
+          "Enlightenment is associated with the silencing of self-referential networks — the default-mode network — and whole-brain integration.",
       },
     ],
     principleTitle: "No level is better than another",

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LEVELS_COPY } from "@/content/en-pages";
 import { SITE_URL } from "@/lib/i18n";
+import torusMap from "@/assets/torus-map-final-2.png.asset.json";
 
 const C = LEVELS_COPY.en;
 const URL = `${SITE_URL}/en/levels`;
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/en/levels")({
       {
         name: "description",
         content:
-          "The seven functional levels of Psycho-Functional Analysis: name, intelligence type and brain anchor for each, from Survival (PQ) to Unity (GQ).",
+          "The seven functional levels of Psycho-Functional Analysis: name, intelligence type and brain anchor for each, from Survival (PQ) to Enlightenment (GQ).",
       },
       { property: "og:title", content: "The seven levels of consciousness — PFA" },
       {
@@ -37,7 +38,15 @@ function LevelsPage() {
         <p className="mt-6 text-base leading-relaxed text-foreground/80">{C.lede}</p>
       </header>
 
-      <ol className="mx-auto mt-16 max-w-3xl space-y-6">
+      <figure className="mx-auto mt-10 w-full max-w-5xl">
+        <img
+          src={torusMap.url}
+          alt="Psycho-Functional Analysis torus map, from Survival to Enlightenment"
+          className="block h-auto w-full opacity-90"
+        />
+      </figure>
+
+      <ol className="mx-auto mt-14 max-w-3xl space-y-6">
         {C.levels.map((l) => (
           <li
             key={l.code}
