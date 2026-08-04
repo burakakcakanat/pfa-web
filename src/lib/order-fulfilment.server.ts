@@ -86,6 +86,18 @@ export async function sendOrderPaidEmails(
   const artefacts = await ensureOrderEbookArtefacts(order.id);
   const artefactsBroken = artefacts.total > 0 && artefacts.ready < artefacts.total;
 
+  // Sipariş üzerine teslim durumunu işaretle: başarısızsa admin panelinden
+  // "Bekleyen Kişisel PDF'leri Üret" ile yeniden denenip e-posta gönderilir.
+  const orderMeta = { ...(((order.metadata ?? {}) as Record<string, unknown>) ?? {}) };
+  if (artefactsBroken) {
+    orderMeta.delivery_pending = true;
+    orderMeta.delivery_error = artefacts.failed.join("; ");
+  } else {
+    delete orderMeta.delivery_pending;
+    delete orderMeta.delivery_error;
+  }
+  await supabaseAdmin.from("orders").update({ metadata: orderMeta as never }).eq("id", order.id);
+
   let buyerSent = false;
   if (prof?.email && !artefactsBroken) {
     const body = `
