@@ -8,6 +8,7 @@ import { listMyEbooks, getEbookUrl } from "@/lib/ebooks.functions";
 import { listMyGifts } from "@/lib/gifts.functions";
 import { PractitionerAccountTab } from "@/components/practitioner-account";
 import { ResearchPreferences } from "@/components/research-preferences";
+import { NewsletterRow } from "@/components/newsletter-row";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
   validateSearch: (s: Record<string, unknown>): { tab?: string } =>
@@ -161,6 +162,9 @@ function AccountPage() {
             <div className="flex items-center gap-3">
               <button type="button" onClick={saveProfile} disabled={saving} className="btn-primary disabled:opacity-60">{saving ? "..." : "Kaydet"}</button>
               {msg && <span className="text-xs text-muted-foreground">{msg}</span>}
+            </div>
+            <div className="border-t border-border/60 pt-4">
+              <NewsletterRow />
             </div>
           </div>
           </div>

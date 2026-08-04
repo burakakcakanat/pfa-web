@@ -15,7 +15,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { BRAND_TAGLINE } from "@/lib/brand";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Instagram, Linkedin, Youtube, Twitter, ChevronDown } from "lucide-react";
-import { NewsletterMenuItem } from "@/components/newsletter-menu-item";
 
 function FooterNewsletter() {
   return <NewsletterForm source="footer" />;
@@ -403,7 +402,6 @@ function SiteHeader() {
               links={[
                 { to: "/hesabim", label: "Hesabım" },
                 ...(isAdmin ? [{ to: "/admin", label: "Admin" }] : []),
-                { label: "Bülten", node: <NewsletterMenuItem /> },
                 { label: "Çıkış", onClick: signOut },
               ]}
             />
@@ -522,9 +520,6 @@ function MobileMenu({
               </div>
               <Link to="/hesabim" className="border-b border-border/60 px-4 py-2.5 text-sm" onClick={() => setOpen(false)}>Hesabım</Link>
               {isAdmin && (<Link to="/admin" className="border-b border-border/60 px-4 py-2.5 text-sm" onClick={() => setOpen(false)}>Admin</Link>)}
-              <div className="border-b border-border/60">
-                <NewsletterMenuItem className="w-full px-4 py-2.5 text-left text-sm disabled:opacity-60" />
-              </div>
               <button
                 type="button"
                 onClick={() => { setOpen(false); onSignOut(); }}
