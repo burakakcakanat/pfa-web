@@ -174,9 +174,16 @@ function LanguageSwitcher({ locale, className }: { locale: Locale; className?: s
 
 const EN_NAV: NavItem[] = [
   { to: "/en", label: "Home" },
+  { to: "/en/books", label: "Books" },
+  { to: "/en/levels", label: "Levels" },
+  { to: "/en/about", label: "About" },
+  { to: "/en/contact", label: "Contact" },
   { to: "/en/refund-policy", label: "Refund policy" },
   { to: "/en/terms", label: "Terms of use" },
 ];
+
+/** Primary English header links (legal pages live in the footer only). */
+const EN_HEADER_NAV = EN_NAV.filter((l) => l.to !== "/en/refund-policy" && l.to !== "/en/terms");
 
 function EnHeader() {
   return (
@@ -201,7 +208,7 @@ function EnHeader() {
           </span>
         </a>
         <nav className="flex items-center gap-4 text-[0.82rem] tracking-wide sm:gap-5">
-          {EN_NAV.map((l) => (
+          {EN_HEADER_NAV.map((l) => (
             <a key={l.to} href={l.to} className="hidden text-foreground/75 transition-colors hover:text-accent sm:inline">
               {l.label}
             </a>
