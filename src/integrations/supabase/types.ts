@@ -1200,6 +1200,57 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_inquiries: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          ip_hash: string | null
+          kind: string
+          message: string | null
+          phone: string | null
+          preferred_slot: string | null
+          product_label: string | null
+          product_slug: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          ip_hash?: string | null
+          kind?: string
+          message?: string | null
+          phone?: string | null
+          preferred_slot?: string | null
+          product_label?: string | null
+          product_slug: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          ip_hash?: string | null
+          kind?: string
+          message?: string | null
+          phone?: string | null
+          preferred_slot?: string | null
+          product_label?: string | null
+          product_slug?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       research_consent_versions: {
         Row: {
           active: boolean

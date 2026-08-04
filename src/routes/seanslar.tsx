@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { usePaymentsEnabled } from "@/lib/use-payments-enabled";
+import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 
 export const Route = createFileRoute("/seanslar")({
   head: () => ({
@@ -47,6 +47,29 @@ export const Route = createFileRoute("/seanslar")({
 });
 
 const SLOTS = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"];
+
+function Shell({
+  asForm,
+  onSubmit,
+  children,
+}: {
+  asForm: boolean;
+  onSubmit: () => void;
+  children: React.ReactNode;
+}) {
+  if (!asForm) return <div className="grid gap-6">{children}</div>;
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
+      className="grid gap-6"
+    >
+      {children}
+    </form>
+  );
+}
 
 function nextWeekdays(n: number) {
   const days: Date[] = [];
@@ -101,12 +124,11 @@ function SessionsPage() {
                 </p>
               </div>
             ) : (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
+              <Shell
+                asForm={paymentsEnabled}
+                onSubmit={() => {
                   if (date && slot) setSubmitted(true);
                 }}
-                className="grid gap-6"
               >
                 <div>
                   <div className="text-xs tracking-[0.25em] text-muted-foreground">
@@ -160,51 +182,48 @@ function SessionsPage() {
                   </div>
                 </div>
 
-                <div className="grid gap-4">
-                  <div className="text-xs tracking-[0.25em] text-muted-foreground">
-                    3 · BİLGİLERİNİZ
-                  </div>
-                  <input
-                    required
-                    placeholder="Adınız Soyadınız"
-                    className="rounded-md border border-input bg-background px-3 py-2.5 text-sm"
-                  />
-                  <input
-                    required
-                    type="email"
-                    placeholder="E-posta"
-                    className="rounded-md border border-input bg-background px-3 py-2.5 text-sm"
-                  />
-                </div>
-
                 {paymentsEnabled ? (
-                  <button
-                    type="submit"
-                    disabled={!date || !slot}
-                    className="btn-primary hover:btn-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Rezervasyon &amp; Ödemeye Geç
-                  </button>
-                ) : (
-                  <div className="flex flex-col items-start gap-2">
+                  <>
+                    <div className="grid gap-4">
+                      <div className="text-xs tracking-[0.25em] text-muted-foreground">
+                        3 · BİLGİLERİNİZ
+                      </div>
+                      <input
+                        required
+                        placeholder="Adınız Soyadınız"
+                        className="rounded-md border border-input bg-background px-3 py-2.5 text-sm"
+                      />
+                      <input
+                        required
+                        type="email"
+                        placeholder="E-posta"
+                        className="rounded-md border border-input bg-background px-3 py-2.5 text-sm"
+                      />
+                    </div>
                     <button
-                      type="button"
-                      disabled
-                      aria-disabled="true"
-                      className="btn-primary cursor-not-allowed opacity-50"
+                      type="submit"
+                      disabled={!date || !slot}
+                      className="btn-primary hover:btn-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      Yakında
+                      Rezervasyon &amp; Ödemeye Geç
                     </button>
-                    <span className="max-w-xs text-xs leading-relaxed text-muted-foreground">
-                      Online satın alma yakında açılıyor. O zamana kadar{" "}
-                      <Link to="/iletisim" className="underline underline-offset-4 hover:text-foreground">
-                        iletişim
-                      </Link>{" "}
-                      sayfasından bize yazabilirsiniz.
-                    </span>
+                  </>
+                ) : (
+                  <div className="grid gap-3">
+                    <div className="text-xs tracking-[0.25em] text-muted-foreground">
+                      3 · RANDEVU TALEBİ
+                    </div>
+                    <PurchaseInquiryForm
+                      kind="session"
+                      productSlug="danismanlik-oturumu"
+                      productLabel="Birebir Danışmanlık Oturumu (60 dk)"
+                      askSlot
+                      slotDefault={date && slot ? `${date} ${slot}` : ""}
+                      buttonLabel="Randevu Talebi"
+                    />
                   </div>
                 )}
-              </form>
+              </Shell>
             )}
           </div>
         </div>

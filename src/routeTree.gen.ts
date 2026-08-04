@@ -24,6 +24,7 @@ import { Route as HakkindaRouteImport } from './routes/hakkinda'
 import { Route as GizlilikRouteImport } from './routes/gizlilik'
 import { Route as EgitimRouteImport } from './routes/egitim'
 import { Route as DegerlendirmeRouteImport } from './routes/degerlendirme'
+import { Route as BuyRouteImport } from './routes/buy'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as EnRouteRouteImport } from './routes/en/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -139,6 +140,11 @@ const EgitimRoute = EgitimRouteImport.update({
 const DegerlendirmeRoute = DegerlendirmeRouteImport.update({
   id: '/degerlendirme',
   path: '/degerlendirme',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuyRoute = BuyRouteImport.update({
+  id: '/buy',
+  path: '/buy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -359,6 +365,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/en': typeof EnRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/buy': typeof BuyRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
   '/gizlilik': typeof GizlilikRoute
@@ -415,6 +422,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/buy': typeof BuyRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
   '/gizlilik': typeof GizlilikRoute
@@ -474,6 +482,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/en': typeof EnRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/buy': typeof BuyRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
   '/gizlilik': typeof GizlilikRoute
@@ -533,6 +542,7 @@ export interface FileRouteTypes {
     | '/'
     | '/en'
     | '/auth'
+    | '/buy'
     | '/degerlendirme'
     | '/egitim'
     | '/gizlilik'
@@ -589,6 +599,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/buy'
     | '/degerlendirme'
     | '/egitim'
     | '/gizlilik'
@@ -647,6 +658,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/en'
     | '/auth'
+    | '/buy'
     | '/degerlendirme'
     | '/egitim'
     | '/gizlilik'
@@ -706,6 +718,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   EnRouteRoute: typeof EnRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BuyRoute: typeof BuyRoute
   DegerlendirmeRoute: typeof DegerlendirmeRoute
   EgitimRoute: typeof EgitimRoute
   GizlilikRoute: typeof GizlilikRoute
@@ -850,6 +863,13 @@ declare module '@tanstack/react-router' {
       path: '/degerlendirme'
       fullPath: '/degerlendirme'
       preLoaderRoute: typeof DegerlendirmeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/buy': {
+      id: '/buy'
+      path: '/buy'
+      fullPath: '/buy'
+      preLoaderRoute: typeof BuyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -1195,6 +1215,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   EnRouteRoute: EnRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  BuyRoute: BuyRoute,
   DegerlendirmeRoute: DegerlendirmeRoute,
   EgitimRoute: EgitimRoute,
   GizlilikRoute: GizlilikRoute,

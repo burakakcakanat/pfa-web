@@ -124,7 +124,14 @@ function Page() {
 
         <div className="mt-10 flex flex-wrap items-center gap-6 rounded-lg border border-border bg-card p-6">
           <div className="font-serif text-4xl">{priceLabel}</div>
-          <BuyButton productSlug="bilinc-seviyeleri-calismalari" label="Kayıt Ol" />
+          <BuyButton
+            productSlug="bilinc-seviyeleri-calismalari"
+            label="Kayıt Ol"
+            inquiry={{
+              kind: "webinar",
+              productLabel: "Bilinç Seviyeleri Çalışmaları",
+            }}
+          />
         </div>
 
         <p className="mt-8 text-xs text-muted-foreground">
