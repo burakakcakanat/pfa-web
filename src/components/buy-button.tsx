@@ -5,6 +5,8 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { createCheckout } from "@/lib/checkout.functions";
 import { usePaymentsEnabled } from "@/lib/use-payments-enabled";
+import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
+import type { PurchaseInquiryKind } from "@/lib/purchase-inquiries";
 
 type Props = {
   productSlug?: string;
@@ -14,10 +16,22 @@ type Props = {
   className?: string;
   locale?: "tr" | "en";
   gift?: { recipient_name: string; recipient_email: string; gift_note?: string | null } | null;
+  /**
+   * Non-Paddle (havale) sales channel. When set and payments are disabled, the
+   * button opens an inline enquiry form instead of showing "Yakında".
+   * Only for products sold outside Paddle (sessions, live webinars, licences).
+   */
+  inquiry?: {
+    kind: PurchaseInquiryKind;
+    productLabel: string;
+    askSlot?: boolean;
+    slotDefault?: string;
+    buttonLabel?: string;
+  } | null;
   onSuccess?: () => void;
 };
 
-export function BuyButton({ productSlug, bundleSlug, bookLang, label = "Satın Al", className, locale = "tr", gift, onSuccess }: Props) {
+export function BuyButton({ productSlug, bundleSlug, bookLang, label = "Satın Al", className, locale = "tr", gift, inquiry, onSuccess }: Props) {
   const doCheckout = useServerFn(createCheckout);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -54,6 +68,19 @@ export function BuyButton({ productSlug, bundleSlug, bookLang, label = "Satın A
   }
 
   if (!paymentsEnabled) {
+    // Products sold outside Paddle stay sellable today via enquiry + bank transfer.
+    if (inquiry && locale === "tr") {
+      return (
+        <PurchaseInquiryForm
+          kind={inquiry.kind}
+          productSlug={productSlug ?? bundleSlug ?? "bilinmeyen"}
+          productLabel={inquiry.productLabel}
+          {...(inquiry.askSlot ? { askSlot: true } : {})}
+          {...(inquiry.slotDefault ? { slotDefault: inquiry.slotDefault } : {})}
+          {...(inquiry.buttonLabel ? { buttonLabel: inquiry.buttonLabel } : {})}
+        />
+      );
+    }
     return (
       <div className="flex flex-col items-start gap-2">
         <button
