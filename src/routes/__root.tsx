@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BRAND_TAGLINE } from "@/lib/brand";
 import { localeFromPathname, switchTarget, type Locale } from "@/lib/i18n";
 import { NewsletterForm } from "@/components/newsletter-form";
-import { Instagram, Linkedin, Youtube, Twitter, ChevronDown } from "lucide-react";
+import { Instagram, Linkedin, Youtube, Twitter, ChevronDown, BookOpen } from "lucide-react";
 
 function FooterNewsletter() {
   return <NewsletterForm source="footer" />;
