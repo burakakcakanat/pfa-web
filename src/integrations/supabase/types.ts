@@ -815,6 +815,7 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          is_test: boolean
           metadata: Json
           product_id: string | null
           status: Database["public"]["Enums"]["order_status"]
@@ -828,6 +829,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          is_test?: boolean
           metadata?: Json
           product_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -841,6 +843,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          is_test?: boolean
           metadata?: Json
           product_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
