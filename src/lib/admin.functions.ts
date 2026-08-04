@@ -1268,7 +1268,22 @@ export const runPendingPersonalizedRetry = createServerFn({ method: "POST" })
       });
       if (path) generated++; else skipped++;
     }
-    return { generated, skipped };
+
+    // Teslim duyurusu ertelenmiş siparişler: dosyalar artık hazırsa e-postayı gönder.
+    let deliveries = 0;
+    const { data: pendingOrders } = await supabaseAdmin
+      .from("orders")
+      .select("id")
+      .eq("status", "paid")
+      .filter("metadata->>delivery_pending", "eq", "true");
+    if ((pendingOrders ?? []).length) {
+      const { sendOrderPaidEmails } = await import("@/lib/order-fulfilment.server");
+      for (const o of pendingOrders ?? []) {
+        const res = await sendOrderPaidEmails(o.id as string);
+        if (res.buyer) deliveries++;
+      }
+    }
+    return { generated, skipped, deliveries };
   });
 
 // -------- WEBINAR BANNER UPLOAD --------
