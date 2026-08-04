@@ -11,6 +11,9 @@ export function localeFromPathname(pathname: string): Locale {
 /** Turkish path → its English counterpart. Only pages that exist in both languages. */
 export const EN_COUNTERPART: Record<string, string> = {
   "/": "/en",
+  "/kitaplar": "/en/books",
+  "/hakkinda": "/en/about",
+  "/iletisim": "/en/contact",
   "/iade-politikasi": "/en/refund-policy",
   "/kullanim-kosullari": "/en/terms",
 };
