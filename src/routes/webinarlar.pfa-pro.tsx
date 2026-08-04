@@ -104,7 +104,14 @@ function Page() {
 
         <div className="mt-10 flex flex-wrap items-center gap-6 rounded-lg border border-border bg-card p-6">
           <div className="font-serif text-4xl">{priceLabel}</div>
-          <BuyButton productSlug="pfa-pro-lisans-paketi" label="Kayıt Ol" />
+          <BuyButton
+            productSlug="pfa-pro-lisans-paketi"
+            label="Kayıt Ol"
+            inquiry={{
+              kind: "pro_license",
+              productLabel: "PFA-Pro — Uygulayıcı Lisans Paketi",
+            }}
+          />
         </div>
 
         <p className="mt-8 text-xs text-muted-foreground">
