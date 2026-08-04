@@ -24,6 +24,7 @@ import { Route as HakkindaRouteImport } from './routes/hakkinda'
 import { Route as EgitimRouteImport } from './routes/egitim'
 import { Route as DegerlendirmeRouteImport } from './routes/degerlendirme'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as EnRouteRouteImport } from './routes/en/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WebinarlarIndexRouteImport } from './routes/webinarlar.index'
@@ -134,6 +135,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnRouteRoute = EnRouteRouteImport.update({
+  id: '/en',
+  path: '/en',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -154,9 +160,9 @@ const UygulayicilarIndexRoute = UygulayicilarIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const EnIndexRoute = EnIndexRouteImport.update({
-  id: '/en/',
-  path: '/en/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => EnRouteRoute,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
@@ -190,14 +196,14 @@ const HediyeTokenRoute = HediyeTokenRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const EnTermsRoute = EnTermsRouteImport.update({
-  id: '/en/terms',
-  path: '/en/terms',
-  getParentRoute: () => rootRouteImport,
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => EnRouteRoute,
 } as any)
 const EnRefundPolicyRoute = EnRefundPolicyRouteImport.update({
-  id: '/en/refund-policy',
-  path: '/en/refund-policy',
-  getParentRoute: () => rootRouteImport,
+  id: '/refund-policy',
+  path: '/refund-policy',
+  getParentRoute: () => EnRouteRoute,
 } as any)
 const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
   id: '/degerlendirme_/mini',
@@ -315,6 +321,7 @@ const Authenticated7qRaporSessionIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/en': typeof EnRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
@@ -417,6 +424,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/en': typeof EnRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
@@ -469,6 +477,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/en'
     | '/auth'
     | '/degerlendirme'
     | '/egitim'
@@ -570,6 +579,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/en'
     | '/auth'
     | '/degerlendirme'
     | '/egitim'
@@ -622,6 +632,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  EnRouteRoute: typeof EnRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   DegerlendirmeRoute: typeof DegerlendirmeRoute
   EgitimRoute: typeof EgitimRoute
@@ -644,15 +655,12 @@ export interface RootRouteChildren {
   BultenAyrilRoute: typeof BultenAyrilRoute
   BultenOnaylaRoute: typeof BultenOnaylaRoute
   DegerlendirmeMiniRoute: typeof DegerlendirmeMiniRoute
-  EnRefundPolicyRoute: typeof EnRefundPolicyRoute
-  EnTermsRoute: typeof EnTermsRoute
   HediyeTokenRoute: typeof HediyeTokenRoute
   UygulayicilarIdRoute: typeof UygulayicilarIdRoute
   WebinarlarBilincSeviyeleriRoute: typeof WebinarlarBilincSeviyeleriRoute
   WebinarlarPfaProRoute: typeof WebinarlarPfaProRoute
   R7qIndexRoute: typeof R7qIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
-  EnIndexRoute: typeof EnIndexRoute
   UygulayicilarIndexRoute: typeof UygulayicilarIndexRoute
   WebinarlarIndexRoute: typeof WebinarlarIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
@@ -771,6 +779,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/en': {
+      id: '/en'
+      path: '/en'
+      fullPath: '/en'
+      preLoaderRoute: typeof EnRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -801,10 +816,10 @@ declare module '@tanstack/react-router' {
     }
     '/en/': {
       id: '/en/'
-      path: '/en'
+      path: '/'
       fullPath: '/en/'
       preLoaderRoute: typeof EnIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof EnRouteRoute
     }
     '/blog/': {
       id: '/blog/'
@@ -850,17 +865,17 @@ declare module '@tanstack/react-router' {
     }
     '/en/terms': {
       id: '/en/terms'
-      path: '/en/terms'
+      path: '/terms'
       fullPath: '/en/terms'
       preLoaderRoute: typeof EnTermsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof EnRouteRoute
     }
     '/en/refund-policy': {
       id: '/en/refund-policy'
-      path: '/en/refund-policy'
+      path: '/refund-policy'
       fullPath: '/en/refund-policy'
       preLoaderRoute: typeof EnRefundPolicyRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof EnRouteRoute
     }
     '/degerlendirme_/mini': {
       id: '/degerlendirme_/mini'
@@ -1035,9 +1050,25 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface EnRouteRouteChildren {
+  EnRefundPolicyRoute: typeof EnRefundPolicyRoute
+  EnTermsRoute: typeof EnTermsRoute
+  EnIndexRoute: typeof EnIndexRoute
+}
+
+const EnRouteRouteChildren: EnRouteRouteChildren = {
+  EnRefundPolicyRoute: EnRefundPolicyRoute,
+  EnTermsRoute: EnTermsRoute,
+  EnIndexRoute: EnIndexRoute,
+}
+
+const EnRouteRouteWithChildren =
+  EnRouteRoute._addFileChildren(EnRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  EnRouteRoute: EnRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   DegerlendirmeRoute: DegerlendirmeRoute,
   EgitimRoute: EgitimRoute,
@@ -1061,15 +1092,12 @@ const rootRouteChildren: RootRouteChildren = {
   BultenAyrilRoute: BultenAyrilRoute,
   BultenOnaylaRoute: BultenOnaylaRoute,
   DegerlendirmeMiniRoute: DegerlendirmeMiniRoute,
-  EnRefundPolicyRoute: EnRefundPolicyRoute,
-  EnTermsRoute: EnTermsRoute,
   HediyeTokenRoute: HediyeTokenRoute,
   UygulayicilarIdRoute: UygulayicilarIdRoute,
   WebinarlarBilincSeviyeleriRoute: WebinarlarBilincSeviyeleriRoute,
   WebinarlarPfaProRoute: WebinarlarPfaProRoute,
   R7qIndexRoute: R7qIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
-  EnIndexRoute: EnIndexRoute,
   UygulayicilarIndexRoute: UygulayicilarIndexRoute,
   WebinarlarIndexRoute: WebinarlarIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
