@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LEVELS_COPY } from "@/content/en-pages";
-import { SITE_URL } from "@/lib/i18n";
+import { SITE_URL, alternateLinksForEn } from "@/lib/i18n";
 import torusMap from "@/assets/torus-map-final-2.png.asset.json";
 
 const C = LEVELS_COPY.en;
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/en/levels")({
       { property: "og:url", content: URL },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: URL }],
+    links: [{ rel: "canonical", href: URL }, ...alternateLinksForEn("/en/levels")],
   }),
   component: LevelsPage,
 });
