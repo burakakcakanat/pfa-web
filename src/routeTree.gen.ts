@@ -24,16 +24,20 @@ import { Route as HakkindaRouteImport } from './routes/hakkinda'
 import { Route as EgitimRouteImport } from './routes/egitim'
 import { Route as DegerlendirmeRouteImport } from './routes/degerlendirme'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as EnRouteRouteImport } from './routes/en/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WebinarlarIndexRouteImport } from './routes/webinarlar.index'
 import { Route as UygulayicilarIndexRouteImport } from './routes/uygulayicilar.index'
+import { Route as EnIndexRouteImport } from './routes/en/index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as R7qIndexRouteImport } from './routes/7q.index'
 import { Route as WebinarlarPfaProRouteImport } from './routes/webinarlar.pfa-pro'
 import { Route as WebinarlarBilincSeviyeleriRouteImport } from './routes/webinarlar.bilinc-seviyeleri'
 import { Route as UygulayicilarIdRouteImport } from './routes/uygulayicilar.$id'
 import { Route as HediyeTokenRouteImport } from './routes/hediye.$token'
+import { Route as EnTermsRouteImport } from './routes/en/terms'
+import { Route as EnRefundPolicyRouteImport } from './routes/en/refund-policy'
 import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
 import { Route as BultenOnaylaRouteImport } from './routes/bulten.onayla'
 import { Route as BultenAyrilRouteImport } from './routes/bulten.ayril'
@@ -131,6 +135,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnRouteRoute = EnRouteRouteImport.update({
+  id: '/en',
+  path: '/en',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -149,6 +158,11 @@ const UygulayicilarIndexRoute = UygulayicilarIndexRouteImport.update({
   id: '/uygulayicilar/',
   path: '/uygulayicilar/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const EnIndexRoute = EnIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => EnRouteRoute,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
@@ -180,6 +194,16 @@ const HediyeTokenRoute = HediyeTokenRouteImport.update({
   id: '/hediye/$token',
   path: '/hediye/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const EnTermsRoute = EnTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => EnRouteRoute,
+} as any)
+const EnRefundPolicyRoute = EnRefundPolicyRouteImport.update({
+  id: '/refund-policy',
+  path: '/refund-policy',
+  getParentRoute: () => EnRouteRoute,
 } as any)
 const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
   id: '/degerlendirme_/mini',
@@ -297,6 +321,7 @@ const Authenticated7qRaporSessionIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/en': typeof EnRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
@@ -322,12 +347,15 @@ export interface FileRoutesByFullPath {
   '/bulten/ayril': typeof BultenAyrilRoute
   '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
+  '/en/refund-policy': typeof EnRefundPolicyRoute
+  '/en/terms': typeof EnTermsRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/7q/': typeof R7qIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/en/': typeof EnIndexRoute
   '/uygulayicilar/': typeof UygulayicilarIndexRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -369,12 +397,15 @@ export interface FileRoutesByTo {
   '/bulten/ayril': typeof BultenAyrilRoute
   '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme/mini': typeof DegerlendirmeMiniRoute
+  '/en/refund-policy': typeof EnRefundPolicyRoute
+  '/en/terms': typeof EnTermsRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/7q': typeof R7qIndexRoute
   '/blog': typeof BlogIndexRoute
+  '/en': typeof EnIndexRoute
   '/uygulayicilar': typeof UygulayicilarIndexRoute
   '/webinarlar': typeof WebinarlarIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -393,6 +424,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/en': typeof EnRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/degerlendirme': typeof DegerlendirmeRoute
   '/egitim': typeof EgitimRoute
@@ -418,12 +450,15 @@ export interface FileRoutesById {
   '/bulten/ayril': typeof BultenAyrilRoute
   '/bulten/onayla': typeof BultenOnaylaRoute
   '/degerlendirme_/mini': typeof DegerlendirmeMiniRoute
+  '/en/refund-policy': typeof EnRefundPolicyRoute
+  '/en/terms': typeof EnTermsRoute
   '/hediye/$token': typeof HediyeTokenRoute
   '/uygulayicilar/$id': typeof UygulayicilarIdRoute
   '/webinarlar/bilinc-seviyeleri': typeof WebinarlarBilincSeviyeleriRoute
   '/webinarlar/pfa-pro': typeof WebinarlarPfaProRoute
   '/7q/': typeof R7qIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/en/': typeof EnIndexRoute
   '/uygulayicilar/': typeof UygulayicilarIndexRoute
   '/webinarlar/': typeof WebinarlarIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -442,6 +477,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/en'
     | '/auth'
     | '/degerlendirme'
     | '/egitim'
@@ -467,12 +503,15 @@ export interface FileRouteTypes {
     | '/bulten/ayril'
     | '/bulten/onayla'
     | '/degerlendirme/mini'
+    | '/en/refund-policy'
+    | '/en/terms'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/7q/'
     | '/blog/'
+    | '/en/'
     | '/uygulayicilar/'
     | '/webinarlar/'
     | '/.lovable/oauth/consent'
@@ -514,12 +553,15 @@ export interface FileRouteTypes {
     | '/bulten/ayril'
     | '/bulten/onayla'
     | '/degerlendirme/mini'
+    | '/en/refund-policy'
+    | '/en/terms'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/7q'
     | '/blog'
+    | '/en'
     | '/uygulayicilar'
     | '/webinarlar'
     | '/.lovable/oauth/consent'
@@ -537,6 +579,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/en'
     | '/auth'
     | '/degerlendirme'
     | '/egitim'
@@ -562,12 +605,15 @@ export interface FileRouteTypes {
     | '/bulten/ayril'
     | '/bulten/onayla'
     | '/degerlendirme_/mini'
+    | '/en/refund-policy'
+    | '/en/terms'
     | '/hediye/$token'
     | '/uygulayicilar/$id'
     | '/webinarlar/bilinc-seviyeleri'
     | '/webinarlar/pfa-pro'
     | '/7q/'
     | '/blog/'
+    | '/en/'
     | '/uygulayicilar/'
     | '/webinarlar/'
     | '/.lovable/oauth/consent'
@@ -586,6 +632,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  EnRouteRoute: typeof EnRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   DegerlendirmeRoute: typeof DegerlendirmeRoute
   EgitimRoute: typeof EgitimRoute
@@ -732,6 +779,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/en': {
+      id: '/en'
+      path: '/en'
+      fullPath: '/en'
+      preLoaderRoute: typeof EnRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -759,6 +813,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/uygulayicilar/'
       preLoaderRoute: typeof UygulayicilarIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/en/': {
+      id: '/en/'
+      path: '/'
+      fullPath: '/en/'
+      preLoaderRoute: typeof EnIndexRouteImport
+      parentRoute: typeof EnRouteRoute
     }
     '/blog/': {
       id: '/blog/'
@@ -801,6 +862,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/hediye/$token'
       preLoaderRoute: typeof HediyeTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/en/terms': {
+      id: '/en/terms'
+      path: '/terms'
+      fullPath: '/en/terms'
+      preLoaderRoute: typeof EnTermsRouteImport
+      parentRoute: typeof EnRouteRoute
+    }
+    '/en/refund-policy': {
+      id: '/en/refund-policy'
+      path: '/refund-policy'
+      fullPath: '/en/refund-policy'
+      preLoaderRoute: typeof EnRefundPolicyRouteImport
+      parentRoute: typeof EnRouteRoute
     }
     '/degerlendirme_/mini': {
       id: '/degerlendirme_/mini'
@@ -975,9 +1050,25 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface EnRouteRouteChildren {
+  EnRefundPolicyRoute: typeof EnRefundPolicyRoute
+  EnTermsRoute: typeof EnTermsRoute
+  EnIndexRoute: typeof EnIndexRoute
+}
+
+const EnRouteRouteChildren: EnRouteRouteChildren = {
+  EnRefundPolicyRoute: EnRefundPolicyRoute,
+  EnTermsRoute: EnTermsRoute,
+  EnIndexRoute: EnIndexRoute,
+}
+
+const EnRouteRouteWithChildren =
+  EnRouteRoute._addFileChildren(EnRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  EnRouteRoute: EnRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   DegerlendirmeRoute: DegerlendirmeRoute,
   EgitimRoute: EgitimRoute,

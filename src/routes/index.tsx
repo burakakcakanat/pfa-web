@@ -3,6 +3,7 @@ import pfaMapAsset from "@/assets/pfa-torus-tr-map.png.asset.json";
 import heroStepsAsset from "@/assets/hero-steps.png.asset.json";
 import { INTELLIGENCE_LABEL, LEVEL_LABEL_TR, LEVEL_TO_INTELLIGENCE } from "@/lib/assessment-scoring";
 import { Dumbbell, Heart, Brain, Sparkles, Palette, BookOpen, Infinity as InfinityIcon, type LucideIcon } from "lucide-react";
+import { alternateLinks } from "@/lib/i18n";
 
 const INTELLIGENCE_ICON: Record<number, LucideIcon> = {
   1: Dumbbell,
@@ -28,7 +29,10 @@ export const Route = createFileRoute("/")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://psychofunctionalanalysis.com/" },
     ],
-    links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/" }],
+    links: [
+      { rel: "canonical", href: "https://psychofunctionalanalysis.com/" },
+      ...alternateLinks("/"),
+    ],
     scripts: [
       {
         type: "application/ld+json",
