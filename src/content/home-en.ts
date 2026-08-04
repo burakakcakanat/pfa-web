@@ -20,9 +20,9 @@ export const HOME_COPY = {
       { code: "L1", name: "Survival", intel: "Physical Intelligence (PQ)" },
       { code: "L2", name: "Emotion & Memory", intel: "Emotional Intelligence (EQ)" },
       { code: "L3", name: "Rationality", intel: "Rational Intelligence (IQ)" },
-      { code: "L4", name: "Meaning", intel: "Spiritual Intelligence (SQ)" },
-      { code: "L5", name: "Will", intel: "Volitional Intelligence (VQ)" },
-      { code: "L6", name: "Flow", intel: "Creative Intelligence (CQ)" },
+      { code: "L4", name: "Meaning", intel: "Love Intelligence (LQ)" },
+      { code: "L5", name: "Will", intel: "Creative Intelligence (CQ)" },
+      { code: "L6", name: "Flow", intel: "Wisdom Intelligence (TQ)" },
       { code: "L7", name: "Unity", intel: "Holistic Intelligence (GQ)" },
     ],
     levelsNote:
