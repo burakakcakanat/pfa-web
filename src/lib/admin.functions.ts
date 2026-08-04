@@ -810,18 +810,25 @@ export const listEbookProducts = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: products } = await supabaseAdmin
       .from("products")
-      .select("id, slug, name_tr")
+      .select("id, slug, name_tr, active, master_pdf_path, master_epub_path")
       .eq("type", "ebook");
     const out = [] as Array<{
       slug: string;
       name: string;
+      active: boolean;
+      masters: Array<{ label: string; path: string }>;
       files: Array<{ name: string; size: number | null }>;
     }>;
     for (const p of products ?? []) {
       const { data: list } = await supabaseAdmin.storage.from("ebooks").list(p.slug, { limit: 20 });
+      const masters: Array<{ label: string; path: string }> = [];
+      if (p.master_pdf_path) masters.push({ label: "PDF", path: p.master_pdf_path });
+      if (p.master_epub_path) masters.push({ label: "EPUB", path: p.master_epub_path });
       out.push({
         slug: p.slug,
         name: p.name_tr,
+        active: Boolean(p.active),
+        masters,
         files: (list ?? []).map((f) => ({
           name: f.name,
           size: (f.metadata as any)?.size ?? null,
