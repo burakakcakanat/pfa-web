@@ -106,7 +106,7 @@ async function resolveTarget(headers: Headers): Promise<string> {
       .eq("active", true)
       .order("sort_order");
 
-    const editions = (data ?? []).filter((e) => e.asin || e.external_url === undefined);
+    const editions = (data ?? []).filter((e) => Boolean(e.asin));
     // Prefer kindle, then any other active edition.
     const ordered = [
       ...editions.filter((e) => e.format === "kindle"),
