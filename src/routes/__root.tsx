@@ -180,6 +180,7 @@ const EN_NAV: NavItem[] = [
   { to: "/en/contact", label: "Contact" },
   { to: "/en/refund-policy", label: "Refund policy" },
   { to: "/en/terms", label: "Terms of use" },
+  { to: "/en/privacy", label: "Privacy policy" },
 ];
 
 /** Primary English header links (legal pages live in the footer only). */
