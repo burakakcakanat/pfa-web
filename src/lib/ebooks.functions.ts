@@ -20,9 +20,13 @@ async function signedStorageUrl(
   bucket: "ebooks" | "book-files" = "ebooks",
 ) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: signed } = await supabaseAdmin.storage
+  const { data: signed, error } = await supabaseAdmin.storage
     .from(bucket)
     .createSignedUrl(path, 60 * 10, mode === "download" ? { download: filename } : undefined);
+  if (error) {
+    console.error("[EBOOK_SIGN_FAIL]", { bucket, path, message: error.message });
+    throw new Error("Dosya bağlantısı oluşturulamadı. [EBOOK_SIGN_FAIL]");
+  }
   return signed?.signedUrl ?? null;
 }
 
@@ -209,21 +213,31 @@ export const getEbookUrl = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+    const traceId = crypto.randomUUID().slice(0, 8);
+    console.info("[EBOOK_URL_START]", { traceId, slug: data.slug, mode: data.mode, format: data.format ?? "pdf" });
     // Aynı kitap birden fazla siparişte alınmış olabilir; maybeSingle() bu durumda
     // hata döndürüp yetki hatasına yol açıyordu. Tüm hakları çekip
     // kişiselleştirilmiş dosyası olanı (yoksa en yenisini) seçiyoruz.
-    const { data: ents } = await supabase
+    const { data: ents, error: entitlementError } = await supabase
       .from("user_entitlements")
       .select("id, metadata, created_at")
       .eq("user_id", userId)
       .eq("type", "ebook")
       .filter("metadata->>product_slug", "eq", data.slug)
       .order("created_at", { ascending: false });
+    if (entitlementError) {
+      console.error("[EBOOK_ENT_QUERY]", { traceId, code: entitlementError.code, message: entitlementError.message });
+      throw new Error("E-kitap yetkisi doğrulanamadı. [EBOOK_ENT_QUERY]");
+    }
     const rows = ents ?? [];
+    console.info("[EBOOK_ENT_COUNT]", { traceId, count: rows.length });
     const ent =
       rows.find((r) => Boolean((r.metadata as Record<string, unknown> | null)?.personalized_pdf_path)) ??
       rows[0];
-    if (!ent) throw new Error("Bu e-book için yetkiniz bulunmuyor.");
+    if (!ent) {
+      console.warn("[EBOOK_ENT_MISSING]", { traceId, slug: data.slug });
+      throw new Error("Bu e-kitap için yetkiniz bulunmuyor. [EBOOK_ENT_MISSING]");
+    }
 
     const meta = (ent.metadata ?? {}) as Record<string, unknown>;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -250,11 +264,15 @@ export const getEbookUrl = createServerFn({ method: "POST" })
     }
 
     // View veya EPUB yoksa → kişiselleştirilmiş PDF (yoksa üret).
-    const { data: prof } = await supabase
+    const { data: prof, error: profileError } = await supabase
       .from("profiles")
       .select("full_name, email")
       .eq("id", userId)
       .maybeSingle();
+    if (profileError) {
+      console.error("[EBOOK_PROFILE_QUERY]", { traceId, code: profileError.code, message: profileError.message });
+      throw new Error("Hesap bilgileri doğrulanamadı. [EBOOK_PROFILE_QUERY]");
+    }
 
     const fullName =
       (meta.recipient_name as string | undefined) || prof?.full_name || prof?.email || "";
@@ -281,6 +299,7 @@ export const getEbookUrl = createServerFn({ method: "POST" })
     });
 
     if (path) {
+      console.info("[EBOOK_PERSONALIZED]", { traceId, source: "personalized" });
       const filename = `${data.slug}-imzali.pdf`;
       const url = await signedStorageUrl(
         path,
@@ -305,5 +324,6 @@ export const getEbookUrl = createServerFn({ method: "POST" })
       const url = await signedStorageUrl(`${data.slug}/${pdf.name}`, data.mode, pdf.name);
       if (url) return { url, filename: pdf.name, personalized: false };
     }
-    return { url: null, filename: null, personalized: false };
+    console.warn("[EBOOK_FILE_MISSING]", { traceId, slug: data.slug, format: data.format ?? "pdf" });
+    return { url: null, filename: null, personalized: false, errorCode: "EBOOK_FILE_MISSING" };
   });
