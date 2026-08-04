@@ -57,7 +57,9 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
                 const { data: prof } = await supabaseAdmin
                   .from("profiles").select("email, full_name").eq("id", updated.user_id).maybeSingle();
                 const amount = (updated.amount_cents / 100).toFixed(2) + " " + (updated.currency || "usd").toUpperCase();
-                const isDigital = productType === "ebook" || productType === "assessment" || !!updated.bundle_slug;
+                // Tüm ürünler dijitaldir; her siparişte hesap bağlantısı verilir.
+                const isDigital = true;
+                void productType;
                 // Buyer confirmation
                 if (prof?.email) {
                   const body = `
@@ -67,7 +69,7 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
                       <tr><td style="color:#6b6355;padding:4px 0;width:120px">Ürün</td><td>${esc(productName)}</td></tr>
                       <tr><td style="color:#6b6355;padding:4px 0">Tutar</td><td>${esc(amount)}</td></tr>
                     </table>
-                    ${bundleIncludesBook ? `<p style="margin-top:16px">İmzalı basılı kitabınız hazırlanıp adresinize kargolanacaktır. Kitabınızın dijital kopyaları (PDF ve EPUB) hesabınıza tanımlandı; /hesabim sayfanızdan okuyabilir veya indirebilirsiniz.</p>` : ""}`;
+                    ${bundleIncludesBook ? `<p style="margin-top:16px">Kitabınızın dijital nüshaları (adınıza imzalı PDF ve EPUB) hesabınıza tanımlandı; /hesabim sayfanızdan okuyabilir veya indirebilirsiniz.</p>` : ""}`;
                   await sendEmail({
                     to: prof.email,
                     subject: `PFA — Siparişiniz onaylandı: ${productName}`,

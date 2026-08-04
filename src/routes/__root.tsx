@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BRAND_TAGLINE } from "@/lib/brand";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Instagram, Linkedin, Youtube, Twitter, ChevronDown } from "lucide-react";
+import { NewsletterMenuItem } from "@/components/newsletter-menu-item";
 
 function FooterNewsletter() {
   return <NewsletterForm source="footer" />;
@@ -226,7 +227,7 @@ const FOOTER_MORE: NavItem[] = [
   { to: "/iade-politikasi", label: "İade Politikası" },
 ];
 
-type MenuEntry = { label: string; to?: string; onClick?: () => void };
+type MenuEntry = { label: string; to?: string; onClick?: () => void; node?: ReactNode };
 
 function NavDropdown({
   label,
@@ -284,7 +285,14 @@ function NavDropdown({
           className={`absolute ${align === "right" ? "right-0" : "left-0"} mt-2 flex w-44 flex-col rounded-md border border-border bg-background shadow-sm`}
         >
           {links.map((l, i) =>
-            l.to ? (
+            l.node ? (
+              <div
+                key={l.label}
+                className={i < links.length - 1 ? "border-b border-border/60" : ""}
+              >
+                {l.node}
+              </div>
+            ) : l.to ? (
             <Link
               key={l.to}
               to={l.to}
@@ -395,6 +403,7 @@ function SiteHeader() {
               links={[
                 { to: "/hesabim", label: "Hesabım" },
                 ...(isAdmin ? [{ to: "/admin", label: "Admin" }] : []),
+                { label: "Bülten", node: <NewsletterMenuItem /> },
                 { label: "Çıkış", onClick: signOut },
               ]}
             />
@@ -513,6 +522,9 @@ function MobileMenu({
               </div>
               <Link to="/hesabim" className="border-b border-border/60 px-4 py-2.5 text-sm" onClick={() => setOpen(false)}>Hesabım</Link>
               {isAdmin && (<Link to="/admin" className="border-b border-border/60 px-4 py-2.5 text-sm" onClick={() => setOpen(false)}>Admin</Link>)}
+              <div className="border-b border-border/60">
+                <NewsletterMenuItem className="w-full px-4 py-2.5 text-left text-sm disabled:opacity-60" />
+              </div>
               <button
                 type="button"
                 onClick={() => { setOpen(false); onSignOut(); }}

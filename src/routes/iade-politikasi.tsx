@@ -9,12 +9,12 @@ export const Route = createFileRoute("/iade-politikasi")({
       {
         name: "description",
         content:
-          "PFA dijital ürünleri ve imzalı kitap siparişleri için iade koşulları: 14 günlük cayma hakkı, istisnalar, kargo ve iade süreci.",
+          "PFA dijital ürünleri için iade koşulları: 14 günlük cayma hakkı, istisnalar ve iade süreci.",
       },
       { property: "og:title", content: "İade Politikası — PFA" },
       {
         property: "og:description",
-        content: "PFA dijital ürünleri ve imzalı kitap siparişleri için iade koşulları.",
+        content: "PFA dijital ürünleri için iade koşulları.",
       },
       { property: "og:type", content: "article" },
       { property: "og:url", content: URL },
@@ -76,16 +76,14 @@ function RefundPage() {
           <section>
             <h2 className="font-serif text-2xl text-primary">Teslimat</h2>
             <p className="mt-3">
-              E-kitaplar ve dijital haklar ödeme onaylandığı anda hesabınıza tanımlanır ve{" "}
+              Bütün ürünler dijitaldir. E-kitaplar ve dijital haklar ödeme onaylandığı anda
+              hesabınıza tanımlanır ve{" "}
               <span className="whitespace-nowrap">/hesabim</span> sayfanızdan erişilebilir
-              hâle gelir; ayrıca bir kargo süreci beklemeniz gerekmez.
+              hâle gelir; beklemeniz gereken bir teslim süreci yoktur.
             </p>
             <p className="mt-3">
-              İmzalı basılı kitap siparişleri, ödeme onayından sonra genellikle 3 iş günü
-              içinde hazırlanır ve kargoya verilir; teslim süresi bulunduğunuz bölgeye göre
-              değişir. Kitabınız kargoda hasar gördüyse veya eksik ulaştıysa, teslimattan
-              sonraki 7 gün içinde fotoğrafla bize bildirin; ürünü ücretsiz olarak
-              yenisiyle değiştirelim.
+              İsme imzalı nüsha da dijitaldir: adınıza kişiselleştirilmiş bir PDF olarak
+              hazırlanır ve hesabınızdan okunabilir veya indirilebilir.
             </p>
           </section>
 
