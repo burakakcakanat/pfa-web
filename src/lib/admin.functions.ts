@@ -1628,7 +1628,13 @@ export const createTestOrder = createServerFn({ method: "POST" })
     try {
       const { sendOrderPaidEmails } = await import("@/lib/order-fulfilment.server");
       const res = await sendOrderPaidEmails(created.id);
-      steps.push({ step: "emails_sent", ok: res.buyer || res.admin, detail: `alıcı: ${res.buyer ? "gönderildi" : "hayır"}, admin: ${res.admin ? "gönderildi" : "hayır"}` });
+      steps.push({
+        step: "emails_sent",
+        ok: res.buyer && res.admin,
+        detail:
+          `alıcı: ${res.buyer ? "gönderildi" : "gönderilmedi"}, admin: ${res.admin ? "gönderildi" : "gönderilmedi"}` +
+          (res.deferred ? ` — teslim duyurusu ertelendi (${res.deferred})` : ""),
+      });
     } catch (err) {
       steps.push({ step: "emails_sent", ok: false, detail: err instanceof Error ? err.message : "hata" });
     }

@@ -7,11 +7,12 @@ import {
 } from "@/lib/newsletter-status.functions";
 
 /**
- * Tek satırlık, kompakt bülten kontrolü. Uygulamada bültene abone olma /
- * çıkma işleminin tek yeri (e-postadaki token bağlantısı hariç).
- * E-posta istemciden gönderilmez; sunucu oturumdaki kullanıcının adresini kullanır.
+ * Hesap sekme çubuğunda yer alan tek eylemlik bülten kontrolü. Uygulamada
+ * bültene abone olma / çıkma işleminin tek yeri (e-postadaki token bağlantısı
+ * hariç). E-posta istemciden gönderilmez; sunucu oturumdaki kullanıcının
+ * adresini kullanır.
  */
-export function NewsletterRow() {
+export function NewsletterTabAction() {
   const status = useServerFn(getMyNewsletterStatus);
   const subscribeMe = useServerFn(subscribeMeToNewsletter);
   const unsubscribeMe = useServerFn(unsubscribeMeFromNewsletter);
@@ -62,33 +63,33 @@ export function NewsletterRow() {
     }
   };
 
+  // Sekmelerle aynı hizada durur ama bir bölüme girilecekmiş gibi görünmez:
+  // alt çizgi yok, kesikli ince çerçeveli sessiz bir eylem.
+  if (confirming) {
+    return (
+      <span className="-mb-px flex items-center gap-3 px-4 py-2 text-xs text-muted-foreground">
+        <span>Emin misiniz?</span>
+        <button type="button" onClick={doUnsubscribe} disabled={busy} className="text-accent hover:underline disabled:opacity-60">
+          Evet
+        </button>
+        <button type="button" onClick={() => setConfirming(false)} className="hover:text-foreground">
+          Vazgeç
+        </button>
+      </span>
+    );
+  }
+
   return (
-    <div className="text-sm">
-      <div className="flex items-center justify-between gap-4">
-        <div className="text-foreground/80">
-          Bülten{" "}
-          <span className="text-xs text-muted-foreground">
-            · {subscribed === null ? "…" : subscribed ? "Kayıtlı" : "Kayıtlı değil"}
-          </span>
-        </div>
-        {confirming ? (
-          <div className="flex items-center gap-3 text-xs">
-            <span className="text-muted-foreground">Emin misiniz?</span>
-            <button type="button" onClick={doUnsubscribe} className="text-accent">Evet, çık</button>
-            <button type="button" onClick={() => setConfirming(false)} className="text-muted-foreground">Vazgeç</button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            disabled={busy || subscribed === null}
-            onClick={() => (subscribed ? setConfirming(true) : doSubscribe())}
-            className="rounded-md border border-border px-3 py-1.5 text-xs transition hover:border-foreground disabled:opacity-60"
-          >
-            {busy ? "…" : subscribed ? "Abonelikten çık" : "Üye ol"}
-          </button>
-        )}
-      </div>
-      {note && <p className="mt-1 text-xs text-muted-foreground">{note}</p>}
-    </div>
+    <span className="-mb-px flex items-center gap-2 py-1 pl-2">
+      <button
+        type="button"
+        disabled={busy || subscribed === null}
+        onClick={() => (subscribed ? setConfirming(true) : doSubscribe())}
+        className="rounded-full border border-dashed border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground disabled:opacity-60"
+      >
+        {busy ? "…" : subscribed === null ? "Bülten" : subscribed ? "Bültenden Çık" : "Bültene Üye Ol"}
+      </button>
+      {note && <span className="text-xs text-muted-foreground">{note}</span>}
+    </span>
   );
 }
