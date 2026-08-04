@@ -2185,7 +2185,22 @@ function EbooksTab() {
       {rows.map((p) => (
         <Card key={p.slug} title={p.name}>
           <div className="mb-2 space-y-1">
-            {p.files.length === 0 && <p className="text-sm text-muted-foreground">Dosya yok.</p>}
+            {(p.masters ?? []).map((m: any) => (
+              <div key={m.path} className="text-sm">
+                <span className="rounded bg-muted px-1.5 py-0.5 text-xs">Master {m.label}</span>{" "}
+                <code className="text-xs text-muted-foreground">{m.path}</code>
+              </div>
+            ))}
+            {p.files.length === 0 && (p.masters ?? []).length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                Dosya yok.
+                {p.active && (
+                  <span className="ml-1 font-medium text-destructive">
+                    Ürün satışta — alıcı indirme yapamaz.
+                  </span>
+                )}
+              </p>
+            )}
             {p.files.map((f: any) => (
               <div key={f.name} className="flex items-center gap-2 text-sm">
                 <span className="flex-1">{f.name} {f.size ? `(${(f.size/1024/1024).toFixed(2)} MB)` : ""}</span>
