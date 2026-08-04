@@ -61,6 +61,9 @@ import {
   revokeProLicense,
   setCertificateStatus,
   runPendingPersonalizedRetry,
+  createTestOrder,
+  deleteTestOrder,
+  listTestOrders,
 } from "@/lib/admin.functions";
 import {
   listProAccounts,
@@ -2221,6 +2224,119 @@ function DedicationEditor({ cfg, onSave }: {
   );
 }
 
+// ============== TEST ORDERS ==============
+function TestOrderPanel() {
+  const createOrder = useServerFn(createTestOrder);
+  const removeOrder = useServerFn(deleteTestOrder);
+  const fetchTests = useServerFn(listTestOrders);
+  const fetchProducts = useServerFn(listAdminProducts);
+  const fetchBundles = useServerFn(listAdminBundles);
+  const fetchUsers = useServerFn(listAdminUsers);
+  const [products, setProducts] = useState<any[]>([]);
+  const [bundles, setBundles] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [target, setTarget] = useState<string>("self");
+  const [choice, setChoice] = useState<string>("");
+  const [busy, setBusy] = useState(false);
+  const [steps, setSteps] = useState<Array<{ step: string; ok: boolean; detail?: string }>>([]);
+  const [err, setErr] = useState<string | null>(null);
+  const [tests, setTests] = useState<any[]>([]);
+
+  const reload = useCallback(() => { fetchTests().then(setTests); }, [fetchTests]);
+  useEffect(() => {
+    fetchProducts().then(setProducts);
+    fetchBundles().then((r: any) => setBundles(r?.bundles ?? []));
+    fetchUsers({ data: {} }).then((r: any) => setUsers(Array.isArray(r) ? r : r?.rows ?? []));
+    reload();
+  }, [fetchProducts, fetchBundles, fetchUsers, reload]);
+
+  async function run() {
+    if (!choice) { setErr("Ürün veya paket seçin."); return; }
+    setBusy(true); setErr(null); setSteps([]);
+    try {
+      const [kind, value] = choice.split(":");
+      const res: any = await createOrder({
+        data: {
+          ...(kind === "p" ? { product_id: value } : { bundle_slug: value }),
+          ...(target === "self" ? {} : { target_user_id: target }),
+        },
+      });
+      setSteps(res.steps ?? []);
+      reload();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Hata");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4 rounded-lg border border-border p-4">
+      <div>
+        <div className="text-sm font-medium">Test siparişi oluştur</div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Gerçek ödenmiş sipariş yolunu çalıştırır: trigger → hak tanımı → imzalı PDF → teslim e-postası.
+          Ödeme alınmaz; kayıt <code>is_test</code> olarak işaretlenir ve ciro/istatistiklere girmez.
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Select value={choice} onValueChange={setChoice}>
+          <SelectTrigger className="w-72"><SelectValue placeholder="Ürün veya paket" /></SelectTrigger>
+          <SelectContent>
+            {products.map((p) => (<SelectItem key={p.id} value={`p:${p.id}`}>{p.name_tr}</SelectItem>))}
+            {bundles.map((b) => (<SelectItem key={b.slug} value={`b:${b.slug}`}>Paket: {b.name_tr}</SelectItem>))}
+          </SelectContent>
+        </Select>
+        <Select value={target} onValueChange={setTarget}>
+          <SelectTrigger className="w-64"><SelectValue placeholder="Hedef kullanıcı" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="self">Kendim (admin)</SelectItem>
+            {users.map((u) => (<SelectItem key={u.id} value={u.id}>{u.email ?? u.id}</SelectItem>))}
+          </SelectContent>
+        </Select>
+        <Button onClick={run} disabled={busy}>{busy ? "Çalışıyor…" : "Test siparişi oluştur"}</Button>
+      </div>
+      {err && <div className="text-sm text-destructive">{err}</div>}
+      {steps.length > 0 && (
+        <ul className="space-y-1 text-xs">
+          {steps.map((s, i) => (
+            <li key={i} className={s.ok ? "text-foreground" : "text-destructive"}>
+              {s.ok ? "✓" : "✕"} <strong>{s.step}</strong>{s.detail ? ` — ${s.detail}` : ""}
+            </li>
+          ))}
+        </ul>
+      )}
+      {tests.length > 0 && (
+        <div>
+          <div className="mb-2 text-xs font-medium text-muted-foreground">Mevcut test siparişleri</div>
+          <Table>
+            <TableHeader><TableRow><TableHead>Tarih</TableHead><TableHead>E-posta</TableHead><TableHead>Ürün</TableHead><TableHead>Durum</TableHead><TableHead></TableHead></TableRow></TableHeader>
+            <TableBody>
+              {tests.map((o) => (
+                <TableRow key={o.id}>
+                  <TableCell className="text-xs">{fmtDate(o.created_at)}</TableCell>
+                  <TableCell className="text-xs">{o.email ?? "—"}</TableCell>
+                  <TableCell className="text-xs">{o.product_name}</TableCell>
+                  <TableCell className="text-xs">{o.status}</TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => { await removeOrder({ data: { id: o.id } }); reload(); }}
+                    >
+                      Sil ve temizle
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ============== ORDERS ==============
 function OrdersTab() {
   const fetchList = useServerFn(listAdminOrders);
@@ -2229,14 +2345,16 @@ function OrdersTab() {
   const [products, setProducts] = useState<any[]>([]);
   const [status, setStatus] = useState<string>("all");
   const [productId, setProductId] = useState<string>("all");
+  const [includeTest, setIncludeTest] = useState(false);
   const reload = useCallback(() => {
-    fetchList({ data: { status: status === "all" ? undefined : status, product_id: productId === "all" ? undefined : productId } }).then(setRows);
-  }, [fetchList, status, productId]);
+    fetchList({ data: { status: status === "all" ? undefined : status, product_id: productId === "all" ? undefined : productId, include_test: includeTest } }).then(setRows);
+  }, [fetchList, status, productId, includeTest]);
   useEffect(() => { fetchProducts().then(setProducts); }, [fetchProducts]);
   useEffect(() => { reload(); }, [reload]);
   return (
     <div className="space-y-3">
-      <div className="flex gap-2">
+      <TestOrderPanel />
+      <div className="flex flex-wrap items-center gap-2">
         <Select value={status} onValueChange={setStatus}>
           <SelectTrigger className="w-40"><SelectValue placeholder="Durum" /></SelectTrigger>
           <SelectContent>
@@ -2254,6 +2372,10 @@ function OrdersTab() {
             {products.map((p) => (<SelectItem key={p.id} value={p.id}>{p.name_tr}</SelectItem>))}
           </SelectContent>
         </Select>
+        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+          <input type="checkbox" checked={includeTest} onChange={(e) => setIncludeTest(e.target.checked)} />
+          Test siparişlerini göster
+        </label>
       </div>
       <Table>
         <TableHeader><TableRow><TableHead>Tarih</TableHead><TableHead>E-posta</TableHead><TableHead>Ürün</TableHead><TableHead>Tutar</TableHead><TableHead>Durum</TableHead><TableHead>Stripe</TableHead></TableRow></TableHeader>
@@ -2264,7 +2386,7 @@ function OrdersTab() {
               <TableCell className="text-xs">{o.email ?? "—"}</TableCell>
               <TableCell>{o.product_name}</TableCell>
               <TableCell>{fmtMoney(o.amount_cents, o.currency)}</TableCell>
-              <TableCell>{o.status}</TableCell>
+              <TableCell>{o.status}{o.is_test ? " · TEST" : ""}</TableCell>
               <TableCell className="max-w-[16ch] truncate text-xs">{o.stripe_session_id ?? "—"}</TableCell>
             </TableRow>
           ))}

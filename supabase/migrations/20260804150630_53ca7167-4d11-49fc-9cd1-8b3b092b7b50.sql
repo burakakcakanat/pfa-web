@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS trg_orders_paid ON public.orders;

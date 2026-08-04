@@ -92,7 +92,8 @@ async function run(request: Request) {
       .from("orders")
       .select("user_id")
       .eq("product_id", s.product_id)
-      .eq("status", "paid");
+      .eq("status", "paid")
+      .eq("is_test", false);
     const userIds = [...new Set((orders ?? []).map((o) => o.user_id).filter(Boolean))] as string[];
     if (userIds.length === 0) continue;
 
