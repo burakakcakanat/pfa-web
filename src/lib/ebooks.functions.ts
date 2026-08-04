@@ -223,13 +223,18 @@ export const getEbookUrl = createServerFn({ method: "POST" })
       .select("id, metadata, created_at")
       .eq("user_id", userId)
       .eq("type", "ebook")
-      .filter("metadata->>product_slug", "eq", data.slug)
       .order("created_at", { ascending: false });
     if (entitlementError) {
       console.error("[EBOOK_ENT_QUERY]", { traceId, code: entitlementError.code, message: entitlementError.message });
       throw new Error("E-kitap yetkisi doğrulanamadı. [EBOOK_ENT_QUERY]");
     }
-    const rows = ents ?? [];
+    // Liste görünümü eski haklarda eksik product_slug değerini Türkçe PFA kitabı
+    // olarak yorumluyor. Yetki kontrolü de aynı çözümlemeyi kullanmalı.
+    const rows = (ents ?? []).filter((row) => {
+      const rowMeta = (row.metadata ?? {}) as Record<string, unknown>;
+      const rowSlug = (rowMeta.product_slug as string | undefined) ?? "pfa-ebook-tr";
+      return rowSlug === data.slug;
+    });
     console.info("[EBOOK_ENT_COUNT]", { traceId, count: rows.length });
     const ent =
       rows.find((r) => Boolean((r.metadata as Record<string, unknown> | null)?.personalized_pdf_path)) ??
@@ -260,7 +265,8 @@ export const getEbookUrl = createServerFn({ method: "POST" })
         const url = await signedStorageUrl(`${data.slug}/${epub.name}`, "download", epub.name);
         if (url) return { url, filename: epub.name, personalized: false };
       }
-      return { url: null, filename: null, personalized: false };
+      console.warn("[EBOOK_FILE_MISSING]", { traceId, slug: data.slug, format: "epub" });
+      return { url: null, filename: null, personalized: false, errorCode: "EBOOK_FILE_MISSING" };
     }
 
     // View veya EPUB yoksa → kişiselleştirilmiş PDF (yoksa üret).

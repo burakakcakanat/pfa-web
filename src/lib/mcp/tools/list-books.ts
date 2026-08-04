@@ -4,7 +4,7 @@ const BOOKS = [
   {
     title: "Psycho-Functional Analysis (PFA)",
     language: "EN",
-    description: "A map of consciousness — from survival to unity.",
+    description: "A Map of Consciousness — from Survival to Enlightenment",
     purchaseUrl: "https://www.amazon.com/dp/B0H3BSWK1D",
     available: true,
   },
