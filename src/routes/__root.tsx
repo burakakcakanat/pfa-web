@@ -207,9 +207,13 @@ function EnHeader() {
             {BRAND_TAGLINE.en}
           </span>
         </a>
-        <nav className="flex items-center gap-4 text-[0.82rem] tracking-wide sm:gap-5">
+        <nav className="flex min-w-0 items-center gap-3 overflow-x-auto text-[0.78rem] tracking-wide sm:gap-5 sm:text-[0.82rem]">
           {EN_HEADER_NAV.map((l) => (
-            <a key={l.to} href={l.to} className="hidden text-foreground/75 transition-colors hover:text-accent sm:inline">
+            <a
+              key={l.to}
+              href={l.to}
+              className="shrink-0 whitespace-nowrap text-foreground/75 transition-colors hover:text-accent"
+            >
               {l.label}
             </a>
           ))}
