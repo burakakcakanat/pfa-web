@@ -23,6 +23,12 @@ export default defineConfig({
     plugins: [mcpPlugin()],
     resolve: {
       alias: {
+        // tslib's package exports resolve to a CJS/UMD build (and its
+        // `modules/index.js` shim destructures a default export that does not
+        // exist after CJS→ESM interop). pdf-lib imports named tslib helpers,
+        // which crashed with "Cannot destructure property '__extends'".
+        // Pin tslib to its real ESM build so named imports resolve directly.
+        tslib: path.resolve(process.cwd(), "node_modules/tslib/tslib.es6.js"),
         "entities/lib/decode.js": path.resolve(process.cwd(), "node_modules/entities/lib/decode.js"),
         "entities/lib/encode.js": path.resolve(process.cwd(), "node_modules/entities/lib/encode.js"),
         entities: path.resolve(process.cwd(), "node_modules/entities"),

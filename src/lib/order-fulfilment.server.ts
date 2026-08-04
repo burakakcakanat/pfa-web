@@ -1,6 +1,58 @@
-// Server-only: ödenmiş sipariş sonrası bildirim e-postaları.
+// Server-only: ödenmiş sipariş sonrası teslim hazırlığı + bildirim e-postaları.
 // Stripe webhook ve admin test siparişi aynı yolu kullanır.
-export async function sendOrderPaidEmails(orderId: string): Promise<{ buyer: boolean; admin: boolean }> {
+
+/**
+ * Siparişteki e-book yetkileri için imzalı PDF'i üretir (yoksa).
+ * Teslim e-postası ancak dosya gerçekten oluştuğunda gönderilir; böylece
+ * alıcıya var olmayan bir dosyayı işaret eden "kitabınız hazır" e-postası
+ * gitmez.
+ */
+export async function ensureOrderEbookArtefacts(
+  orderId: string,
+): Promise<{ total: number; ready: number; failed: string[] }> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: ents } = await supabaseAdmin
+    .from("user_entitlements")
+    .select("id, type, metadata, user_id")
+    .eq("source_order_id", orderId);
+
+  const ebooks = (ents ?? []).filter((e) => e.type === "ebook");
+  const failed: string[] = [];
+  let ready = 0;
+
+  for (const e of ebooks) {
+    const meta = (e.metadata ?? {}) as Record<string, unknown>;
+    const slug = (meta.product_slug as string | undefined) ?? "pfa-ebook-tr";
+    try {
+      const { ensurePersonalizedPdf } = await import("@/lib/ebooks.functions");
+      const { data: prof } = await supabaseAdmin
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", e.user_id as string)
+        .maybeSingle();
+      const path = await ensurePersonalizedPdf({
+        entitlementId: e.id as string,
+        slug,
+        existingPath: (meta.personalized_pdf_path as string | undefined) ?? null,
+        fullName:
+          (meta.recipient_name as string | undefined) || prof?.full_name || prof?.email || "",
+        email: (meta.recipient_email as string | undefined) || prof?.email || "",
+        giftNote: (meta.gift_note as string | undefined) ?? null,
+        buyerName: null,
+      });
+      if (path) ready++;
+      else failed.push(`${slug}: dosya üretilemedi`);
+    } catch (err) {
+      failed.push(`${slug}: ${err instanceof Error ? err.message : "hata"}`);
+    }
+  }
+
+  return { total: ebooks.length, ready, failed };
+}
+
+export async function sendOrderPaidEmails(
+  orderId: string,
+): Promise<{ buyer: boolean; admin: boolean; deferred?: string }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: order } = await supabaseAdmin
     .from("orders")
@@ -29,8 +81,13 @@ export async function sendOrderPaidEmails(orderId: string): Promise<{ buyer: boo
 
   const amount = (order.amount_cents / 100).toFixed(2) + " " + (order.currency || "usd").toUpperCase();
   const testPrefix = order.is_test ? "[TEST] " : "";
+
+  // Teslim duyurusundan ÖNCE dosyaları hazırla.
+  const artefacts = await ensureOrderEbookArtefacts(order.id);
+  const artefactsBroken = artefacts.total > 0 && artefacts.ready < artefacts.total;
+
   let buyerSent = false;
-  if (prof?.email) {
+  if (prof?.email && !artefactsBroken) {
     const body = `
       <p>Merhaba ${esc(prof.full_name || "")},</p>
       <p>Siparişiniz onaylandı. Teşekkür ederiz.</p>
@@ -56,6 +113,7 @@ export async function sendOrderPaidEmails(orderId: string): Promise<{ buyer: boo
   const adminTo = await getAdminNotificationEmail();
   const adminBody = `
     <p>${order.is_test ? "Test siparişi (gerçek ödeme yok)." : "Yeni ödenmiş sipariş."}</p>
+    ${artefactsBroken ? `<p style="color:#a33"><strong>Teslim e-postası gönderilmedi:</strong> imzalı PDF üretilemedi (${esc(artefacts.failed.join("; "))}). Dosya üretildikten sonra e-posta yeniden tetiklenmelidir.</p>` : ""}
     <table style="width:100%;font-size:14px;margin-top:10px">
       <tr><td style="color:#6b6355;padding:4px 0;width:140px">Alıcı</td><td>${esc((prof?.full_name || "") + " <" + (prof?.email || "") + ">")}</td></tr>
       <tr><td style="color:#6b6355;padding:4px 0">Ürün</td><td>${esc(productName)}</td></tr>
@@ -68,5 +126,11 @@ export async function sendOrderPaidEmails(orderId: string): Promise<{ buyer: boo
     html: renderEmail({ title: order.is_test ? "Test siparişi" : "Yeni ödenmiş sipariş", bodyHtml: adminBody }),
   });
 
-  return { buyer: buyerSent, admin: adminRes.ok };
+  return {
+    buyer: buyerSent,
+    admin: adminRes.ok,
+    ...(artefactsBroken
+      ? { deferred: `imzalı PDF hazır değil: ${artefacts.failed.join("; ")}` }
+      : {}),
+  };
 }
