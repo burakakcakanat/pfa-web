@@ -75,9 +75,10 @@ function langFromHeaders(headers: Headers): string | null {
 async function resolveTarget(headers: Headers): Promise<string> {
   const country = countryFromHeaders(headers);
 
-  // Turkey: no Amazon.com.tr listing — send to the Turkish books page.
+  // Turkey: no Amazon.com.tr listing — send to the English books page
+  // because /buy is the English Instagram bio link.
   if (country === "TR" || (!country && langFromHeaders(headers) === "tr")) {
-    return `${SITE}/kitaplar`;
+    return `${SITE}/en/books`;
   }
 
   const wanted =
