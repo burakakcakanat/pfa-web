@@ -3,13 +3,15 @@
 import { getRequest } from "@tanstack/react-start/server";
 import {
   PURCHASE_KIND_LABEL,
+  paymentReferenceFor,
   type AdminPurchaseInquiryRow,
+  type BankTransferDetails,
   type PurchaseInquiryInput,
   type PurchaseInquiryStatus,
 } from "@/lib/purchase-inquiries";
 
 const SELECT_COLS =
-  "id, kind, product_slug, product_label, full_name, email, phone, preferred_slot, message, status, admin_note, created_at, updated_at";
+  "id, kind, product_slug, product_label, full_name, email, phone, preferred_slot, message, status, admin_note, created_at, updated_at, payment_reference, transfer_amount, transfer_currency, transfer_sent_at";
 
 async function hashIp(ip: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`pfa-purchase:${ip}`));
@@ -168,13 +170,195 @@ export async function fetchAdminPurchaseInquiries(): Promise<AdminPurchaseInquir
     .order("created_at", { ascending: false })
     .limit(500);
   if (error) throw new Error(error.message);
-  return (data ?? []) as unknown as AdminPurchaseInquiryRow[];
+  const rows = (data ?? []) as unknown as AdminPurchaseInquiryRow[];
+  const slugs = Array.from(new Set(rows.map((r) => r.product_slug).filter(Boolean)));
+  if (slugs.length > 0) {
+    const { data: prods } = await supabaseAdmin
+      .from("products")
+      .select("slug, price_cents")
+      .in("slug", slugs);
+    const bySlug = new Map(
+      (prods ?? []).map((p) => [p.slug as string, p.price_cents as number | null]),
+    );
+    for (const r of rows) r.catalogue_price_cents = bySlug.get(r.product_slug) ?? null;
+  }
+  return rows;
+}
+
+// ---------------- Bank transfer details (service role only) ----------------
+// Stored in public.bank_transfer_details (singleton row, id = true). That table
+// has RLS enabled with ZERO policies and no grants to anon/authenticated, so
+// only the service-role client below can read it. The IBAN is never placed in
+// site_settings and never reaches a browser client.
+
+const EMPTY_BANK: BankTransferDetails = {
+  account_holder: "",
+  bank_name: "",
+  iban: "",
+  currency: "TRY",
+  note: "",
+};
+
+export async function fetchBankTransferDetails(): Promise<BankTransferDetails> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("bank_transfer_details")
+    .select("account_holder, bank_name, iban, currency, note")
+    .eq("id", true)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data as BankTransferDetails | null) ?? EMPTY_BANK;
+}
+
+export async function saveBankTransferDetails(
+  input: BankTransferDetails,
+): Promise<{ ok: boolean }> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin.from("bank_transfer_details").upsert(
+    {
+      id: true,
+      account_holder: input.account_holder,
+      bank_name: input.bank_name,
+      iban: input.iban,
+      currency: (input.currency || "TRY").toUpperCase(),
+      note: input.note ?? null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "id" },
+  );
+  if (error) throw new Error(error.message);
+  return { ok: true };
+}
+
+const STATUS_RANK: Record<PurchaseInquiryStatus, number> = {
+  new: 0,
+  contacted: 1,
+  paid: 2,
+  fulfilled: 3,
+  closed: 4,
+};
+
+function fmtAmount(amount: number, currency: string): string {
+  return `${amount.toLocaleString("tr-TR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} ${currency}`;
+}
+
+async function fetchInquiry(id: string): Promise<AdminPurchaseInquiryRow> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("purchase_inquiries")
+    .select(SELECT_COLS)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Talep bulunamadı");
+  return data as unknown as AdminPurchaseInquiryRow;
+}
+
+export async function sendTransferInstructions(input: {
+  id: string;
+  amount: number;
+  currency: string;
+}): Promise<{ ok: boolean; payment_reference: string; transfer_sent_at: string }> {
+  const inq = await fetchInquiry(input.id);
+  const bank = await fetchBankTransferDetails();
+  if (!bank.iban || !bank.account_holder || !bank.bank_name) {
+    throw new Error("Havale bilgileri eksik — Ayarlar → Havale Bilgileri panelini doldurun.");
+  }
+
+  const reference = inq.payment_reference || paymentReferenceFor(inq.id);
+  const currency = (input.currency || bank.currency || "TRY").toUpperCase();
+  const label = inq.product_label || inq.product_slug;
+  const firstName = inq.full_name.trim().split(/\s+/)[0] || inq.full_name;
+
+  const { sendEmail } = await import("@/lib/email/send.server");
+  const { renderEmail, esc } = await import("@/lib/email/templates");
+  const row = (l: string, v: string) =>
+    `<tr><td style="padding:6px 0;color:#6b6355;width:170px">${esc(l)}</td><td><strong>${esc(
+      v,
+    )}</strong></td></tr>`;
+  const res = await sendEmail({
+    to: inq.email,
+    replyTo: "info@psychofunctionalanalysis.com",
+    subject: `Havale bilgileri — ${label}`,
+    html: renderEmail({
+      title: "Havale bilgileri",
+      bodyHtml: `
+        <p>Merhaba ${esc(firstName)},</p>
+        <p><strong>${esc(label)}</strong> için havale/EFT bilgileri aşağıda yer alıyor.</p>
+        <table style="width:100%;font-size:14px;border-collapse:collapse">
+          ${row("Tutar", fmtAmount(input.amount, currency))}
+          ${row("Alıcı", bank.account_holder)}
+          ${row("Banka", bank.bank_name)}
+          ${row("IBAN", bank.iban)}
+          ${row("Ödeme referansı", reference)}
+        </table>
+        <p style="margin-top:14px">Transfer açıklamasına <strong>${esc(
+          reference,
+        )}</strong> kodunu yazın; ödemenizi bu kodla eşleştiriyoruz.</p>
+        ${bank.note ? `<p>${esc(bank.note)}</p>` : ""}
+        <p>Ödeme alındıktan sonra erişiminiz/randevunuz netleşir ve size bilgi veririz.</p>
+        <p>Sevgiyle,<br/>PFA Ekibi</p>`,
+    }),
+  });
+  if (!res.ok) throw new Error(`E-posta gönderilemedi (${res.error ?? "bilinmiyor"})`);
+
+  const sentAt = new Date().toISOString();
+  const patch: Record<string, unknown> = {
+    payment_reference: reference,
+    transfer_amount: input.amount,
+    transfer_currency: currency,
+    transfer_sent_at: sentAt,
+  };
+  // Status only moves forward — never back to "contacted" from a later stage.
+  if (STATUS_RANK[inq.status] < STATUS_RANK.contacted) patch.status = "contacted";
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin
+    .from("purchase_inquiries")
+    .update(patch as never)
+    .eq("id", inq.id);
+  if (error) throw new Error(error.message);
+
+  return { ok: true, payment_reference: reference, transfer_sent_at: sentAt };
+}
+
+const NEXT_STEP: Record<string, string> = {
+  session: "Randevu planlaması için kısa süre içinde sizinle iletişime geçeceğiz.",
+  webinar: "Katılım bilgilerini oturum öncesinde e-posta ile paylaşacağız.",
+  pro_license: "Lisans kurulumu için kısa süre içinde sizinle iletişime geçeceğiz.",
+  corporate: "Kurumsal kurulum için kısa süre içinde sizinle iletişime geçeceğiz.",
+};
+
+async function sendPaymentReceived(inq: AdminPurchaseInquiryRow): Promise<void> {
+  const { sendEmail } = await import("@/lib/email/send.server");
+  const { renderEmail, esc } = await import("@/lib/email/templates");
+  const firstName = inq.full_name.trim().split(/\s+/)[0] || inq.full_name;
+  const label = inq.product_label || inq.product_slug;
+  await sendEmail({
+    to: inq.email,
+    replyTo: "info@psychofunctionalanalysis.com",
+    subject: `Ödemenizi aldık — ${label}`,
+    html: renderEmail({
+      title: "Ödemenizi aldık",
+      bodyHtml: `
+        <p>Merhaba ${esc(firstName)},</p>
+        <p><strong>${esc(label)}</strong> için ödemenizi aldık, teşekkür ederiz.</p>
+        <p>${esc(
+          NEXT_STEP[inq.kind] ?? "Sonraki adım için kısa süre içinde sizinle iletişime geçeceğiz.",
+        )}</p>
+        <p>Sevgiyle,<br/>PFA Ekibi</p>`,
+    }),
+  });
 }
 
 export async function patchAdminPurchaseInquiry(input: {
   id: string;
   status?: PurchaseInquiryStatus;
   admin_note?: string | null;
+  notify?: boolean;
 }): Promise<{ ok: boolean }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const patch: { status?: PurchaseInquiryStatus; admin_note?: string | null } = {};
@@ -187,5 +371,13 @@ export async function patchAdminPurchaseInquiry(input: {
     .update(patch as never)
     .eq("id", input.id);
   if (error) throw new Error(error.message);
+
+  if (input.status === "paid" && input.notify) {
+    try {
+      await sendPaymentReceived(await fetchInquiry(input.id));
+    } catch (e) {
+      console.error("[email] payment received notice failed", e);
+    }
+  }
   return { ok: true };
 }

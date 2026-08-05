@@ -23,12 +23,14 @@ import {
 } from "@/components/ui/table";
 import {
   listAdminPurchaseInquiries,
+  sendTransferInstructionsFn,
   updateAdminPurchaseInquiry,
 } from "@/lib/purchase-inquiries.functions";
 import {
   PURCHASE_KIND_LABEL,
   PURCHASE_STATUS_LABEL,
   PURCHASE_STATUS_ORDER,
+  paymentReferenceFor,
   type AdminPurchaseInquiryRow,
   type PurchaseInquiryStatus,
 } from "@/lib/purchase-inquiries";
@@ -47,10 +49,15 @@ const fmtDate = (s: string | null) =>
 export function AdminPurchaseInquiries() {
   const list = useServerFn(listAdminPurchaseInquiries);
   const update = useServerFn(updateAdminPurchaseInquiry);
+  const sendTransfer = useServerFn(sendTransferInstructionsFn);
   const [rows, setRows] = useState<AdminPurchaseInquiryRow[]>([]);
   const [statusFilter, setStatusFilter] = useState<PurchaseInquiryStatus | "all">("all");
   const [openId, setOpenId] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [amount, setAmount] = useState("");
+  const [currency, setCurrency] = useState("TRY");
+  const [sending, setSending] = useState(false);
+  const [notifyPaid, setNotifyPaid] = useState(true);
 
   const reload = useCallback(async () => {
     try {
@@ -72,6 +79,15 @@ export function AdminPurchaseInquiries() {
   const opened = rows.find((r) => r.id === openId) ?? null;
   useEffect(() => {
     setNote(opened?.admin_note ?? "");
+    setNotifyPaid(true);
+    const prefill =
+      opened?.transfer_amount != null
+        ? String(opened.transfer_amount)
+        : opened?.catalogue_price_cents != null
+          ? (opened.catalogue_price_cents / 100).toFixed(2)
+          : "";
+    setAmount(prefill);
+    setCurrency(opened?.transfer_currency || "TRY");
   }, [openId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const counts = useMemo(() => {
@@ -84,11 +100,32 @@ export function AdminPurchaseInquiries() {
     const current = rows.find((r) => r.id === id);
     if (current?.status === status) return; // idempotent — no redundant write
     try {
-      await update({ data: { id, status } });
+      await update({
+        data: { id, status, ...(status === "paid" ? { notify: notifyPaid } : {}) },
+      });
       toast.success(`Durum: ${PURCHASE_STATUS_LABEL[status]}`);
       reload();
     } catch (e: any) {
       toast.error(e?.message ?? "Güncellenemedi");
+    }
+  }
+
+  async function onSendTransfer() {
+    if (!opened) return;
+    const value = Number(String(amount).replace(",", "."));
+    if (!Number.isFinite(value) || value <= 0) {
+      toast.error("Geçerli bir tutar girin.");
+      return;
+    }
+    setSending(true);
+    try {
+      await sendTransfer({ data: { id: opened.id, amount: value, currency } });
+      toast.success("Havale bilgileri gönderildi");
+      reload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Gönderilemedi");
+    } finally {
+      setSending(false);
     }
   }
 
@@ -204,8 +241,67 @@ export function AdminPurchaseInquiries() {
             <p className="whitespace-pre-wrap text-sm">{opened.message || "—"}</p>
           </div>
 
+          <div className="space-y-3 rounded-md border border-border bg-muted/30 p-4">
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <Label className="text-xs">Tutar</Label>
+                <Input
+                  className="mt-1 w-40"
+                  inputMode="decimal"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Para birimi</Label>
+                <Input
+                  className="mt-1 w-24"
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Ödeme referansı</Label>
+                <p className="mt-2 text-sm font-medium">
+                  {opened.payment_reference ?? paymentReferenceFor(opened.id)}
+                </p>
+              </div>
+              <Button size="sm" onClick={onSendTransfer} disabled={sending}>
+                {sending
+                  ? "Gönderiliyor…"
+                  : opened.transfer_sent_at
+                    ? "Tekrar gönder"
+                    : "Havale bilgilerini gönder"}
+              </Button>
+            </div>
+            {opened.transfer_sent_at ? (
+              <p className="text-xs text-amber-700 dark:text-amber-500">
+                Havale bilgileri gönderildi —{" "}
+                {opened.transfer_amount != null
+                  ? `${Number(opened.transfer_amount).toLocaleString("tr-TR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })} ${opened.transfer_currency ?? ""}`
+                  : "—"}{" "}
+                — {fmtDate(opened.transfer_sent_at)}. Tekrar göndermek yeni bir e-posta oluşturur.
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                IBAN yalnızca bu butona bastığınızda, talep sahibine e-posta ile iletilir.
+              </p>
+            )}
+          </div>
+
           <div>
             <Label className="text-xs">Durum akışı</Label>
+            <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={notifyPaid}
+                onChange={(e) => setNotifyPaid(e.target.checked)}
+              />
+              “Ödeme alındı” işaretlendiğinde talep sahibine kısa bir onay e-postası gönder
+            </label>
             <div className="mt-2 flex flex-wrap gap-2">
               {PURCHASE_STATUS_ORDER.map((s) => (
                 <Button

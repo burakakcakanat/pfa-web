@@ -122,6 +122,7 @@ import {
 } from "@/lib/practitioner-applications.functions";
 import { AdminLicenseInquiries } from "@/components/admin-license-inquiries";
 import { AdminPurchaseInquiries } from "@/components/admin-purchase-inquiries";
+import { AdminBankTransferSettings } from "@/components/admin-bank-transfer-settings";
 import {
   listNewsletterSubscribers,
   deleteNewsletterSubscriber,
@@ -1765,6 +1766,7 @@ function SiteSettingsTab() {
   };
   return (
     <div className="space-y-6">
+    <AdminBankTransferSettings />
     <Card title="Ödeme Sistemi">
       <label className="flex items-start gap-3 text-sm">
         <input
