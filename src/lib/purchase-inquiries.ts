@@ -45,7 +45,33 @@ export const purchaseInquiryPatchSchema = z.object({
   id: z.string().uuid(),
   status: z.enum(["new", "contacted", "paid", "fulfilled", "closed"]).optional(),
   admin_note: z.string().max(5000).nullable().optional(),
+  // When moving to "paid", optionally send the requester a short confirmation.
+  notify: z.boolean().optional(),
 });
+
+// Bank details are ADMIN-ONLY. This schema describes the shape only; the values
+// never travel to a non-admin client.
+export const bankTransferDetailsSchema = z.object({
+  account_holder: z.string().trim().max(200).default(""),
+  bank_name: z.string().trim().max(200).default(""),
+  iban: z.string().trim().max(60).default(""),
+  currency: z.string().trim().min(2).max(8).default("TRY"),
+  note: z.string().trim().max(500).nullable().optional(),
+});
+export type BankTransferDetails = z.infer<typeof bankTransferDetailsSchema>;
+
+export const sendTransferInstructionsSchema = z.object({
+  id: z.string().uuid(),
+  amount: z
+    .number({ message: "Tutar girin." })
+    .positive({ message: "Tutar sıfırdan büyük olmalı." })
+    .max(1_000_000),
+  currency: z.string().trim().min(2).max(8).default("TRY"),
+});
+
+export function paymentReferenceFor(id: string): string {
+  return `PFA-${id.replace(/-/g, "").slice(0, 4).toUpperCase()}`;
+}
 
 export type AdminPurchaseInquiryRow = {
   id: string;
@@ -61,4 +87,9 @@ export type AdminPurchaseInquiryRow = {
   admin_note: string | null;
   created_at: string;
   updated_at: string;
+  payment_reference: string | null;
+  transfer_amount: number | null;
+  transfer_currency: string | null;
+  transfer_sent_at: string | null;
+  catalogue_price_cents?: number | null;
 };
