@@ -2,9 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { parseFriendly } from "@/lib/zod-friendly";
 import {
+  bankTransferDetailsSchema,
   purchaseInquiryPatchSchema,
   purchaseInquirySchema,
+  sendTransferInstructionsSchema,
   type AdminPurchaseInquiryRow,
+  type BankTransferDetails,
 } from "@/lib/purchase-inquiries";
 
 // Public: honeypot `website_hp` must be empty; rate limited per e-mail and per IP.
@@ -34,4 +37,39 @@ export const updateAdminPurchaseInquiry = createServerFn({ method: "POST" })
     );
     await assertPurchaseAdmin(context.supabase, context.userId);
     return patchAdminPurchaseInquiry(data);
+  });
+
+// Bank details: admin-asserted read/write only. The underlying table has RLS on
+// with zero policies and no anon/authenticated grants, so no browser client can
+// read the IBAN — only these service-role paths after an admin check.
+export const getBankTransferDetails = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<BankTransferDetails> => {
+    const { assertPurchaseAdmin, fetchBankTransferDetails } = await import(
+      "@/lib/purchase-inquiries.server"
+    );
+    await assertPurchaseAdmin(context.supabase, context.userId);
+    return fetchBankTransferDetails();
+  });
+
+export const saveBankTransferDetailsFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => bankTransferDetailsSchema.parse(d))
+  .handler(async ({ context, data }) => {
+    const { assertPurchaseAdmin, saveBankTransferDetails } = await import(
+      "@/lib/purchase-inquiries.server"
+    );
+    await assertPurchaseAdmin(context.supabase, context.userId);
+    return saveBankTransferDetails(data);
+  });
+
+export const sendTransferInstructionsFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => sendTransferInstructionsSchema.parse(d))
+  .handler(async ({ context, data }) => {
+    const { assertPurchaseAdmin, sendTransferInstructions } = await import(
+      "@/lib/purchase-inquiries.server"
+    );
+    await assertPurchaseAdmin(context.supabase, context.userId);
+    return sendTransferInstructions(data);
   });
