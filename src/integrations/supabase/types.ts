@@ -187,6 +187,39 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_transfer_details: {
+        Row: {
+          account_holder: string
+          bank_name: string
+          created_at: string
+          currency: string
+          iban: string
+          id: boolean
+          note: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_holder?: string
+          bank_name?: string
+          created_at?: string
+          currency?: string
+          iban?: string
+          id?: boolean
+          note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_holder?: string
+          bank_name?: string
+          created_at?: string
+          currency?: string
+          iban?: string
+          id?: boolean
+          note?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           category: string
@@ -1210,11 +1243,15 @@ export type Database = {
           ip_hash: string | null
           kind: string
           message: string | null
+          payment_reference: string | null
           phone: string | null
           preferred_slot: string | null
           product_label: string | null
           product_slug: string
           status: string
+          transfer_amount: number | null
+          transfer_currency: string
+          transfer_sent_at: string | null
           updated_at: string
         }
         Insert: {
@@ -1226,11 +1263,15 @@ export type Database = {
           ip_hash?: string | null
           kind?: string
           message?: string | null
+          payment_reference?: string | null
           phone?: string | null
           preferred_slot?: string | null
           product_label?: string | null
           product_slug: string
           status?: string
+          transfer_amount?: number | null
+          transfer_currency?: string
+          transfer_sent_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -1242,11 +1283,15 @@ export type Database = {
           ip_hash?: string | null
           kind?: string
           message?: string | null
+          payment_reference?: string | null
           phone?: string | null
           preferred_slot?: string | null
           product_label?: string | null
           product_slug?: string
           status?: string
+          transfer_amount?: number | null
+          transfer_currency?: string
+          transfer_sent_at?: string | null
           updated_at?: string
         }
         Relationships: []
