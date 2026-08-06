@@ -233,6 +233,7 @@ function MessagesTab() {
   const [unread, setUnread] = useState(0);
   const [openId, setOpenId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [localeFilter, setLocaleFilter] = useState<"all" | "tr" | "en">("all");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -274,12 +275,26 @@ function MessagesTab() {
     <Card title={`İletişim Mesajları${unread > 0 ? ` (${unread} okunmamış)` : ""}`}>
       <div className="mb-3 flex items-center gap-2">
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>Yenile</Button>
+        <div className="flex items-center gap-1">
+          {(["all", "tr", "en"] as const).map((v) => (
+            <Button
+              key={v}
+              variant={localeFilter === v ? "default" : "outline"}
+              size="sm"
+              onClick={() => setLocaleFilter(v)}
+            >
+              {v === "all" ? "Tümü" : v.toUpperCase()}
+            </Button>
+          ))}
+        </div>
       </div>
       {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">Henüz mesaj yok.</p>
       ) : (
         <div className="space-y-2">
-          {rows.map((m) => {
+          {rows
+            .filter((m) => localeFilter === "all" || (m.locale ?? "tr") === localeFilter)
+            .map((m) => {
             const isOpen = openId === m.id;
             return (
               <div
@@ -296,6 +311,7 @@ function MessagesTab() {
                         <span className="inline-flex h-2 w-2 rounded-full bg-primary" aria-label="okunmamış" />
                       )}
                       <span className="font-medium">{m.full_name}</span>
+                      <LocaleBadge locale={m.locale} />
                       <span className="text-xs text-muted-foreground">&lt;{m.email}&gt;</span>
                     </div>
                     <div className="mt-0.5 text-sm text-foreground/80">
