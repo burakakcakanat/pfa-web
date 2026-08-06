@@ -269,6 +269,7 @@ export async function subscribeCore(
   input: SubscribeCoreInput,
 ): Promise<{ ok: true; state: "confirmed" | "pending"; emailSent: boolean; emailError?: string }> {
   const email = input.email.toLowerCase().trim();
+  const locale = input.locale === "en" ? "en" : "tr";
 
   // Explicit new opt-in lifts any previous global suppression for this address.
   await supabaseAdmin.from("newsletter_suppressions").delete().eq("email", email);
@@ -289,6 +290,7 @@ export async function subscribeCore(
         consent: true,
         source: input.source ?? "footer",
         unsubscribed_at: null,
+        locale,
       })
       .eq("id", existing.id)
       .select("id, confirmed, confirm_token, unsubscribe_token")
@@ -303,6 +305,7 @@ export async function subscribeCore(
         segment: input.segment,
         consent: true,
         source: input.source ?? "footer",
+        locale,
       })
       .select("id, confirmed, confirm_token, unsubscribe_token")
       .maybeSingle();
@@ -333,6 +336,7 @@ export async function subscribeCore(
       email,
       String(row?.confirm_token ?? ""),
       row?.unsubscribe_token ? String(row.unsubscribe_token) : null,
+      locale,
     );
     return { ok: true, state: "pending", emailSent: true };
   } catch (e) {
