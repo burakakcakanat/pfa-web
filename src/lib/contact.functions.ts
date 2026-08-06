@@ -20,7 +20,9 @@ export const submitContactMessage = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     if (data.website_hp && data.website_hp.length > 0) return { ok: true };
-    const en = data.locale === "en";
+    const { resolveLocale } = await import("@/lib/locale.server");
+    const locale = resolveLocale(data.locale);
+    const en = locale === "en";
 
     // 1) Persist message first — this must always succeed.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -29,6 +31,7 @@ export const submitContactMessage = createServerFn({ method: "POST" })
       email: data.email,
       subject: data.subject || "",
       message: data.message,
+      locale,
     });
     if (insErr) {
       console.error("[contact] persist failed", insErr);
@@ -45,17 +48,23 @@ export const submitContactMessage = createServerFn({ method: "POST" })
       const { renderEmail, esc } = await import("@/lib/email/templates");
       const to = await getAdminNotificationEmail();
       const bodyHtml = `
+        ${
+          en
+            ? `<p style="background:#0f766e;color:#ffffff;display:inline-block;padding:6px 12px;border-radius:4px;font-size:13px;letter-spacing:.08em">EN — İNGİLİZCE SİTEDEN GELDİ, YANITI İNGİLİZCE YAZIN</p>`
+            : ""
+        }
         <table style="width:100%;font-size:14px;border-collapse:collapse">
           <tr><td style="padding:6px 0;color:#6b6355;width:120px">Gönderen</td><td>${esc(data.full_name)}</td></tr>
           <tr><td style="padding:6px 0;color:#6b6355">E-posta</td><td>${esc(data.email)}</td></tr>
           <tr><td style="padding:6px 0;color:#6b6355">Konu</td><td>${esc(data.subject || "—")}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b6355">Mesaj dili</td><td>${en ? "EN (İngilizce)" : "TR (Türkçe)"}</td></tr>
         </table>
         <p style="margin-top:14px"><strong>Mesaj</strong></p>
         <p style="white-space:pre-wrap">${esc(data.message)}</p>`;
       await sendEmail({
         to,
         replyTo: data.email,
-        subject: `PFA — İletişim: ${data.subject || data.full_name}`,
+        subject: `${en ? "[EN] " : ""}PFA — İletişim: ${data.subject || data.full_name}`,
         html: renderEmail({ title: "Yeni iletişim mesajı", bodyHtml }),
       });
     } catch (e) {
@@ -114,7 +123,7 @@ export const listContactMessages = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("contact_messages")
-      .select("id, full_name, email, subject, message, is_read, read_at, created_at")
+      .select("id, full_name, email, subject, message, is_read, read_at, locale, created_at")
       .order("created_at", { ascending: false })
       .limit(500);
     if (error) throw new Error(error.message);

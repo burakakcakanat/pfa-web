@@ -13,6 +13,8 @@ type Props = {
   slotDefault?: string;
   buttonLabel?: string;
   className?: string;
+  /** Origin locale of the page rendering the form. */
+  locale?: "tr" | "en";
 };
 
 const inputCls =
@@ -26,6 +28,7 @@ export function PurchaseInquiryForm({
   slotDefault = "",
   buttonLabel = "Başvuru / Randevu Talebi",
   className,
+  locale = "tr",
 }: Props) {
   const submit = useServerFn(submitPurchaseInquiry);
   const [open, setOpen] = useState(false);
@@ -55,6 +58,7 @@ export function PurchaseInquiryForm({
           phone,
           preferred_slot: askSlot ? slot || slotDefault : slotDefault,
           message,
+          locale,
           website_hp: hp,
         },
       });
