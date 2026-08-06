@@ -11,7 +11,7 @@ import {
 } from "@/lib/purchase-inquiries";
 
 const SELECT_COLS =
-  "id, kind, product_slug, product_label, full_name, email, phone, preferred_slot, message, status, admin_note, created_at, updated_at, payment_reference, transfer_amount, transfer_currency, transfer_sent_at";
+  "id, kind, product_slug, product_label, full_name, email, phone, preferred_slot, message, status, admin_note, locale, created_at, updated_at, payment_reference, transfer_amount, transfer_currency, transfer_sent_at";
 
 async function hashIp(ip: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`pfa-purchase:${ip}`));
