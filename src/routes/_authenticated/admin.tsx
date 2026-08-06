@@ -3749,6 +3749,7 @@ function PractitionerInquiries() {
       sender_email: string;
       message: string;
       status: "acik" | "yanitlandi";
+      locale?: "tr" | "en";
       created_at: string;
     }>
   >([]);
@@ -3788,7 +3789,10 @@ function PractitionerInquiries() {
               <TableCell className="whitespace-nowrap text-xs">{fmtDate(r.created_at)}</TableCell>
               <TableCell>{r.practitioner_name}</TableCell>
               <TableCell>
-                <div className="text-sm">{r.sender_name}</div>
+                <div className="text-sm">
+                  {r.sender_name}
+                  <LocaleBadge locale={r.locale} />
+                </div>
                 <div className="text-xs text-muted-foreground">{r.sender_email}</div>
               </TableCell>
               <TableCell className="max-w-md whitespace-pre-wrap text-sm">{r.message}</TableCell>
