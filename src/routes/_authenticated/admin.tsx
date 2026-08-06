@@ -4049,6 +4049,7 @@ function NewsletterSubscribers() {
   const [rows, setRows] = useState<any[]>([]);
   const [q, setQ] = useState("");
   const [seg, setSeg] = useState<string>("all");
+  const [loc, setLoc] = useState<string>("all");
   const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
@@ -4062,6 +4063,7 @@ function NewsletterSubscribers() {
 
   const filtered = rows.filter((r) => {
     if (seg !== "all" && r.segment !== seg) return false;
+    if (loc !== "all" && (r.locale ?? "tr") !== loc) return false;
     if (q && !`${r.email} ${r.full_name ?? ""}`.toLowerCase().includes(q.toLowerCase())) return false;
     return true;
   });
@@ -4105,6 +4107,14 @@ function NewsletterSubscribers() {
             <SelectItem value="kurumsal">Kurumsal</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={loc} onValueChange={setLoc}>
+          <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tümü</SelectItem>
+            <SelectItem value="tr">TR</SelectItem>
+            <SelectItem value="en">EN</SelectItem>
+          </SelectContent>
+        </Select>
         <Button variant="outline" onClick={exportCsv}>CSV Dışa Aktar</Button>
         <Button variant="outline" onClick={reload}>Yenile</Button>
       </div>
@@ -4114,7 +4124,10 @@ function NewsletterSubscribers() {
           <TableBody>
             {filtered.map((r) => (
               <TableRow key={r.id}>
-                <TableCell className="font-mono text-xs">{r.email}</TableCell>
+                <TableCell className="font-mono text-xs">
+                  {r.email}
+                  <LocaleBadge locale={r.locale} />
+                </TableCell>
                 <TableCell>{r.full_name ?? "—"}</TableCell>
                 <TableCell>{r.segment}</TableCell>
                 <TableCell>{r.source ?? "—"}</TableCell>
