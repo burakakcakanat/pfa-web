@@ -121,7 +121,7 @@ import {
   type ApplicationStatus,
 } from "@/lib/practitioner-applications.functions";
 import { AdminLicenseInquiries } from "@/components/admin-license-inquiries";
-import { AdminPurchaseInquiries } from "@/components/admin-purchase-inquiries";
+import { AdminPurchaseInquiries, LocaleBadge } from "@/components/admin-purchase-inquiries";
 import { AdminBankTransferSettings } from "@/components/admin-bank-transfer-settings";
 import {
   listNewsletterSubscribers,
@@ -233,6 +233,7 @@ function MessagesTab() {
   const [unread, setUnread] = useState(0);
   const [openId, setOpenId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [localeFilter, setLocaleFilter] = useState<"all" | "tr" | "en">("all");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -274,12 +275,26 @@ function MessagesTab() {
     <Card title={`İletişim Mesajları${unread > 0 ? ` (${unread} okunmamış)` : ""}`}>
       <div className="mb-3 flex items-center gap-2">
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>Yenile</Button>
+        <div className="flex items-center gap-1">
+          {(["all", "tr", "en"] as const).map((v) => (
+            <Button
+              key={v}
+              variant={localeFilter === v ? "default" : "outline"}
+              size="sm"
+              onClick={() => setLocaleFilter(v)}
+            >
+              {v === "all" ? "Tümü" : v.toUpperCase()}
+            </Button>
+          ))}
+        </div>
       </div>
       {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">Henüz mesaj yok.</p>
       ) : (
         <div className="space-y-2">
-          {rows.map((m) => {
+          {rows
+            .filter((m) => localeFilter === "all" || (m.locale ?? "tr") === localeFilter)
+            .map((m) => {
             const isOpen = openId === m.id;
             return (
               <div
@@ -296,6 +311,7 @@ function MessagesTab() {
                         <span className="inline-flex h-2 w-2 rounded-full bg-primary" aria-label="okunmamış" />
                       )}
                       <span className="font-medium">{m.full_name}</span>
+                      <LocaleBadge locale={m.locale} />
                       <span className="text-xs text-muted-foreground">&lt;{m.email}&gt;</span>
                     </div>
                     <div className="mt-0.5 text-sm text-foreground/80">
@@ -3733,6 +3749,7 @@ function PractitionerInquiries() {
       sender_email: string;
       message: string;
       status: "acik" | "yanitlandi";
+      locale?: "tr" | "en";
       created_at: string;
     }>
   >([]);
@@ -3772,7 +3789,10 @@ function PractitionerInquiries() {
               <TableCell className="whitespace-nowrap text-xs">{fmtDate(r.created_at)}</TableCell>
               <TableCell>{r.practitioner_name}</TableCell>
               <TableCell>
-                <div className="text-sm">{r.sender_name}</div>
+                <div className="text-sm">
+                  {r.sender_name}
+                  <LocaleBadge locale={r.locale} />
+                </div>
                 <div className="text-xs text-muted-foreground">{r.sender_email}</div>
               </TableCell>
               <TableCell className="max-w-md whitespace-pre-wrap text-sm">{r.message}</TableCell>
@@ -4033,6 +4053,7 @@ function NewsletterSubscribers() {
   const [rows, setRows] = useState<any[]>([]);
   const [q, setQ] = useState("");
   const [seg, setSeg] = useState<string>("all");
+  const [loc, setLoc] = useState<string>("all");
   const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
@@ -4046,6 +4067,7 @@ function NewsletterSubscribers() {
 
   const filtered = rows.filter((r) => {
     if (seg !== "all" && r.segment !== seg) return false;
+    if (loc !== "all" && (r.locale ?? "tr") !== loc) return false;
     if (q && !`${r.email} ${r.full_name ?? ""}`.toLowerCase().includes(q.toLowerCase())) return false;
     return true;
   });
@@ -4058,7 +4080,7 @@ function NewsletterSubscribers() {
   };
 
   function exportCsv() {
-    const header = ["email","full_name","segment","source","consent","unsubscribed_at","created_at"];
+    const header = ["email","full_name","segment","source","locale","consent","unsubscribed_at","created_at"];
     const lines = [header.join(",")];
     for (const r of filtered) {
       lines.push(header.map((k) => JSON.stringify((r as any)[k] ?? "")).join(","));
@@ -4089,6 +4111,14 @@ function NewsletterSubscribers() {
             <SelectItem value="kurumsal">Kurumsal</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={loc} onValueChange={setLoc}>
+          <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tümü</SelectItem>
+            <SelectItem value="tr">TR</SelectItem>
+            <SelectItem value="en">EN</SelectItem>
+          </SelectContent>
+        </Select>
         <Button variant="outline" onClick={exportCsv}>CSV Dışa Aktar</Button>
         <Button variant="outline" onClick={reload}>Yenile</Button>
       </div>
@@ -4098,7 +4128,10 @@ function NewsletterSubscribers() {
           <TableBody>
             {filtered.map((r) => (
               <TableRow key={r.id}>
-                <TableCell className="font-mono text-xs">{r.email}</TableCell>
+                <TableCell className="font-mono text-xs">
+                  {r.email}
+                  <LocaleBadge locale={r.locale} />
+                </TableCell>
                 <TableCell>{r.full_name ?? "—"}</TableCell>
                 <TableCell>{r.segment}</TableCell>
                 <TableCell>{r.source ?? "—"}</TableCell>

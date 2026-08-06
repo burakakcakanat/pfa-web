@@ -217,11 +217,22 @@ export async function sendConfirmationEmail(
   email: string,
   confirmToken: string,
   unsubscribeToken: string | null,
+  locale: "tr" | "en" = "tr",
 ) {
   const base = siteBase();
   const confirmUrl = `${base}/bulten/onayla?token=${confirmToken}`;
   const unsubUrl = unsubscribeToken ? `${base}/bulten/ayril?token=${unsubscribeToken}` : "";
-  const body = `
+  const body =
+    locale === "en"
+      ? `
+    <h2 style="font-family:'EB Garamond',Georgia,serif;margin:0 0 12px">Confirm your subscription</h2>
+    <p>We have received your request to join the PFA newsletter. One email a month: excerpts from the book and selected new articles.</p>
+    <p style="margin:24px 0">
+      <a href="${confirmUrl}" style="display:inline-block;background:#0f766e;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:6px;font-size:15px">Confirm subscription</a>
+    </p>
+    <p style="font-size:13px;color:#6b6355">If the button does not work, paste this address into your browser:<br/>${confirmUrl}</p>
+    <p style="font-size:13px;color:#6b6355">If you did not sign up, you can ignore this email; nothing is sent until it is confirmed.</p>`
+      : `
     <h2 style="font-family:'EB Garamond',Georgia,serif;margin:0 0 12px">Aboneliğinizi onaylayın</h2>
     <p>PFA Bültenine kayıt talebiniz alındı. Ayda bir e-posta: kitaptan bölümler ve yeni blog yazılarından seçkiler.</p>
     <p style="margin:24px 0">
@@ -230,7 +241,13 @@ export async function sendConfirmationEmail(
     <p style="font-size:13px;color:#6b6355">Bağlantı çalışmazsa bu adresi tarayıcınıza yapıştırın:<br/>${confirmUrl}</p>
     <p style="font-size:13px;color:#6b6355">Bu kaydı siz yapmadıysanız bu e-postayı yok sayabilirsiniz; onaylanmadan bülten gönderilmez.</p>`;
   const html = wrapEmailHtml(body, unsubUrl, null);
-  await sendResendEmail(email, "PFA Bülteni — aboneliğinizi onaylayın", html);
+  await sendResendEmail(
+    email,
+    locale === "en"
+      ? "PFA newsletter — confirm your subscription"
+      : "PFA Bülteni — aboneliğinizi onaylayın",
+    html,
+  );
 }
 
 export type SubscribeCoreInput = {
@@ -238,6 +255,8 @@ export type SubscribeCoreInput = {
   full_name?: string | null;
   segment: "merakli" | "profesyonel" | "kurumsal";
   source?: string | null;
+  /** Origin locale of the signup surface. Already validated by the caller. */
+  locale?: "tr" | "en";
 };
 
 /**
@@ -250,6 +269,7 @@ export async function subscribeCore(
   input: SubscribeCoreInput,
 ): Promise<{ ok: true; state: "confirmed" | "pending"; emailSent: boolean; emailError?: string }> {
   const email = input.email.toLowerCase().trim();
+  const locale = input.locale === "en" ? "en" : "tr";
 
   // Explicit new opt-in lifts any previous global suppression for this address.
   await supabaseAdmin.from("newsletter_suppressions").delete().eq("email", email);
@@ -270,6 +290,7 @@ export async function subscribeCore(
         consent: true,
         source: input.source ?? "footer",
         unsubscribed_at: null,
+        locale,
       })
       .eq("id", existing.id)
       .select("id, confirmed, confirm_token, unsubscribe_token")
@@ -284,6 +305,7 @@ export async function subscribeCore(
         segment: input.segment,
         consent: true,
         source: input.source ?? "footer",
+        locale,
       })
       .select("id, confirmed, confirm_token, unsubscribe_token")
       .maybeSingle();
@@ -314,6 +336,7 @@ export async function subscribeCore(
       email,
       String(row?.confirm_token ?? ""),
       row?.unsubscribe_token ? String(row.unsubscribe_token) : null,
+      locale,
     );
     return { ok: true, state: "pending", emailSent: true };
   } catch (e) {

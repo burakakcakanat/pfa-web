@@ -105,7 +105,9 @@ export function NewsletterForm({
     }
     setState("loading");
     try {
-      const res = await subscribe({ data: { email, segment: "merakli", consent, source, website } });
+      const res = await subscribe({
+        data: { email, segment: "merakli", consent, source, website, locale },
+      });
       setState("ok");
       setPending(res?.state !== "confirmed");
       try { window.localStorage.setItem(SUBSCRIBED_KEY, "1"); } catch { /* ignore */ }

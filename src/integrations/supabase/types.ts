@@ -138,6 +138,7 @@ export type Database = {
           guest_token: string | null
           id: string
           instrument_version: number
+          locale: string
           research_consent: boolean
           research_consent_at: string | null
           research_consent_version: string | null
@@ -156,6 +157,7 @@ export type Database = {
           guest_token?: string | null
           id?: string
           instrument_version?: number
+          locale?: string
           research_consent?: boolean
           research_consent_at?: string | null
           research_consent_version?: string | null
@@ -174,6 +176,7 @@ export type Database = {
           guest_token?: string | null
           id?: string
           instrument_version?: number
+          locale?: string
           research_consent?: boolean
           research_consent_at?: string | null
           research_consent_version?: string | null
@@ -419,6 +422,7 @@ export type Database = {
           id: string
           ip_hash: string | null
           is_read: boolean
+          locale: string
           message: string
           read_at: string | null
           subject: string
@@ -431,6 +435,7 @@ export type Database = {
           id?: string
           ip_hash?: string | null
           is_read?: boolean
+          locale?: string
           message: string
           read_at?: string | null
           subject?: string
@@ -443,6 +448,7 @@ export type Database = {
           id?: string
           ip_hash?: string | null
           is_read?: boolean
+          locale?: string
           message?: string
           read_at?: string | null
           subject?: string
@@ -782,6 +788,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          locale: string
           segment: Database["public"]["Enums"]["newsletter_segment"]
           source: string | null
           unsubscribe_token: string
@@ -798,6 +805,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id?: string
+          locale?: string
           segment: Database["public"]["Enums"]["newsletter_segment"]
           source?: string | null
           unsubscribe_token?: string
@@ -814,6 +822,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          locale?: string
           segment?: Database["public"]["Enums"]["newsletter_segment"]
           source?: string | null
           unsubscribe_token?: string
@@ -1003,6 +1012,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          locale: string
           message: string
           practitioner_id: string
           sender_email: string
@@ -1012,6 +1022,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          locale?: string
           message: string
           practitioner_id: string
           sender_email: string
@@ -1021,6 +1032,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          locale?: string
           message?: string
           practitioner_id?: string
           sender_email?: string
@@ -1242,6 +1254,7 @@ export type Database = {
           id: string
           ip_hash: string | null
           kind: string
+          locale: string
           message: string | null
           payment_reference: string | null
           phone: string | null
@@ -1262,6 +1275,7 @@ export type Database = {
           id?: string
           ip_hash?: string | null
           kind?: string
+          locale?: string
           message?: string | null
           payment_reference?: string | null
           phone?: string | null
@@ -1282,6 +1296,7 @@ export type Database = {
           id?: string
           ip_hash?: string | null
           kind?: string
+          locale?: string
           message?: string | null
           payment_reference?: string | null
           phone?: string | null
@@ -1489,6 +1504,7 @@ export type Database = {
           guest_token: string | null
           id: string
           instrument_version: number
+          locale: string
           research_consent: boolean
           research_consent_at: string | null
           research_consent_version: string | null
@@ -1506,6 +1522,7 @@ export type Database = {
           guest_token?: string | null
           id?: string
           instrument_version?: number
+          locale?: string
           research_consent?: boolean
           research_consent_at?: string | null
           research_consent_version?: string | null
@@ -1523,6 +1540,7 @@ export type Database = {
           guest_token?: string | null
           id?: string
           instrument_version?: number
+          locale?: string
           research_consent?: boolean
           research_consent_at?: string | null
           research_consent_version?: string | null

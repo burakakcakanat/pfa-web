@@ -36,6 +36,8 @@ export const purchaseInquirySchema = z.object({
   phone: z.string().trim().max(60).optional().default(""),
   preferred_slot: z.string().trim().max(400).optional().default(""),
   message: z.string().trim().max(3000).optional().default(""),
+  // Origin locale hint from the page; validated server-side, never trusted raw.
+  locale: z.enum(["tr", "en"]).optional().default("tr"),
   // honeypot — must stay empty
   website_hp: z.string().max(0).optional().default(""),
 });
@@ -85,6 +87,7 @@ export type AdminPurchaseInquiryRow = {
   message: string | null;
   status: PurchaseInquiryStatus;
   admin_note: string | null;
+  locale: "tr" | "en";
   created_at: string;
   updated_at: string;
   payment_reference: string | null;

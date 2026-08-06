@@ -46,12 +46,23 @@ const fmtDate = (s: string | null) =>
       })
     : "—";
 
+/** Quiet origin marker. TR is the default and stays unmarked to avoid noise. */
+export function LocaleBadge({ locale }: { locale?: string | null }) {
+  if (locale !== "en") return null;
+  return (
+    <span className="ml-2 inline-flex items-center rounded border border-accent/60 px-1.5 py-0.5 align-middle text-[10px] font-medium tracking-wider text-accent">
+      EN
+    </span>
+  );
+}
+
 export function AdminPurchaseInquiries() {
   const list = useServerFn(listAdminPurchaseInquiries);
   const update = useServerFn(updateAdminPurchaseInquiry);
   const sendTransfer = useServerFn(sendTransferInstructionsFn);
   const [rows, setRows] = useState<AdminPurchaseInquiryRow[]>([]);
   const [statusFilter, setStatusFilter] = useState<PurchaseInquiryStatus | "all">("all");
+  const [localeFilter, setLocaleFilter] = useState<"all" | "tr" | "en">("all");
   const [openId, setOpenId] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [amount, setAmount] = useState("");
@@ -72,8 +83,13 @@ export function AdminPurchaseInquiries() {
   }, [reload]);
 
   const visible = useMemo(
-    () => rows.filter((r) => statusFilter === "all" || r.status === statusFilter),
-    [rows, statusFilter],
+    () =>
+      rows.filter(
+        (r) =>
+          (statusFilter === "all" || r.status === statusFilter) &&
+          (localeFilter === "all" || (r.locale ?? "tr") === localeFilter),
+      ),
+    [rows, statusFilter, localeFilter],
   );
 
   const opened = rows.find((r) => r.id === openId) ?? null;
@@ -162,6 +178,22 @@ export function AdminPurchaseInquiries() {
             </SelectContent>
           </Select>
         </div>
+        <div>
+          <Label className="text-xs">Dil</Label>
+          <Select
+            value={localeFilter}
+            onValueChange={(v) => setLocaleFilter(v as "all" | "tr" | "en")}
+          >
+            <SelectTrigger className="mt-1 w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tümü</SelectItem>
+              <SelectItem value="tr">TR</SelectItem>
+              <SelectItem value="en">EN</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <p className="text-sm text-muted-foreground">
           {visible.length} kayıt — en yeni üstte. Bu kayıtlar sipariş değil, taleptir.
         </p>
@@ -189,7 +221,10 @@ export function AdminPurchaseInquiries() {
                 <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                   {fmtDate(r.created_at)}
                 </TableCell>
-                <TableCell className="font-medium">{r.full_name}</TableCell>
+                <TableCell className="font-medium">
+                  {r.full_name}
+                  <LocaleBadge locale={r.locale} />
+                </TableCell>
                 <TableCell className="text-sm">{r.product_label ?? r.product_slug}</TableCell>
                 <TableCell className="text-xs">{PURCHASE_KIND_LABEL[r.kind]}</TableCell>
                 <TableCell className="text-xs">{PURCHASE_STATUS_LABEL[r.status]}</TableCell>
@@ -215,7 +250,10 @@ export function AdminPurchaseInquiries() {
         <div className="space-y-5 rounded-md border border-border bg-card p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="font-serif text-2xl">{opened.full_name}</h3>
+              <h3 className="font-serif text-2xl">
+                {opened.full_name}
+                <LocaleBadge locale={opened.locale} />
+              </h3>
               <p className="text-sm text-muted-foreground">
                 {opened.email}
                 {opened.phone ? ` · ${opened.phone}` : ""}
@@ -290,6 +328,13 @@ export function AdminPurchaseInquiries() {
                 IBAN yalnızca bu butona bastığınızda, talep sahibine e-posta ile iletilir.
               </p>
             )}
+            <p className="text-xs text-muted-foreground">
+              Gönderilecek e-posta dili:{" "}
+              <strong>
+                {opened.locale === "en" ? "İngilizce (EN)" : "Türkçe (TR)"}
+              </strong>{" "}
+              — talebin geldiği sayfanın diline göre seçilir.
+            </p>
           </div>
 
           <div>

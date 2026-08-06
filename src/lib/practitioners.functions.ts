@@ -81,6 +81,7 @@ const inquirySchema = z.object({
   sender_name: z.string().trim().min(2).max(120),
   sender_email: z.string().trim().email().max(200),
   message: z.string().trim().min(10).max(4000),
+  locale: z.enum(["tr", "en"]).optional(),
   website_hp: z.string().max(0).optional().default(""),
 });
 
@@ -107,6 +108,9 @@ export const submitPractitionerInquiry = createServerFn({ method: "POST" })
       sender_name: data.sender_name,
       sender_email: data.sender_email,
       message: data.message,
+      locale: (await import("@/lib/locale.server")).resolveLocale(
+        (data as { locale?: string }).locale,
+      ),
     });
     if (insErr) throw new Error(insErr.message);
 

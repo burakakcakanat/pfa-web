@@ -11,7 +11,7 @@ import {
 } from "@/lib/purchase-inquiries";
 
 const SELECT_COLS =
-  "id, kind, product_slug, product_label, full_name, email, phone, preferred_slot, message, status, admin_note, created_at, updated_at, payment_reference, transfer_amount, transfer_currency, transfer_sent_at";
+  "id, kind, product_slug, product_label, full_name, email, phone, preferred_slot, message, status, admin_note, locale, created_at, updated_at, payment_reference, transfer_amount, transfer_currency, transfer_sent_at";
 
 async function hashIp(ip: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`pfa-purchase:${ip}`));
@@ -49,6 +49,9 @@ export async function createPurchaseInquiry(
   const email = data.email.toLowerCase();
   const ip = clientIp();
   const ip_hash = ip ? await hashIp(ip) : null;
+  const { resolveLocale } = await import("@/lib/locale.server");
+  const locale = resolveLocale(data.locale);
+  const en = locale === "en";
 
   // Rate limit: same e-mail + product within 10 minutes.
   const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
@@ -95,6 +98,7 @@ export async function createPurchaseInquiry(
     message: data.message || null,
     status: "new",
     ip_hash,
+    locale,
   } as never);
   if (insErr) throw new Error(insErr.message);
 
@@ -110,6 +114,11 @@ export async function createPurchaseInquiry(
         esc(String(v ?? "")) || "—"
       }</td></tr>`;
     const bodyHtml = `
+      ${
+        en
+          ? `<p style="background:#0f766e;color:#ffffff;display:inline-block;padding:6px 12px;border-radius:4px;font-size:13px;letter-spacing:.08em">EN — İNGİLİZCE SİTEDEN GELDİ, YANITI İNGİLİZCE YAZIN</p>`
+          : ""
+      }
       <p>Yeni bir satış talebi alındı — <strong>${esc(kindLabel)}</strong>.</p>
       <table style="width:100%;font-size:14px;border-collapse:collapse">
         ${r("Ürün", label)}
@@ -118,6 +127,7 @@ export async function createPurchaseInquiry(
         ${r("E-posta", email)}
         ${r("Telefon", data.phone)}
         ${r("Tercih edilen zaman", data.preferred_slot)}
+        ${r("Talep dili", en ? "EN (İngilizce)" : "TR (Türkçe)")}
       </table>
       <p style="margin-top:14px"><strong>Mesaj</strong></p>
       <p style="white-space:pre-wrap">${esc(data.message || "—")}</p>
@@ -125,7 +135,7 @@ export async function createPurchaseInquiry(
     await sendEmail({
       to,
       replyTo: email,
-      subject: `PFA — Yeni satış talebi (${kindLabel}): ${data.full_name}`,
+      subject: `${en ? "[EN] " : ""}PFA — Yeni satış talebi (${kindLabel}): ${data.full_name}`,
       html: renderEmail({ title: "Yeni satış talebi", bodyHtml }),
     });
   } catch (e) {
@@ -137,7 +147,27 @@ export async function createPurchaseInquiry(
     const { sendEmail } = await import("@/lib/email/send.server");
     const { renderEmail, esc } = await import("@/lib/email/templates");
     const firstName = data.full_name.trim().split(/\s+/)[0] || data.full_name;
-    await sendEmail({
+    await sendEmail(
+      en
+        ? {
+            to: email,
+            replyTo: "info@psychofunctionalanalysis.com",
+            subject: "We have received your request — PFA",
+            html: renderEmail({
+              title: "We have received your request",
+              bodyHtml: `
+          <p>Hello ${esc(firstName)},</p>
+          <p>Your request regarding <strong>${esc(label)}</strong> has reached us.</p>
+          ${
+            data.preferred_slot
+              ? `<p>The time you noted: <strong>${esc(data.preferred_slot)}</strong></p>`
+              : ""
+          }
+          <p>We will get back to you within 24 hours, and we will settle the participation and payment steps together then.</p>
+          <p>Warm regards,<br/>The PFA team</p>`,
+            }),
+          }
+        : {
       to: email,
       replyTo: "info@psychofunctionalanalysis.com",
       subject: "Talebiniz alındı — PFA",
@@ -154,7 +184,8 @@ export async function createPurchaseInquiry(
           <p>En geç 24 saat içinde size dönüş yapacağız; katılım ve ödeme adımlarını o görüşmede birlikte netleştireceğiz.</p>
           <p>Sevgiyle,<br/>PFA Ekibi</p>`,
       }),
-    });
+          },
+    );
   } catch (e) {
     console.error("[email] purchase inquiry confirmation failed", e);
   }
@@ -272,6 +303,7 @@ export async function sendTransferInstructions(input: {
   const currency = (input.currency || bank.currency || "TRY").toUpperCase();
   const label = inq.product_label || inq.product_slug;
   const firstName = inq.full_name.trim().split(/\s+/)[0] || inq.full_name;
+  const en = inq.locale === "en";
 
   const { sendEmail } = await import("@/lib/email/send.server");
   const { renderEmail, esc } = await import("@/lib/email/templates");
@@ -279,7 +311,33 @@ export async function sendTransferInstructions(input: {
     `<tr><td style="padding:6px 0;color:#6b6355;width:170px">${esc(l)}</td><td><strong>${esc(
       v,
     )}</strong></td></tr>`;
-  const res = await sendEmail({
+  const res = await sendEmail(
+    en
+      ? {
+          to: inq.email,
+          replyTo: "info@psychofunctionalanalysis.com",
+          subject: `Bank transfer details — ${label}`,
+          html: renderEmail({
+            title: "Bank transfer details",
+            bodyHtml: `
+        <p>Hello ${esc(firstName)},</p>
+        <p>The bank transfer details for <strong>${esc(label)}</strong> are below.</p>
+        <table style="width:100%;font-size:14px;border-collapse:collapse">
+          ${row("Amount", fmtAmount(input.amount, currency))}
+          ${row("Account holder", bank.account_holder)}
+          ${row("Bank", bank.bank_name)}
+          ${row("IBAN", bank.iban)}
+          ${row("Payment reference", reference)}
+        </table>
+        <p style="margin-top:14px">Please include the reference <strong>${esc(
+          reference,
+        )}</strong> in the transfer description; we match your payment by that code.</p>
+        ${bank.note ? `<p>${esc(bank.note)}</p>` : ""}
+        <p>Once the payment has arrived, your access or appointment is confirmed and we will let you know.</p>
+        <p>Warm regards,<br/>The PFA team</p>`,
+          }),
+        }
+      : {
     to: inq.email,
     replyTo: "info@psychofunctionalanalysis.com",
     subject: `Havale bilgileri — ${label}`,
@@ -302,7 +360,8 @@ export async function sendTransferInstructions(input: {
         <p>Ödeme alındıktan sonra erişiminiz/randevunuz netleşir ve size bilgi veririz.</p>
         <p>Sevgiyle,<br/>PFA Ekibi</p>`,
     }),
-  });
+        },
+  );
   if (!res.ok) throw new Error(`E-posta gönderilemedi (${res.error ?? "bilinmiyor"})`);
 
   const sentAt = new Date().toISOString();
@@ -332,11 +391,34 @@ const NEXT_STEP: Record<string, string> = {
   corporate: "Kurumsal kurulum için kısa süre içinde sizinle iletişime geçeceğiz.",
 };
 
+const NEXT_STEP_EN: Record<string, string> = {
+  session: "We will contact you shortly to arrange the appointment.",
+  webinar: "We will share the joining details by email before the session.",
+  pro_license: "We will contact you shortly to set up your licence.",
+  corporate: "We will contact you shortly to set up your organisation's arrangement.",
+};
+
 async function sendPaymentReceived(inq: AdminPurchaseInquiryRow): Promise<void> {
   const { sendEmail } = await import("@/lib/email/send.server");
   const { renderEmail, esc } = await import("@/lib/email/templates");
   const firstName = inq.full_name.trim().split(/\s+/)[0] || inq.full_name;
   const label = inq.product_label || inq.product_slug;
+  if (inq.locale === "en") {
+    await sendEmail({
+      to: inq.email,
+      replyTo: "info@psychofunctionalanalysis.com",
+      subject: `We have received your payment — ${label}`,
+      html: renderEmail({
+        title: "We have received your payment",
+        bodyHtml: `
+        <p>Hello ${esc(firstName)},</p>
+        <p>We have received your payment for <strong>${esc(label)}</strong>. Thank you.</p>
+        <p>${esc(NEXT_STEP_EN[inq.kind] ?? "We will contact you shortly about the next step.")}</p>
+        <p>Warm regards,<br/>The PFA team</p>`,
+      }),
+    });
+    return;
+  }
   await sendEmail({
     to: inq.email,
     replyTo: "info@psychofunctionalanalysis.com",
