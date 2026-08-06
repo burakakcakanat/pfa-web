@@ -17,6 +17,7 @@ export const saveAssessment = createServerFn({ method: "POST" })
         type: z.enum(["mini", "full"]),
         answers: z.array(AnswerSchema).min(1).max(500),
         consent: ResearchConsentSchema.nullish(),
+        locale: z.enum(["tr", "en"]).optional(),
       })
       .parse(data),
   )
@@ -59,6 +60,8 @@ export const saveAssessment = createServerFn({ method: "POST" })
 
     const consent = data.consent ?? null;
     const consented = Boolean(consent?.research_consent);
+    const { resolveLocale } = await import("@/lib/locale.server");
+    const locale = resolveLocale(data.locale);
 
     const { data: session, error: sErr } = await supabase
       .from("assessment_sessions")
@@ -68,6 +71,7 @@ export const saveAssessment = createServerFn({ method: "POST" })
         status: "completed",
         completed_at: new Date().toISOString(),
         instrument_version: instrumentVersion,
+        locale,
         research_consent: consented,
         research_consent_at: consented ? new Date().toISOString() : null,
         research_consent_version: consented ? (consent?.consent_version ?? null) : null,

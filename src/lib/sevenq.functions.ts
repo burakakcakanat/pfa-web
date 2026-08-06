@@ -28,6 +28,7 @@ export const startSevenqSession = createServerFn({ method: "POST" })
       .object({
         invite: z.string().min(4).max(200).nullish(),
         consent: ResearchConsentSchema.nullish(),
+        locale: z.enum(["tr", "en"]).optional(),
       })
       .parse(data ?? {}),
   )
@@ -76,6 +77,7 @@ export const startSevenqSession = createServerFn({ method: "POST" })
       const { data: versionData } = await supabase.rpc("current_instrument_version", {
         _instrument: "sevenq",
       });
+      const { resolveLocale } = await import("@/lib/locale.server");
       const { data: created, error } = await supabase
         .from("sevenq_sessions")
         .insert({
@@ -83,6 +85,7 @@ export const startSevenqSession = createServerFn({ method: "POST" })
           client_invite_id: clientInviteId,
           status: "in_progress",
           instrument_version: Number(versionData ?? 1),
+          locale: resolveLocale(data.locale),
           ...consentPatch,
         })
         .select("id")
