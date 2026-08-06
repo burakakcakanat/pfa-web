@@ -54,7 +54,7 @@ export const HOME_COPY = {
     sevenqTitle: "7Q Profile",
     sevenqUpcoming: "Upcoming",
     sevenqDesc:
-      "A separate profile alongside the PFA Assessment, reporting a 7Q Score across five dimensions — Practicality, Creativity, Resilience, Will and Routine. Currently in pilot; not yet on sale.",
+      "A separate profile alongside the PFA Assessment, reporting a 7Q Score across five dimensions — Mastery, Creativity, Resilience, Will and Routine. Currently in pilot; not yet on sale.",
 
     noticeTitle: "What this is, and what it is not",
     noticeBody:
