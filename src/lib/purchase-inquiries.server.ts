@@ -49,6 +49,9 @@ export async function createPurchaseInquiry(
   const email = data.email.toLowerCase();
   const ip = clientIp();
   const ip_hash = ip ? await hashIp(ip) : null;
+  const { resolveLocale } = await import("@/lib/locale.server");
+  const locale = resolveLocale(data.locale);
+  const en = locale === "en";
 
   // Rate limit: same e-mail + product within 10 minutes.
   const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
@@ -95,6 +98,7 @@ export async function createPurchaseInquiry(
     message: data.message || null,
     status: "new",
     ip_hash,
+    locale,
   } as never);
   if (insErr) throw new Error(insErr.message);
 
@@ -110,6 +114,11 @@ export async function createPurchaseInquiry(
         esc(String(v ?? "")) || "—"
       }</td></tr>`;
     const bodyHtml = `
+      ${
+        en
+          ? `<p style="background:#0f766e;color:#ffffff;display:inline-block;padding:6px 12px;border-radius:4px;font-size:13px;letter-spacing:.08em">EN — İNGİLİZCE SİTEDEN GELDİ, YANITI İNGİLİZCE YAZIN</p>`
+          : ""
+      }
       <p>Yeni bir satış talebi alındı — <strong>${esc(kindLabel)}</strong>.</p>
       <table style="width:100%;font-size:14px;border-collapse:collapse">
         ${r("Ürün", label)}
@@ -118,6 +127,7 @@ export async function createPurchaseInquiry(
         ${r("E-posta", email)}
         ${r("Telefon", data.phone)}
         ${r("Tercih edilen zaman", data.preferred_slot)}
+        ${r("Talep dili", en ? "EN (İngilizce)" : "TR (Türkçe)")}
       </table>
       <p style="margin-top:14px"><strong>Mesaj</strong></p>
       <p style="white-space:pre-wrap">${esc(data.message || "—")}</p>
@@ -125,7 +135,7 @@ export async function createPurchaseInquiry(
     await sendEmail({
       to,
       replyTo: email,
-      subject: `PFA — Yeni satış talebi (${kindLabel}): ${data.full_name}`,
+      subject: `${en ? "[EN] " : ""}PFA — Yeni satış talebi (${kindLabel}): ${data.full_name}`,
       html: renderEmail({ title: "Yeni satış talebi", bodyHtml }),
     });
   } catch (e) {
@@ -137,7 +147,27 @@ export async function createPurchaseInquiry(
     const { sendEmail } = await import("@/lib/email/send.server");
     const { renderEmail, esc } = await import("@/lib/email/templates");
     const firstName = data.full_name.trim().split(/\s+/)[0] || data.full_name;
-    await sendEmail({
+    await sendEmail(
+      en
+        ? {
+            to: email,
+            replyTo: "info@psychofunctionalanalysis.com",
+            subject: "We have received your request — PFA",
+            html: renderEmail({
+              title: "We have received your request",
+              bodyHtml: `
+          <p>Hello ${esc(firstName)},</p>
+          <p>Your request regarding <strong>${esc(label)}</strong> has reached us.</p>
+          ${
+            data.preferred_slot
+              ? `<p>The time you noted: <strong>${esc(data.preferred_slot)}</strong></p>`
+              : ""
+          }
+          <p>We will get back to you within 24 hours, and we will settle the participation and payment steps together then.</p>
+          <p>Warm regards,<br/>The PFA team</p>`,
+            }),
+          }
+        : {
       to: email,
       replyTo: "info@psychofunctionalanalysis.com",
       subject: "Talebiniz alındı — PFA",
@@ -154,7 +184,8 @@ export async function createPurchaseInquiry(
           <p>En geç 24 saat içinde size dönüş yapacağız; katılım ve ödeme adımlarını o görüşmede birlikte netleştireceğiz.</p>
           <p>Sevgiyle,<br/>PFA Ekibi</p>`,
       }),
-    });
+          },
+    );
   } catch (e) {
     console.error("[email] purchase inquiry confirmation failed", e);
   }
