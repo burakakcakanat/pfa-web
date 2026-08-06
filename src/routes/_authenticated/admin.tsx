@@ -4080,7 +4080,7 @@ function NewsletterSubscribers() {
   };
 
   function exportCsv() {
-    const header = ["email","full_name","segment","source","consent","unsubscribed_at","created_at"];
+    const header = ["email","full_name","segment","source","locale","consent","unsubscribed_at","created_at"];
     const lines = [header.join(",")];
     for (const r of filtered) {
       lines.push(header.map((k) => JSON.stringify((r as any)[k] ?? "")).join(","));
