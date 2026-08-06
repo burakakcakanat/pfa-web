@@ -23,6 +23,7 @@ const subscribeSchema = z.object({
   segment: z.enum(SEGMENTS),
   consent: z.boolean(),
   source: z.string().max(40).optional().nullable(),
+  locale: z.enum(["tr", "en"]).optional().default("tr"),
   website: z.string().max(200).optional().nullable(), // honeypot
 });
 
@@ -42,11 +43,13 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
     }
     if (!data.consent) throw new Error("KVKK onayı gerekli.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { resolveLocale } = await import("@/lib/locale.server");
     return subscribeCore(supabaseAdmin, {
       email: data.email,
       full_name: data.full_name ?? null,
       segment: data.segment,
       source: data.source ?? "footer",
+      locale: resolveLocale(data.locale),
     });
   });
 
@@ -82,7 +85,7 @@ export const listNewsletterSubscribers = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("newsletter_subscribers")
-      .select("id, email, full_name, segment, source, consent, confirmed, confirmed_at, unsubscribed_at, created_at")
+      .select("id, email, full_name, segment, source, consent, confirmed, confirmed_at, unsubscribed_at, locale, created_at")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
