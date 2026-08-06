@@ -121,7 +121,7 @@ import {
   type ApplicationStatus,
 } from "@/lib/practitioner-applications.functions";
 import { AdminLicenseInquiries } from "@/components/admin-license-inquiries";
-import { AdminPurchaseInquiries } from "@/components/admin-purchase-inquiries";
+import { AdminPurchaseInquiries, LocaleBadge } from "@/components/admin-purchase-inquiries";
 import { AdminBankTransferSettings } from "@/components/admin-bank-transfer-settings";
 import {
   listNewsletterSubscribers,
