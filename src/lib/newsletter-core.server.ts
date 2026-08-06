@@ -255,6 +255,8 @@ export type SubscribeCoreInput = {
   full_name?: string | null;
   segment: "merakli" | "profesyonel" | "kurumsal";
   source?: string | null;
+  /** Origin locale of the signup surface. Already validated by the caller. */
+  locale?: "tr" | "en";
 };
 
 /**
