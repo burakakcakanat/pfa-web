@@ -1514,7 +1514,7 @@ export const listAdminPractitionerInquiries = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("practitioner_inquiries")
-      .select("id, practitioner_id, sender_name, sender_email, message, status, created_at, practitioners(full_name)")
+      .select("id, practitioner_id, sender_name, sender_email, message, status, locale, created_at, practitioners(full_name)")
       .order("created_at", { ascending: false })
       .limit(500);
     if (error) throw new Error(error.message);
@@ -1526,6 +1526,7 @@ export const listAdminPractitionerInquiries = createServerFn({ method: "GET" })
       sender_email: r.sender_email as string,
       message: r.message as string,
       status: r.status as "acik" | "yanitlandi",
+      locale: (r.locale ?? "tr") as "tr" | "en",
       created_at: r.created_at as string,
     }));
   });

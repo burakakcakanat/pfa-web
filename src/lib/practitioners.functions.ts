@@ -107,6 +107,9 @@ export const submitPractitionerInquiry = createServerFn({ method: "POST" })
       sender_name: data.sender_name,
       sender_email: data.sender_email,
       message: data.message,
+      locale: (await import("@/lib/locale.server")).resolveLocale(
+        (data as { locale?: string }).locale,
+      ),
     });
     if (insErr) throw new Error(insErr.message);
 
