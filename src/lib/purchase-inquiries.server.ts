@@ -303,6 +303,7 @@ export async function sendTransferInstructions(input: {
   const currency = (input.currency || bank.currency || "TRY").toUpperCase();
   const label = inq.product_label || inq.product_slug;
   const firstName = inq.full_name.trim().split(/\s+/)[0] || inq.full_name;
+  const en = inq.locale === "en";
 
   const { sendEmail } = await import("@/lib/email/send.server");
   const { renderEmail, esc } = await import("@/lib/email/templates");
@@ -310,7 +311,33 @@ export async function sendTransferInstructions(input: {
     `<tr><td style="padding:6px 0;color:#6b6355;width:170px">${esc(l)}</td><td><strong>${esc(
       v,
     )}</strong></td></tr>`;
-  const res = await sendEmail({
+  const res = await sendEmail(
+    en
+      ? {
+          to: inq.email,
+          replyTo: "info@psychofunctionalanalysis.com",
+          subject: `Bank transfer details — ${label}`,
+          html: renderEmail({
+            title: "Bank transfer details",
+            bodyHtml: `
+        <p>Hello ${esc(firstName)},</p>
+        <p>The bank transfer details for <strong>${esc(label)}</strong> are below.</p>
+        <table style="width:100%;font-size:14px;border-collapse:collapse">
+          ${row("Amount", fmtAmount(input.amount, currency))}
+          ${row("Account holder", bank.account_holder)}
+          ${row("Bank", bank.bank_name)}
+          ${row("IBAN", bank.iban)}
+          ${row("Payment reference", reference)}
+        </table>
+        <p style="margin-top:14px">Please include the reference <strong>${esc(
+          reference,
+        )}</strong> in the transfer description; we match your payment by that code.</p>
+        ${bank.note ? `<p>${esc(bank.note)}</p>` : ""}
+        <p>Once the payment has arrived, your access or appointment is confirmed and we will let you know.</p>
+        <p>Warm regards,<br/>The PFA team</p>`,
+          }),
+        }
+      : {
     to: inq.email,
     replyTo: "info@psychofunctionalanalysis.com",
     subject: `Havale bilgileri — ${label}`,
@@ -333,7 +360,8 @@ export async function sendTransferInstructions(input: {
         <p>Ödeme alındıktan sonra erişiminiz/randevunuz netleşir ve size bilgi veririz.</p>
         <p>Sevgiyle,<br/>PFA Ekibi</p>`,
     }),
-  });
+        },
+  );
   if (!res.ok) throw new Error(`E-posta gönderilemedi (${res.error ?? "bilinmiyor"})`);
 
   const sentAt = new Date().toISOString();
@@ -363,11 +391,34 @@ const NEXT_STEP: Record<string, string> = {
   corporate: "Kurumsal kurulum için kısa süre içinde sizinle iletişime geçeceğiz.",
 };
 
+const NEXT_STEP_EN: Record<string, string> = {
+  session: "We will contact you shortly to arrange the appointment.",
+  webinar: "We will share the joining details by email before the session.",
+  pro_license: "We will contact you shortly to set up your licence.",
+  corporate: "We will contact you shortly to set up your organisation's arrangement.",
+};
+
 async function sendPaymentReceived(inq: AdminPurchaseInquiryRow): Promise<void> {
   const { sendEmail } = await import("@/lib/email/send.server");
   const { renderEmail, esc } = await import("@/lib/email/templates");
   const firstName = inq.full_name.trim().split(/\s+/)[0] || inq.full_name;
   const label = inq.product_label || inq.product_slug;
+  if (inq.locale === "en") {
+    await sendEmail({
+      to: inq.email,
+      replyTo: "info@psychofunctionalanalysis.com",
+      subject: `We have received your payment — ${label}`,
+      html: renderEmail({
+        title: "We have received your payment",
+        bodyHtml: `
+        <p>Hello ${esc(firstName)},</p>
+        <p>We have received your payment for <strong>${esc(label)}</strong>. Thank you.</p>
+        <p>${esc(NEXT_STEP_EN[inq.kind] ?? "We will contact you shortly about the next step.")}</p>
+        <p>Warm regards,<br/>The PFA team</p>`,
+      }),
+    });
+    return;
+  }
   await sendEmail({
     to: inq.email,
     replyTo: "info@psychofunctionalanalysis.com",
