@@ -235,7 +235,68 @@ export async function fetchAdminPurchaseInquiries(): Promise<AdminPurchaseInquir
     );
     for (const r of rows) r.catalogue_price_cents = bySlug.get(r.product_slug) ?? null;
   }
+
+  // Price of the current fulfilment selection (bundle price when a bundle).
+  const { selectionPriceCents } = await import("@/lib/inquiry-fulfilment.server");
+  const cache = new Map<string, number>();
+  for (const r of rows) {
+    const kind = r.fulfil_kind ?? "product";
+    const slug = r.fulfil_slug ?? r.product_slug;
+    const lang = r.fulfil_book_lang ?? "tr";
+    const key = `${kind}:${slug}:${lang}`;
+    if (!cache.has(key)) {
+      try {
+        cache.set(
+          key,
+          await selectionPriceCents({
+            fulfil_kind: kind,
+            fulfil_slug: slug,
+            fulfil_book_lang: lang,
+          }),
+        );
+      } catch {
+        cache.set(key, 0);
+      }
+    }
+    r.selection_price_cents = cache.get(key) ?? null;
+  }
   return rows;
+}
+
+/** Catalogue options for the admin's fulfilment selector. */
+export async function fetchFulfilOptions(bookLang: "tr" | "en" = "tr"): Promise<{
+  products: Array<{ slug: string; label: string; price_cents: number }>;
+  bundles: Array<{ slug: string; label: string; price_cents: number }>;
+}> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { loadBundle, bundlePriceCents } = await import("@/lib/offers.server");
+  const { data: prods } = await supabaseAdmin
+    .from("products")
+    .select("slug, name_tr, price_cents, active")
+    .eq("active", true)
+    .order("category", { ascending: true });
+  const { data: bs } = await supabaseAdmin
+    .from("bundles")
+    .select("slug, name_tr, active")
+    .eq("active", true)
+    .order("sort_order", { ascending: true });
+
+  const bundles: Array<{ slug: string; label: string; price_cents: number }> = [];
+  for (const b of bs ?? []) {
+    const full = await loadBundle(b.slug as string);
+    if (!full) continue;
+    const { bundle } = await bundlePriceCents(full, bookLang);
+    bundles.push({ slug: b.slug as string, label: b.name_tr as string, price_cents: bundle });
+  }
+
+  return {
+    products: (prods ?? []).map((p) => ({
+      slug: p.slug as string,
+      label: p.name_tr as string,
+      price_cents: (p.price_cents as number) ?? 0,
+    })),
+    bundles,
+  };
 }
 
 // ---------------- Bank transfer details (service role only) ----------------
