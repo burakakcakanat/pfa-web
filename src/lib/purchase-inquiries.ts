@@ -1,7 +1,13 @@
 // Client-safe shared types, labels and validation for purchase (havale) inquiries.
 import { z } from "zod";
 
-export type PurchaseInquiryKind = "session" | "webinar" | "pro_license" | "corporate";
+export type PurchaseInquiryKind =
+  | "session"
+  | "webinar"
+  | "pro_license"
+  | "corporate"
+  | "assessment"
+  | "ebook";
 export type PurchaseInquiryStatus = "new" | "contacted" | "paid" | "fulfilled" | "closed";
 
 export const PURCHASE_STATUS_LABEL: Record<PurchaseInquiryStatus, string> = {
@@ -25,10 +31,12 @@ export const PURCHASE_KIND_LABEL: Record<PurchaseInquiryKind, string> = {
   webinar: "Webinar",
   pro_license: "Uygulayıcı Lisansı",
   corporate: "Kurumsal / Toplu",
+  assessment: "Tam PFA Ölçeği",
+  ebook: "İmzalı E-Kitap",
 };
 
 export const purchaseInquirySchema = z.object({
-  kind: z.enum(["session", "webinar", "pro_license", "corporate"]),
+  kind: z.enum(["session", "webinar", "pro_license", "corporate", "assessment", "ebook"]),
   product_slug: z.string().trim().min(1).max(120),
   product_label: z.string().trim().max(200).optional().default(""),
   full_name: z.string().trim().min(2, { message: "Adınızı yazın." }).max(200),
@@ -36,12 +44,44 @@ export const purchaseInquirySchema = z.object({
   phone: z.string().trim().max(60).optional().default(""),
   preferred_slot: z.string().trim().max(400).optional().default(""),
   message: z.string().trim().max(3000).optional().default(""),
+  // Optional add-on the requester ticked; validated server-side against bundles.
+  addon_bundle_slug: z.string().trim().max(120).nullable().optional(),
+  book_lang: z.enum(["tr", "en"]).optional().default("tr"),
   // Origin locale hint from the page; validated server-side, never trusted raw.
   locale: z.enum(["tr", "en"]).optional().default("tr"),
   // honeypot — must stay empty
   website_hp: z.string().max(0).optional().default(""),
 });
 export type PurchaseInquiryInput = z.infer<typeof purchaseInquirySchema>;
+
+/** Admin: what the customer is actually paying for (product or bundle). */
+export const fulfilSelectionSchema = z.object({
+  id: z.string().uuid(),
+  fulfil_kind: z.enum(["product", "bundle"]),
+  fulfil_slug: z.string().trim().min(1).max(120),
+  fulfil_book_lang: z.enum(["tr", "en"]).optional().default("tr"),
+});
+
+export const fulfilInquirySchema = fulfilSelectionSchema.extend({
+  /** Skip the customer delivery e-mail (rare; admin choice). */
+  notify: z.boolean().optional().default(true),
+});
+
+export type GrantedLogEntry = {
+  type: string;
+  slug: string;
+  entitlement_id?: string;
+  pending_account?: boolean;
+};
+
+export type GrantedLog = {
+  at: string;
+  selection: { kind: "product" | "bundle"; slug: string; book_lang: "tr" | "en" };
+  user_id: string | null;
+  email: string;
+  entries: GrantedLogEntry[];
+  pending_account: boolean;
+};
 
 export const purchaseInquiryPatchSchema = z.object({
   id: z.string().uuid(),
