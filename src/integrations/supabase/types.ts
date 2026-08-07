@@ -903,6 +903,47 @@ export type Database = {
           },
         ]
       }
+      pending_entitlement_grants: {
+        Row: {
+          claimed_at: string | null
+          claimed_by: string | null
+          created_at: string
+          email: string
+          entitlement_type: Database["public"]["Enums"]["entitlement_type"]
+          id: string
+          inquiry_id: string | null
+          metadata: Json
+        }
+        Insert: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          email: string
+          entitlement_type: Database["public"]["Enums"]["entitlement_type"]
+          id?: string
+          inquiry_id?: string | null
+          metadata?: Json
+        }
+        Update: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          email?: string
+          entitlement_type?: Database["public"]["Enums"]["entitlement_type"]
+          id?: string
+          inquiry_id?: string | null
+          metadata?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_entitlement_grants_inquiry_id_fkey"
+            columns: ["inquiry_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_inquiries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       podcast_episodes: {
         Row: {
           created_at: string
@@ -1247,10 +1288,16 @@ export type Database = {
       }
       purchase_inquiries: {
         Row: {
+          addon_bundle_slug: string | null
           admin_note: string | null
           created_at: string
           email: string
+          fulfil_book_lang: string
+          fulfil_kind: string | null
+          fulfil_slug: string | null
+          fulfilled_at: string | null
           full_name: string
+          granted: Json | null
           id: string
           ip_hash: string | null
           kind: string
@@ -1268,10 +1315,16 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          addon_bundle_slug?: string | null
           admin_note?: string | null
           created_at?: string
           email: string
+          fulfil_book_lang?: string
+          fulfil_kind?: string | null
+          fulfil_slug?: string | null
+          fulfilled_at?: string | null
           full_name: string
+          granted?: Json | null
           id?: string
           ip_hash?: string | null
           kind?: string
@@ -1289,10 +1342,16 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          addon_bundle_slug?: string | null
           admin_note?: string | null
           created_at?: string
           email?: string
+          fulfil_book_lang?: string
+          fulfil_kind?: string | null
+          fulfil_slug?: string | null
+          fulfilled_at?: string | null
           full_name?: string
+          granted?: Json | null
           id?: string
           ip_hash?: string | null
           kind?: string
@@ -1415,6 +1474,80 @@ export type Database = {
           },
           {
             foreignKeyName: "session_availability_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "practitioners_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_requests: {
+        Row: {
+          admin_note: string | null
+          confirmed_at: string | null
+          created_at: string
+          entitlement_id: string | null
+          id: string
+          inquiry_id: string | null
+          practitioner_id: string | null
+          preferred_at: string | null
+          preferred_slot: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          entitlement_id?: string | null
+          id?: string
+          inquiry_id?: string | null
+          practitioner_id?: string | null
+          preferred_at?: string | null
+          preferred_slot?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          entitlement_id?: string | null
+          id?: string
+          inquiry_id?: string | null
+          practitioner_id?: string | null
+          preferred_at?: string | null
+          preferred_slot?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_requests_entitlement_id_fkey"
+            columns: ["entitlement_id"]
+            isOneToOne: false
+            referencedRelation: "user_entitlements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_requests_inquiry_id_fkey"
+            columns: ["inquiry_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_inquiries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_requests_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "practitioners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_requests_practitioner_id_fkey"
             columns: ["practitioner_id"]
             isOneToOne: false
             referencedRelation: "practitioners_public"
