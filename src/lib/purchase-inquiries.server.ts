@@ -11,7 +11,7 @@ import {
 } from "@/lib/purchase-inquiries";
 
 const SELECT_COLS =
-  "id, kind, product_slug, product_label, full_name, email, phone, preferred_slot, message, status, admin_note, locale, created_at, updated_at, payment_reference, transfer_amount, transfer_currency, transfer_sent_at";
+  "id, kind, product_slug, product_label, full_name, email, phone, preferred_slot, message, status, admin_note, locale, created_at, updated_at, payment_reference, transfer_amount, transfer_currency, transfer_sent_at, addon_bundle_slug, fulfil_kind, fulfil_slug, fulfil_book_lang, granted, fulfilled_at";
 
 async function hashIp(ip: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`pfa-purchase:${ip}`));
@@ -87,6 +87,22 @@ export async function createPurchaseInquiry(
 
   const label = (data.product_label || "").trim() || data.product_slug;
 
+  // The add-on is only honoured when it is a real, live bundle that actually
+  // contains the requested product — never a client-supplied discount.
+  let addonBundleSlug: string | null = null;
+  if (data.addon_bundle_slug) {
+    try {
+      const { loadBundle, bundleComponentSlugs } = await import("@/lib/offers.server");
+      const { isLive } = await import("@/lib/bundles");
+      const b = await loadBundle(data.addon_bundle_slug);
+      if (b && isLive(b) && bundleComponentSlugs(b, data.book_lang).includes(data.product_slug)) {
+        addonBundleSlug = b.slug;
+      }
+    } catch (e) {
+      console.error("[inquiry] add-on validation failed", e);
+    }
+  }
+
   const { error: insErr } = await supabaseAdmin.from("purchase_inquiries").insert({
     kind: data.kind,
     product_slug: data.product_slug,
@@ -99,6 +115,11 @@ export async function createPurchaseInquiry(
     status: "new",
     ip_hash,
     locale,
+    addon_bundle_slug: addonBundleSlug,
+    // Prefill for the admin's one-tap fulfilment; editable there.
+    fulfil_kind: addonBundleSlug ? "bundle" : "product",
+    fulfil_slug: addonBundleSlug ?? data.product_slug,
+    fulfil_book_lang: data.book_lang,
   } as never);
   if (insErr) throw new Error(insErr.message);
 
@@ -128,6 +149,7 @@ export async function createPurchaseInquiry(
         ${r("Telefon", data.phone)}
         ${r("Tercih edilen zaman", data.preferred_slot)}
         ${r("Talep dili", en ? "EN (İngilizce)" : "TR (Türkçe)")}
+        ${addonBundleSlug ? r("Paket eklendi", addonBundleSlug) : ""}
       </table>
       <p style="margin-top:14px"><strong>Mesaj</strong></p>
       <p style="white-space:pre-wrap">${esc(data.message || "—")}</p>
