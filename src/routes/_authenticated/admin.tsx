@@ -123,6 +123,7 @@ import {
 import { AdminLicenseInquiries } from "@/components/admin-license-inquiries";
 import { AdminPurchaseInquiries, LocaleBadge } from "@/components/admin-purchase-inquiries";
 import { AdminBankTransferSettings } from "@/components/admin-bank-transfer-settings";
+import { AdminSessionAvailability } from "@/components/admin-session-availability";
 import {
   listNewsletterSubscribers,
   deleteNewsletterSubscriber,
@@ -1783,6 +1784,7 @@ function SiteSettingsTab() {
   return (
     <div className="space-y-6">
     <AdminBankTransferSettings />
+    <AdminSessionAvailability />
     <Card title="Ödeme Sistemi">
       <label className="flex items-start gap-3 text-sm">
         <input

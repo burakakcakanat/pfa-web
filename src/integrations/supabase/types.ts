@@ -1371,6 +1371,57 @@ export type Database = {
         }
         Relationships: []
       }
+      session_availability: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          note: string | null
+          practitioner_id: string | null
+          slot_time: string
+          sort_order: number
+          updated_at: string
+          weekday: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          note?: string | null
+          practitioner_id?: string | null
+          slot_time: string
+          sort_order?: number
+          updated_at?: string
+          weekday: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          note?: string | null
+          practitioner_id?: string | null
+          slot_time?: string
+          sort_order?: number
+          updated_at?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_availability_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "practitioners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_availability_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "practitioners_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sevenq_answers: {
         Row: {
           created_at: string

@@ -78,8 +78,8 @@ function BlogPostPage() {
           <img
             src={post.cover_image_url}
             alt={post.title}
-            className="mt-10 block h-auto w-full rounded-lg object-contain"
-            style={{ filter: "none", mixBlendMode: "normal", backgroundBlendMode: "normal", opacity: 1 }}
+            className="blog-image-ink mt-10 block h-auto w-full rounded-lg object-contain"
+            
           />
         )}
         <div className="prose-pfa mt-10">
@@ -89,8 +89,8 @@ function BlogPostPage() {
                 <img
                   {...props}
                   loading="lazy"
-                  className="my-10 block h-auto w-full rounded-lg object-contain"
-                  style={{ filter: "none", mixBlendMode: "normal", backgroundBlendMode: "normal", opacity: 1 }}
+                  className="blog-image-ink my-10 block h-auto w-full rounded-lg object-contain"
+                  
                 />
               ),
               h2: (props) => (

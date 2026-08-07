@@ -208,7 +208,11 @@
   border-top: 1px solid var(--border);
 }
 
+/* Blog artwork is intentionally pale hairline line-art on cream (ink covers
+   ~1.5% of the pixels). Downscaling it into small boxes averages those
+   hairlines into the background and the result reads as washed-out. This
+   restores ink density without tinting the cream paper. */
 @utility blog-image-ink {
   mix-blend-mode: normal;
-  filter: none;
+  filter: contrast(1.28) saturate(1.12) brightness(0.985);
 }

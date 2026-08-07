@@ -137,7 +137,7 @@ function BlogPage() {
         {filteredPosts?.map((p) => (
           <article
             key={p.slug}
-            className="grid gap-6 py-10 sm:grid-cols-[minmax(0,180px)_minmax(0,1fr)] sm:gap-8 md:grid-cols-[minmax(0,220px)_minmax(0,1fr)]"
+            className="grid gap-6 py-10 sm:grid-cols-[minmax(0,240px)_minmax(0,1fr)] sm:gap-8 md:grid-cols-[minmax(0,320px)_minmax(0,1fr)]"
           >
             {p.cover_image_url ? (
               <img
@@ -145,8 +145,8 @@ function BlogPage() {
                 alt=""
                 aria-hidden="true"
                 loading="lazy"
-                className="block h-auto w-full rounded-md object-contain"
-                style={{ filter: "none", mixBlendMode: "normal", backgroundBlendMode: "normal", opacity: 1 }}
+                className="blog-image-ink block h-auto w-full rounded-md object-contain"
+                
               />
             ) : (
               <div aria-hidden="true" className="hidden sm:block" />
