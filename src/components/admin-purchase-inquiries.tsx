@@ -340,9 +340,85 @@ export function AdminPurchaseInquiries() {
             <Detail label="Son güncelleme" value={fmtDate(opened.updated_at)} />
           </div>
 
+          {opened.addon_bundle_slug ? (
+            <p className="text-xs text-accent">
+              Talep sahibi paket seçeneğini işaretledi: <strong>{opened.addon_bundle_slug}</strong>
+            </p>
+          ) : null}
+
           <div>
             <Label className="text-xs">Mesaj</Label>
             <p className="whitespace-pre-wrap text-sm">{opened.message || "—"}</p>
+          </div>
+
+          <div className="space-y-3 rounded-md border border-accent/40 bg-accent/5 p-4">
+            <div className="text-xs tracking-[0.2em] text-accent">ÖDEME VE HAK TANIMLAMA</div>
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <Label className="text-xs">Ne satın alınıyor?</Label>
+                <Select
+                  value={`${selKind}:${selSlug}`}
+                  onValueChange={(v) => {
+                    const [k, ...rest] = v.split(":");
+                    pickSelection(k as "product" | "bundle", rest.join(":"));
+                  }}
+                >
+                  <SelectTrigger className="mt-1 w-96">
+                    <SelectValue placeholder="Ürün veya paket seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(options?.products ?? []).map((p) => (
+                      <SelectItem key={`product:${p.slug}`} value={`product:${p.slug}`}>
+                        Ürün — {p.label} (${(p.price_cents / 100).toFixed(2)})
+                      </SelectItem>
+                    ))}
+                    {(options?.bundles ?? []).map((b) => (
+                      <SelectItem key={`bundle:${b.slug}`} value={`bundle:${b.slug}`}>
+                        Paket — {b.label} (${(b.price_cents / 100).toFixed(2)})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Kitap dili</Label>
+                <Select value={selLang} onValueChange={(v) => setSelLang(v as "tr" | "en")}>
+                  <SelectTrigger className="mt-1 w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tr">TR</SelectItem>
+                    <SelectItem value="en">EN</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button size="sm" onClick={onFulfil} disabled={fulfilling || !selSlug}>
+                {fulfilling ? "Tanımlanıyor…" : "Ödeme alındı ve hakları tanımla"}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Seçimin bütün bileşenleri (ölçek erişimi, seans kredisi, imzalı e-kitap) tek seferde
+              tanımlanır; tekrar basmak ikinci kez tanımlamaz. Katalog fiyatı:{" "}
+              {selectionPriceCents != null ? `$${(selectionPriceCents / 100).toFixed(2)}` : "—"}
+            </p>
+            {opened.granted ? (
+              <div className="rounded border border-border bg-background p-3 text-xs">
+                <div className="font-medium">
+                  {opened.granted.pending_account
+                    ? "Hesap bulunamadı — kullanıcı kayıt olunca tanımlanacak"
+                    : "Tanımlandı"}{" "}
+                  · {fmtDate(opened.fulfilled_at)}
+                </div>
+                <ul className="mt-1 list-disc pl-4 text-muted-foreground">
+                  {opened.granted.entries.map((e, i) => (
+                    <li key={`${e.type}-${i}`}>
+                      {e.type} — {e.slug}
+                      {e.pending_account ? " (beklemede)" : ""}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
 
           <div className="space-y-3 rounded-md border border-border bg-muted/30 p-4">
