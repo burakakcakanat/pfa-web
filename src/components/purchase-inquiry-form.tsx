@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { submitPurchaseInquiry } from "@/lib/purchase-inquiries.functions";
 import type { PurchaseInquiryKind } from "@/lib/purchase-inquiries";
+import { SessionSlotPicker } from "@/components/session-slot-picker";
 
 type Props = {
   kind: PurchaseInquiryKind;
@@ -141,12 +142,7 @@ export function PurchaseInquiryForm({
           className={inputCls}
         />
         {askSlot ? (
-          <input
-            value={slot}
-            onChange={(e) => setSlot(e.target.value)}
-            placeholder="Tercih ettiğiniz gün / saat (örn. hafta içi 15:00 sonrası)"
-            className={inputCls}
-          />
+          <SessionSlotPicker value={slot} onChange={setSlot} locale={locale} />
         ) : null}
         <textarea
           rows={3}
