@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { submitPurchaseInquiry } from "@/lib/purchase-inquiries.functions";
+import { getAddonOffer } from "@/lib/offers.functions";
+import type { AddonOffer } from "@/lib/offers";
+import { fmtUsd } from "@/lib/bundles";
+import { supabase } from "@/integrations/supabase/client";
 import type { PurchaseInquiryKind } from "@/lib/purchase-inquiries";
 import { SessionSlotPicker } from "@/components/session-slot-picker";
 
@@ -16,6 +20,10 @@ type Props = {
   className?: string;
   /** Origin locale of the page rendering the form. */
   locale?: "tr" | "en";
+  /** Book edition language used when the offer includes a signed copy. */
+  bookLang?: "tr" | "en";
+  /** Set false to suppress the optional package add-on (e.g. free flows). */
+  offerAddon?: boolean;
 };
 
 const inputCls =
@@ -30,12 +38,18 @@ export function PurchaseInquiryForm({
   buttonLabel = "Başvuru / Randevu Talebi",
   className,
   locale = "tr",
+  bookLang,
+  offerAddon = true,
 }: Props) {
   const submit = useServerFn(submitPurchaseInquiry);
+  const fetchOffer = useServerFn(getAddonOffer);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [offer, setOffer] = useState<AddonOffer | null>(null);
+  const [wantsAddon, setWantsAddon] = useState(false);
+  const effBookLang = bookLang ?? locale;
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -43,6 +57,35 @@ export function PurchaseInquiryForm({
   const [slot, setSlot] = useState(slotDefault);
   const [message, setMessage] = useState("");
   const [hp, setHp] = useState("");
+
+  // One offer maximum, derived from a real bundle. Hidden when the signed-in
+  // user already holds the add-on entitlement.
+  useEffect(() => {
+    if (!offerAddon || !open) return;
+    let alive = true;
+    (async () => {
+      try {
+        const o = await fetchOffer({
+          data: { product_slug: productSlug, book_lang: effBookLang, locale },
+        });
+        if (!alive || !o) return;
+        const { data: userRes } = await supabase.auth.getUser();
+        if (userRes.user) {
+          const { data: ents } = await supabase
+            .from("user_entitlements")
+            .select("type")
+            .in("type", o.addon_entitlement_types as string[]);
+          if ((ents ?? []).length > 0) return;
+        }
+        if (alive) setOffer(o);
+      } catch {
+        /* the offer is optional — never block the request form */
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [offerAddon, open, productSlug, effBookLang, locale, fetchOffer]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,6 +103,8 @@ export function PurchaseInquiryForm({
           preferred_slot: askSlot ? slot || slotDefault : slotDefault,
           message,
           locale,
+          book_lang: effBookLang,
+          addon_bundle_slug: wantsAddon && offer ? offer.bundle_slug : null,
           website_hp: hp,
         },
       });
@@ -161,6 +206,33 @@ export function PurchaseInquiryForm({
           aria-hidden="true"
         />
       </div>
+
+      {offer ? (
+        <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-md border border-border bg-muted/25 p-3 text-sm">
+          <input
+            type="checkbox"
+            className="mt-0.5"
+            checked={wantsAddon}
+            onChange={(e) => setWantsAddon(e.target.checked)}
+          />
+          <span className="leading-relaxed text-foreground/80">
+            {locale === "en" ? (
+              <>
+                Add {offer.addon_label} as a package —{" "}
+                <strong>{fmtUsd(offer.bundle_price_cents)}</strong> instead of{" "}
+                {fmtUsd(offer.separate_price_cents)} separately (
+                {fmtUsd(offer.saving_cents)} less).
+              </>
+            ) : (
+              <>
+                Pakete {offer.addon_label} ekleyin —{" "}
+                <strong>{fmtUsd(offer.bundle_price_cents)}</strong>; ayrı ayrı{" "}
+                {fmtUsd(offer.separate_price_cents)}, {fmtUsd(offer.saving_cents)} tasarruf.
+              </>
+            )}
+          </span>
+        </label>
+      ) : null}
 
       {error ? <p className="mt-3 text-xs text-destructive">{error}</p> : null}
 
