@@ -11,7 +11,7 @@ import {
 } from "@/lib/purchase-inquiries";
 
 const SELECT_COLS =
-  "id, kind, product_slug, product_label, full_name, email, phone, preferred_slot, message, status, admin_note, locale, created_at, updated_at, payment_reference, transfer_amount, transfer_currency, transfer_sent_at";
+  "id, kind, product_slug, product_label, full_name, email, phone, preferred_slot, message, status, admin_note, locale, created_at, updated_at, payment_reference, transfer_amount, transfer_currency, transfer_sent_at, addon_bundle_slug, fulfil_kind, fulfil_slug, fulfil_book_lang, granted, fulfilled_at";
 
 async function hashIp(ip: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`pfa-purchase:${ip}`));
@@ -87,6 +87,22 @@ export async function createPurchaseInquiry(
 
   const label = (data.product_label || "").trim() || data.product_slug;
 
+  // The add-on is only honoured when it is a real, live bundle that actually
+  // contains the requested product — never a client-supplied discount.
+  let addonBundleSlug: string | null = null;
+  if (data.addon_bundle_slug) {
+    try {
+      const { loadBundle, bundleComponentSlugs } = await import("@/lib/offers.server");
+      const { isLive } = await import("@/lib/bundles");
+      const b = await loadBundle(data.addon_bundle_slug);
+      if (b && isLive(b) && bundleComponentSlugs(b, data.book_lang).includes(data.product_slug)) {
+        addonBundleSlug = b.slug;
+      }
+    } catch (e) {
+      console.error("[inquiry] add-on validation failed", e);
+    }
+  }
+
   const { error: insErr } = await supabaseAdmin.from("purchase_inquiries").insert({
     kind: data.kind,
     product_slug: data.product_slug,
@@ -99,6 +115,11 @@ export async function createPurchaseInquiry(
     status: "new",
     ip_hash,
     locale,
+    addon_bundle_slug: addonBundleSlug,
+    // Prefill for the admin's one-tap fulfilment; editable there.
+    fulfil_kind: addonBundleSlug ? "bundle" : "product",
+    fulfil_slug: addonBundleSlug ?? data.product_slug,
+    fulfil_book_lang: data.book_lang,
   } as never);
   if (insErr) throw new Error(insErr.message);
 
@@ -128,6 +149,7 @@ export async function createPurchaseInquiry(
         ${r("Telefon", data.phone)}
         ${r("Tercih edilen zaman", data.preferred_slot)}
         ${r("Talep dili", en ? "EN (İngilizce)" : "TR (Türkçe)")}
+        ${addonBundleSlug ? r("Paket eklendi", addonBundleSlug) : ""}
       </table>
       <p style="margin-top:14px"><strong>Mesaj</strong></p>
       <p style="white-space:pre-wrap">${esc(data.message || "—")}</p>
@@ -213,7 +235,68 @@ export async function fetchAdminPurchaseInquiries(): Promise<AdminPurchaseInquir
     );
     for (const r of rows) r.catalogue_price_cents = bySlug.get(r.product_slug) ?? null;
   }
+
+  // Price of the current fulfilment selection (bundle price when a bundle).
+  const { selectionPriceCents } = await import("@/lib/inquiry-fulfilment.server");
+  const cache = new Map<string, number>();
+  for (const r of rows) {
+    const kind = r.fulfil_kind ?? "product";
+    const slug = r.fulfil_slug ?? r.product_slug;
+    const lang = r.fulfil_book_lang ?? "tr";
+    const key = `${kind}:${slug}:${lang}`;
+    if (!cache.has(key)) {
+      try {
+        cache.set(
+          key,
+          await selectionPriceCents({
+            fulfil_kind: kind,
+            fulfil_slug: slug,
+            fulfil_book_lang: lang,
+          }),
+        );
+      } catch {
+        cache.set(key, 0);
+      }
+    }
+    r.selection_price_cents = cache.get(key) ?? null;
+  }
   return rows;
+}
+
+/** Catalogue options for the admin's fulfilment selector. */
+export async function fetchFulfilOptions(bookLang: "tr" | "en" = "tr"): Promise<{
+  products: Array<{ slug: string; label: string; price_cents: number }>;
+  bundles: Array<{ slug: string; label: string; price_cents: number }>;
+}> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { loadBundle, bundlePriceCents } = await import("@/lib/offers.server");
+  const { data: prods } = await supabaseAdmin
+    .from("products")
+    .select("slug, name_tr, price_cents, active")
+    .eq("active", true)
+    .order("category", { ascending: true });
+  const { data: bs } = await supabaseAdmin
+    .from("bundles")
+    .select("slug, name_tr, active")
+    .eq("active", true)
+    .order("sort_order", { ascending: true });
+
+  const bundles: Array<{ slug: string; label: string; price_cents: number }> = [];
+  for (const b of bs ?? []) {
+    const full = await loadBundle(b.slug as string);
+    if (!full) continue;
+    const { bundle } = await bundlePriceCents(full, bookLang);
+    bundles.push({ slug: b.slug as string, label: b.name_tr as string, price_cents: bundle });
+  }
+
+  return {
+    products: (prods ?? []).map((p) => ({
+      slug: p.slug as string,
+      label: p.name_tr as string,
+      price_cents: (p.price_cents as number) ?? 0,
+    })),
+    bundles,
+  };
 }
 
 // ---------------- Bank transfer details (service role only) ----------------

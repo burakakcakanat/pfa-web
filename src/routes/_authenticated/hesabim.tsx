@@ -9,6 +9,7 @@ import { listMyGifts } from "@/lib/gifts.functions";
 import { PractitionerAccountTab } from "@/components/practitioner-account";
 import { ResearchPreferences } from "@/components/research-preferences";
 import { NewsletterTabAction } from "@/components/newsletter-row";
+import { MySessionsTab } from "@/components/my-sessions";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
   validateSearch: (s: Record<string, unknown>): { tab?: string } =>
@@ -51,6 +52,7 @@ type ProInvite = {
 const TABS = [
   { id: "profile", label: "Profil" },
   { id: "orders", label: "Satın Alımlarım" },
+  { id: "sessions", label: "Seanslarım" },
   { id: "reports", label: "Raporlarım" },
   { id: "ebooks", label: "E-Kitaplarım" },
   { id: "webinars", label: "Webinar Kayıtlarım" },
@@ -235,6 +237,7 @@ function AccountPage() {
         )}
 
         {tab === "clients" && <ClientsTab />}
+        {tab === "sessions" && <MySessionsTab />}
         {tab === "research" && <ResearchPreferences />}
         {tab === "practitioner" && (
           <PractitionerAccountTab onGoToClients={() => setTab("clients")} />

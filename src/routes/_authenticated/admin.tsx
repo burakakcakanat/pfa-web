@@ -124,6 +124,7 @@ import { AdminLicenseInquiries } from "@/components/admin-license-inquiries";
 import { AdminPurchaseInquiries, LocaleBadge } from "@/components/admin-purchase-inquiries";
 import { AdminBankTransferSettings } from "@/components/admin-bank-transfer-settings";
 import { AdminSessionAvailability } from "@/components/admin-session-availability";
+import { AdminSessionRequests } from "@/components/admin-session-requests";
 import {
   listNewsletterSubscribers,
   deleteNewsletterSubscriber,
@@ -213,7 +214,12 @@ function AdminPage() {
             <TabsContent value="podcasts"><PodcastsTab /></TabsContent>
             <TabsContent value="ebooks"><EbooksTab /></TabsContent>
             <TabsContent value="orders"><OrdersTab /></TabsContent>
-            <TabsContent value="purchase-inquiries"><AdminPurchaseInquiries /></TabsContent>
+            <TabsContent value="purchase-inquiries">
+              <div className="space-y-10">
+                <AdminPurchaseInquiries />
+                <AdminSessionRequests />
+              </div>
+            </TabsContent>
             <TabsContent value="settings"><SiteSettingsTab /></TabsContent>
             <TabsContent value="practitioners"><PractitionersTab /></TabsContent>
             <TabsContent value="newsletter"><NewsletterTab /></TabsContent>
