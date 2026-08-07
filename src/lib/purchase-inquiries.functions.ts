@@ -3,12 +3,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { parseFriendly } from "@/lib/zod-friendly";
 import {
   bankTransferDetailsSchema,
+  fulfilInquirySchema,
   purchaseInquiryPatchSchema,
   purchaseInquirySchema,
   sendTransferInstructionsSchema,
   type AdminPurchaseInquiryRow,
   type BankTransferDetails,
 } from "@/lib/purchase-inquiries";
+import { z } from "zod";
 
 // Public: honeypot `website_hp` must be empty; rate limited per e-mail and per IP.
 export const submitPurchaseInquiry = createServerFn({ method: "POST" })
@@ -72,4 +74,32 @@ export const sendTransferInstructionsFn = createServerFn({ method: "POST" })
     );
     await assertPurchaseAdmin(context.supabase, context.userId);
     return sendTransferInstructions(data);
+  });
+
+/** Admin: catalogue (products + bundles with resolved prices) for the selector. */
+export const listFulfilOptions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ book_lang: z.enum(["tr", "en"]).optional().default("tr") }).parse(d ?? {}),
+  )
+  .handler(async ({ context, data }) => {
+    const { assertPurchaseAdmin, fetchFulfilOptions } = await import(
+      "@/lib/purchase-inquiries.server"
+    );
+    await assertPurchaseAdmin(context.supabase, context.userId);
+    return fetchFulfilOptions(data.book_lang);
+  });
+
+/**
+ * Admin: "Ödeme alındı ve hakları tanımla" — grants every component of the
+ * selection, idempotently, and sends one delivery e-mail in the record locale.
+ */
+export const fulfilInquiryFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => fulfilInquirySchema.parse(d))
+  .handler(async ({ context, data }) => {
+    const { assertPurchaseAdmin } = await import("@/lib/purchase-inquiries.server");
+    await assertPurchaseAdmin(context.supabase, context.userId);
+    const { fulfilPurchaseInquiry } = await import("@/lib/inquiry-fulfilment.server");
+    return fulfilPurchaseInquiry(data);
   });
