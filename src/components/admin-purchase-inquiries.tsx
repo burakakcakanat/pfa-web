@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/table";
 import {
   listAdminPurchaseInquiries,
+  listFulfilOptions,
+  fulfilInquiryFn,
   sendTransferInstructionsFn,
   updateAdminPurchaseInquiry,
 } from "@/lib/purchase-inquiries.functions";
@@ -60,7 +62,16 @@ export function AdminPurchaseInquiries() {
   const list = useServerFn(listAdminPurchaseInquiries);
   const update = useServerFn(updateAdminPurchaseInquiry);
   const sendTransfer = useServerFn(sendTransferInstructionsFn);
+  const loadOptions = useServerFn(listFulfilOptions);
+  const fulfil = useServerFn(fulfilInquiryFn);
   const [rows, setRows] = useState<AdminPurchaseInquiryRow[]>([]);
+  const [options, setOptions] = useState<Awaited<ReturnType<typeof listFulfilOptions>> | null>(
+    null,
+  );
+  const [selKind, setSelKind] = useState<"product" | "bundle">("product");
+  const [selSlug, setSelSlug] = useState("");
+  const [selLang, setSelLang] = useState<"tr" | "en">("tr");
+  const [fulfilling, setFulfilling] = useState(false);
   const [statusFilter, setStatusFilter] = useState<PurchaseInquiryStatus | "all">("all");
   const [localeFilter, setLocaleFilter] = useState<"all" | "tr" | "en">("all");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -82,6 +93,12 @@ export function AdminPurchaseInquiries() {
     reload();
   }, [reload]);
 
+  useEffect(() => {
+    loadOptions({ data: { book_lang: "tr" } })
+      .then(setOptions)
+      .catch(() => setOptions(null));
+  }, [loadOptions]);
+
   const visible = useMemo(
     () =>
       rows.filter(
@@ -96,15 +113,64 @@ export function AdminPurchaseInquiries() {
   useEffect(() => {
     setNote(opened?.admin_note ?? "");
     setNotifyPaid(true);
+    const kind = opened?.fulfil_kind ?? "product";
+    setSelKind(kind);
+    setSelSlug(opened?.fulfil_slug ?? opened?.product_slug ?? "");
+    setSelLang(opened?.fulfil_book_lang ?? (opened?.locale === "en" ? "en" : "tr"));
     const prefill =
       opened?.transfer_amount != null
         ? String(opened.transfer_amount)
-        : opened?.catalogue_price_cents != null
-          ? (opened.catalogue_price_cents / 100).toFixed(2)
-          : "";
+        : opened?.selection_price_cents != null && opened.selection_price_cents > 0
+          ? (opened.selection_price_cents / 100).toFixed(2)
+          : opened?.catalogue_price_cents != null
+            ? (opened.catalogue_price_cents / 100).toFixed(2)
+            : "";
     setAmount(prefill);
     setCurrency(opened?.transfer_currency || "TRY");
   }, [openId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const selectionPriceCents = useMemo(() => {
+    if (!options || !selSlug) return null;
+    const pool = selKind === "bundle" ? options.bundles : options.products;
+    return pool.find((o) => o.slug === selSlug)?.price_cents ?? null;
+  }, [options, selKind, selSlug]);
+
+  /** Selecting a product/bundle re-prices the transfer amount. */
+  function pickSelection(kind: "product" | "bundle", slug: string) {
+    setSelKind(kind);
+    setSelSlug(slug);
+    const pool = kind === "bundle" ? options?.bundles : options?.products;
+    const price = pool?.find((o) => o.slug === slug)?.price_cents;
+    if (price != null && price > 0) setAmount((price / 100).toFixed(2));
+  }
+
+  async function onFulfil() {
+    if (!opened || !selSlug) return;
+    setFulfilling(true);
+    try {
+      const res = await fulfil({
+        data: {
+          id: opened.id,
+          fulfil_kind: selKind,
+          fulfil_slug: selSlug,
+          fulfil_book_lang: selLang,
+          notify: true,
+        },
+      });
+      if (res.pending_account) {
+        toast.warning("Hesap bulunamadı — haklar kullanıcı kayıt olunca tanımlanacak.");
+      } else if (res.already > 0 && res.granted.entries.length === res.already) {
+        toast.info("Zaten tanımlıydı — yeni bir hak eklenmedi.");
+      } else {
+        toast.success("Haklar tanımlandı ve teslim e-postası gönderildi.");
+      }
+      reload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Tanımlanamadı");
+    } finally {
+      setFulfilling(false);
+    }
+  }
 
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
