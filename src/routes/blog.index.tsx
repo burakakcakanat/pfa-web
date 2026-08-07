@@ -145,8 +145,8 @@ function BlogPage() {
                 alt=""
                 aria-hidden="true"
                 loading="lazy"
-                className="block h-auto w-full rounded-md object-contain"
-                style={{ filter: "none", mixBlendMode: "normal", backgroundBlendMode: "normal", opacity: 1 }}
+                className="blog-image-ink block h-auto w-full rounded-md object-contain"
+                
               />
             ) : (
               <div aria-hidden="true" className="hidden sm:block" />
