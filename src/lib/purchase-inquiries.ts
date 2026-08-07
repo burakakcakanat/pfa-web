@@ -135,4 +135,12 @@ export type AdminPurchaseInquiryRow = {
   transfer_currency: string | null;
   transfer_sent_at: string | null;
   catalogue_price_cents?: number | null;
+  addon_bundle_slug: string | null;
+  fulfil_kind: "product" | "bundle" | null;
+  fulfil_slug: string | null;
+  fulfil_book_lang: "tr" | "en";
+  granted: GrantedLog | null;
+  fulfilled_at: string | null;
+  /** Resolved price of the current fulfilment selection, in cents. */
+  selection_price_cents?: number | null;
 };
