@@ -92,7 +92,14 @@ function AssessmentPage() {
                 Tam Testi Başlat
               </Link>
             ) : (
-              <BuyButton productSlug="tam-assessment-rapor" label="Tam Ölçeği Satın Al" />
+              <BuyButton
+                productSlug="tam-assessment-rapor"
+                label="Tam Ölçeği Satın Al"
+                inquiry={{
+                  kind: "assessment",
+                  productLabel: "Tam Assessment + Bilinç Seviyesi Raporu",
+                }}
+              />
             )}
           </div>
         </div>

@@ -194,7 +194,11 @@ function BookBlock({
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <BuyButton productSlug={productSlug} label="İmzalı Nüshanı Al" />
+              <BuyButton
+                productSlug={productSlug}
+                label="İmzalı Nüshanı Al"
+                inquiry={{ kind: "ebook", productLabel: `${meta.title} — İsme İmzalı Nüsha` }}
+              />
               <GiftLauncher productSlug={productSlug} productTitle={meta.title} priceLabel={fmtUsd(product.price_cents)} />
             </div>
           </div>
