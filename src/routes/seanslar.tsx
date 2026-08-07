@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import { usePaymentsEnabled } from "@/lib/use-payments-enabled";
 import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 
