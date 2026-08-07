@@ -74,7 +74,7 @@ export function PurchaseInquiryForm({
           const { data: ents } = await supabase
             .from("user_entitlements")
             .select("type")
-            .in("type", o.addon_entitlement_types as string[]);
+            .in("type", o.addon_entitlement_types);
           if ((ents ?? []).length > 0) return;
         }
         if (alive) setOffer(o);
