@@ -113,6 +113,7 @@ import {
 } from "@/lib/admin.functions";
 import {
   listAdminApplications,
+  countNewPractitionerApplications,
   getAdminApplicationFileUrl,
   updateAdminApplication,
   acceptApplicationAsPractitioner,
