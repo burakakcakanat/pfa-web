@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { PRIVACY_COPY } from "@/content/legal";
 import {
   getMyPractitionerState,
   submitPractitionerApplication,
@@ -170,6 +171,8 @@ function ApplicationForm({
   const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const [motivationLen, setMotivationLen] = useState(0);
+  const [kvkkOpen, setKvkkOpen] = useState(false);
+  const [kvkkAccepted, setKvkkAccepted] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -252,13 +255,73 @@ function ApplicationForm({
         />
       </div>
 
-      <label className="flex items-start gap-3 pt-2 text-sm text-foreground/85">
-        <input type="checkbox" name="kvkk_accepted" required className="mt-1 h-4 w-4 accent-primary" />
-        <span>
-          Kişisel verilerimin başvuru değerlendirmesi amacıyla işlenmesini kabul ediyorum.{" "}
-          <Link to="/gizlilik" className="underline underline-offset-4">KVKK aydınlatma metni</Link>
-        </span>
-      </label>
+      <div className="pt-2">
+        <label className="flex items-start gap-3 text-sm text-foreground/85">
+          <input
+            type="checkbox"
+            name="kvkk_accepted"
+            required
+            checked={kvkkAccepted}
+            onChange={(e) => setKvkkAccepted(e.target.checked)}
+            className="mt-1 h-4 w-4 accent-primary"
+          />
+          <span>
+            Kişisel verilerimin başvuru değerlendirmesi amacıyla işlenmesini kabul ediyorum.{" "}
+            <button
+              type="button"
+              onClick={() => setKvkkOpen((v) => !v)}
+              className="underline underline-offset-4 text-accent"
+            >
+              {kvkkOpen ? "KVKK aydınlatma metnini kapat" : "KVKK aydınlatma metnini oku"}
+            </button>
+          </span>
+        </label>
+
+        {kvkkOpen ? (
+          <div className="mt-3 rounded-md border border-border bg-muted/30">
+            <div className="max-h-72 overflow-y-auto px-4 py-4 text-sm leading-relaxed text-foreground/80">
+              <h3 className="font-serif text-lg text-foreground">{PRIVACY_COPY.tr.h1}</h3>
+              <p className="mt-1 text-xs text-muted-foreground">{PRIVACY_COPY.tr.updated}</p>
+              <p className="mt-3">{PRIVACY_COPY.tr.intro}</p>
+              {PRIVACY_COPY.tr.sections.map((s) => (
+                <div key={s.h2} className="mt-4">
+                  <div className="text-sm font-medium text-foreground">{s.h2}</div>
+                  {s.paras.map((p, i) => (
+                    <p key={i} className="mt-1.5">{p}</p>
+                  ))}
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-3 border-t border-border px-4 py-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setKvkkAccepted(true);
+                  setKvkkOpen(false);
+                }}
+                className="inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm text-accent-foreground"
+              >
+                Okudum, onaylıyorum
+              </button>
+              <button
+                type="button"
+                onClick={() => setKvkkOpen(false)}
+                className="text-sm text-muted-foreground underline underline-offset-4"
+              >
+                Forma dön
+              </button>
+              <Link
+                to="/gizlilik"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-auto text-xs text-muted-foreground underline underline-offset-4"
+              >
+                Yeni sekmede aç
+              </Link>
+            </div>
+          </div>
+        ) : null}
+      </div>
 
       {status === "error" && error ? <p className="text-sm text-destructive">{error}</p> : null}
 
