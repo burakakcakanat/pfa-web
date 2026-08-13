@@ -280,12 +280,56 @@ export const updateAdminApplication = createServerFn({ method: "POST" })
     if (data.status !== undefined) patch.status = data.status;
     if (data.admin_note !== undefined) patch.admin_note = data.admin_note;
     if (Object.keys(patch).length === 0) return { ok: true };
+    const { data: before } = await supabaseAdmin
+      .from("practitioner_applications")
+      .select("status, full_name, email")
+      .eq("id", data.id)
+      .maybeSingle();
     const { error } = await supabaseAdmin
       .from("practitioner_applications")
       .update(patch)
       .eq("id", data.id);
     if (error) throw new Error(error.message);
+
+    // Durum 'kabul'e geçtiyse başvurana bilgilendirme (kırılmasın)
+    if (data.status === "kabul" && before && before.status !== "kabul" && before.email) {
+      try {
+        const { sendEmail } = await import("@/lib/email/send.server");
+        const { renderEmail, esc } = await import("@/lib/email/templates");
+        const firstName =
+          String(before.full_name ?? "").trim().split(/\s+/)[0] || String(before.full_name ?? "");
+        await sendEmail({
+          to: before.email,
+          replyTo: "info@psychofunctionalanalysis.com",
+          subject: "Başvurunuz kabul edildi — PFA",
+          html: renderEmail({
+            title: "Başvurunuz kabul edildi",
+            bodyHtml: `
+              <p>Merhaba ${esc(firstName)},</p>
+              <p>Başvurunuz kabul edilmiştir. Sizi sonraki aşamalar için bilgilendireceğiz.</p>
+              <p>Süreci <strong>Hesabım → Uygulayıcı</strong> sekmesinden takip edebilirsiniz.</p>
+              <p>Sevgiyle,<br/>PFA Ekibi</p>`,
+          }),
+        });
+      } catch (e) {
+        console.error("[email] application status acceptance notify failed", e);
+      }
+    }
     return { ok: true };
+  });
+
+// -------- ADMIN: yeni başvuru sayacı (navigasyon bildirimi) --------
+export const countNewPractitionerApplications = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ count: number }> => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { count, error } = await supabaseAdmin
+      .from("practitioner_applications")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "yeni");
+    if (error) throw new Error(error.message);
+    return { count: count ?? 0 };
   });
 
 // -------- KULLANICI DURUMU (Hesabım → Uygulayıcı) --------
