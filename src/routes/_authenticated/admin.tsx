@@ -2977,6 +2977,13 @@ function emptyPractitioner(): Omit<PractitionerRow, "id" | "created_at"> & { id?
 
 function PractitionersTab() {
   const [view, setView] = useState<"list" | "applications" | "inquiries">("list");
+  const countNew = useServerFn(countNewPractitionerApplications);
+  const [newApps, setNewApps] = useState(0);
+  useEffect(() => {
+    countNew()
+      .then((r) => setNewApps((r as { count: number })?.count ?? 0))
+      .catch(() => setNewApps(0));
+  }, [countNew]);
   const [seed, setSeed] = useState<
     (Omit<PractitionerRow, "id" | "created_at"> & { id?: string }) | null
   >(null);
@@ -2996,6 +3003,11 @@ function PractitionersTab() {
           onClick={() => setView("applications")}
         >
           Başvurular
+          {newApps > 0 ? (
+            <span className="ml-2 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1.5 py-0.5 text-[10px] leading-none text-destructive-foreground">
+              {newApps}
+            </span>
+          ) : null}
         </Button>
         <Button
           variant={view === "inquiries" ? "default" : "outline"}
