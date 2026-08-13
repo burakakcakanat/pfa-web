@@ -175,6 +175,13 @@ const fmtDate = (s: string | null) =>
   s ? new Date(s).toLocaleString("tr-TR", { dateStyle: "medium", timeStyle: "short" }) : "—";
 
 function AdminPage() {
+  const countNew = useServerFn(countNewPractitionerApplications);
+  const [newApps, setNewApps] = useState(0);
+  useEffect(() => {
+    countNew()
+      .then((r) => setNewApps((r as { count: number })?.count ?? 0))
+      .catch(() => setNewApps(0));
+  }, [countNew]);
   return (
     <div className="min-h-screen bg-background px-4 py-10 md:px-8">
       <div className="mx-auto max-w-7xl">
@@ -196,7 +203,14 @@ function AdminPage() {
             <TabsTrigger value="orders">Siparişler</TabsTrigger>
             <TabsTrigger value="purchase-inquiries">Satış Talepleri</TabsTrigger>
             <TabsTrigger value="settings">Site Ayarları</TabsTrigger>
-            <TabsTrigger value="practitioners">Uygulayıcılar</TabsTrigger>
+            <TabsTrigger value="practitioners" className="relative">
+              Uygulayıcılar
+              {newApps > 0 ? (
+                <span className="ml-2 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-medium leading-none text-destructive-foreground">
+                  {newApps}
+                </span>
+              ) : null}
+            </TabsTrigger>
             <TabsTrigger value="newsletter">Bülten</TabsTrigger>
             <TabsTrigger value="messages">Mesajlar</TabsTrigger>
             <TabsTrigger value="licenses">Lisans Başvuruları</TabsTrigger>
