@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { PRIVACY_COPY } from "@/content/legal";
