@@ -3466,6 +3466,7 @@ function PractitionerList({
 const APP_STATUS_LABEL: Record<ApplicationStatus, string> = {
   yeni: "Yeni",
   incelemede: "İncelemede",
+  belge_bekleniyor: "Belge bekleniyor",
   gorusme: "Görüşme",
   kabul: "Kabul",
   red: "Red",
