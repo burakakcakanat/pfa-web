@@ -617,9 +617,9 @@ export const acceptApplicationAsPractitioner = createServerFn({ method: "POST" }
             title: "Başvurunuz kabul edildi",
             bodyHtml: `
               <p>Merhaba ${esc(firstName)},</p>
-              <p>PFA Uygulayıcı Programı başvurunuz kabul edildi. Hesabınıza uygulayıcı erişimi tanımlandı.</p>
-              <p>Bunu <strong>Hesabım → Uygulayıcı</strong> sekmesinden görebilirsiniz.</p>
-              <p>Dizindeki uygulayıcı profiliniz hazırlanıyor. Programın kalan aşamaları için sizinle ayrıca iletişime geçeceğiz.</p>
+              <p>PFA Uygulayıcı Programı başvurunuz kabul edildi.</p>
+              <p>Sürecin bir sonraki adımı <strong>PFA-Pro lisansı</strong>dır. Lisans tamamlandığında uygulayıcı paneliniz ve danışan kontenjanınız açılır.</p>
+              <p>Süreci <strong>Hesabım → Uygulayıcı</strong> sekmesinden takip edebilir, lisans adımını oradan başlatabilirsiniz.</p>
               <p>Sevgiyle,<br/>PFA Ekibi</p>`,
           }),
         });
