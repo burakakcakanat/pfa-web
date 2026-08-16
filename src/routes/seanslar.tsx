@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { usePaymentsEnabled } from "@/lib/use-payments-enabled";
+import { BuyButton } from "@/components/buy-button";
 import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 
 export const Route = createFileRoute("/seanslar")({
@@ -46,7 +46,6 @@ export const Route = createFileRoute("/seanslar")({
 });
 
 function SessionsPage() {
-  const paymentsEnabled = usePaymentsEnabled();
 
   return (
     <div className="container-page py-20">
@@ -78,22 +77,20 @@ function SessionsPage() {
                 form (SessionSlotPicker) — no competing date widget above it.
                 Slots come from admin-managed availability; the selection is a
                 preference, confirmation comes from Burak by e-mail. */}
+            {/* Seans artık kartlı ödeme ile satılır; havale akışı yalnızca
+                uygulayıcı lisansında kaldı. Tercih edilen gün/saat ödemeden
+                sonra e-posta ile netleşir. */}
             <div className="grid gap-3">
               <div className="text-xs tracking-[0.25em] text-muted-foreground">
-                RANDEVU TALEBİ
+                SATIN AL
               </div>
               <p className="text-sm leading-relaxed text-foreground/75">
-                Formda tercih ettiğiniz gün ve saati seçin; talebinizi aldıktan sonra
-                {paymentsEnabled ? " ödeme ve randevu adımlarını" : " randevu ve ödeme adımlarını"}{" "}
-                e-posta ile birlikte netleştiriyoruz.
+                Oturumu buradan satın alın; ardından tercih ettiğiniz gün ve saati
+                Hesabım → Seanslarım bölümünden seçebilirsiniz.
               </p>
-              <PurchaseInquiryForm
-                kind="session"
-                productSlug="danismanlik-oturumu"
-                productLabel="Birebir Danışmanlık Oturumu (60 dk)"
-                askSlot
-                buttonLabel="Randevu Talebi"
-              />
+              <div>
+                <BuyButton productSlug="danismanlik-oturumu" label="Oturumu Satın Al" />
+              </div>
             </div>
           </div>
         </div>

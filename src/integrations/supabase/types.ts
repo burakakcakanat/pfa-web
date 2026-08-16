@@ -860,6 +860,8 @@ export type Database = {
           is_test: boolean
           metadata: Json
           product_id: string | null
+          provider: string | null
+          provider_ref: string | null
           status: Database["public"]["Enums"]["order_status"]
           stripe_session_id: string | null
           updated_at: string
@@ -874,6 +876,8 @@ export type Database = {
           is_test?: boolean
           metadata?: Json
           product_id?: string | null
+          provider?: string | null
+          provider_ref?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_session_id?: string | null
           updated_at?: string
@@ -888,6 +892,8 @@ export type Database = {
           is_test?: boolean
           metadata?: Json
           product_id?: string | null
+          provider?: string | null
+          provider_ref?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_session_id?: string | null
           updated_at?: string
@@ -1192,6 +1198,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      product_prices: {
+        Row: {
+          active: boolean
+          created_at: string
+          currency: string
+          price_cents: number
+          product_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          currency: string
+          price_cents?: number
+          product_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          currency?: string
+          price_cents?: number
+          product_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_prices_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {

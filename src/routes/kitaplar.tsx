@@ -3,9 +3,17 @@ import { useServerFn } from "@tanstack/react-start";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense, useMemo, useState } from "react";
 import { ClipboardList, MessagesSquare, Plus } from "lucide-react";
-import { BuyButton } from "@/components/buy-button";
-import { usePaymentsEnabled } from "@/lib/use-payments-enabled";
+import { CheckoutPanel } from "@/components/checkout-panel";
 import { GiftModal } from "@/components/gift-modal";
+import { PAYMENTS_LIVE } from "@/lib/payments-config";
+import {
+  addonSlugsForBook,
+  fmtMoney,
+  guessBrowserCurrency,
+  priceFor,
+  type BundleShape,
+  type Currency,
+} from "@/lib/pricing";
 import { getBooksData, type BooksPayload } from "@/lib/books.functions";
 import {
   amazonUrlFor,
@@ -113,6 +121,26 @@ function BooksPage() {
 
 function BooksContent() {
   const { data } = useSuspenseQuery(booksQuery());
+  const [currency] = useState<Currency>(() => guessBrowserCurrency());
+  const addonLabels = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const p of data.products) m[p.slug] = p.name_tr;
+    return m;
+  }, [data.products]);
+  const bundleShapes = useMemo<BundleShape[]>(
+    () =>
+      data.bundles.map((b) => ({
+        slug: b.slug,
+        name_tr: b.name_tr,
+        book_key: b.book_key,
+        includes_book: b.includes_book,
+        discount_percent: b.discount_percent,
+        active: b.active,
+        activate_at: b.activate_at ?? null,
+        items: b.items.map((i) => ({ product_slug: i.product_slug, quantity: i.quantity ?? 1 })),
+      })),
+    [data.bundles],
+  );
   const productBySlug = useMemo(() => {
     const m = new Map<string, BooksPayload["products"][number]>();
     for (const p of data.products) m.set(p.slug, p);
@@ -121,10 +149,29 @@ function BooksContent() {
 
   return (
     <div className="mt-16 space-y-24">
-      <BookBlock meta={PFA_TR_META} lang="tr" data={data} productBySlug={productBySlug} />
-      <BookBlock meta={PFA_META} lang="en" data={data} productBySlug={productBySlug} />
-      <BookBlock meta={HCD_META} lang="en" data={data} productBySlug={productBySlug} />
-      <BundlesSection data={data} productBySlug={productBySlug} />
+      {([
+        [PFA_TR_META, "tr"],
+        [PFA_META, "en"],
+        [HCD_META, "en"],
+      ] as const).map(([meta, lang]) => (
+        <BookBlock
+          key={`${meta.key}-${lang}`}
+          meta={meta}
+          lang={lang}
+          data={data}
+          productBySlug={productBySlug}
+          currency={currency}
+          addonLabels={addonLabels}
+          bundleShapes={bundleShapes}
+        />
+      ))}
+      <BundlesSection
+        data={data}
+        productBySlug={productBySlug}
+        currency={currency}
+        addonLabels={addonLabels}
+        bundleShapes={bundleShapes}
+      />
     </div>
   );
 }
@@ -134,11 +181,17 @@ function BookBlock({
   lang,
   data,
   productBySlug,
+  currency,
+  addonLabels,
+  bundleShapes,
 }: {
   meta: typeof PFA_META | typeof PFA_TR_META | typeof HCD_META;
   lang: "tr" | "en";
   data: BooksPayload;
   productBySlug: Map<string, BooksPayload["products"][number]>;
+  currency: Currency;
+  addonLabels: Record<string, string>;
+  bundleShapes: BundleShape[];
 }) {
   const productSlug = bookSlugFor(meta.key, lang);
   const product = productBySlug.get(productSlug);
@@ -152,6 +205,13 @@ function BookBlock({
   const paperback = editions.find((e) => e.format === "paperback" && e.active && e.asin);
   const googlePlayRow = editions.find((e) => e.format === "google_play");
   const showGooglePlay = meta.key === "pfa" && lang === "tr";
+
+  const resolvedPrice = priceFor(data.prices, productSlug, currency);
+  const priceLabel = resolvedPrice
+    ? fmtMoney(resolvedPrice.cents, resolvedPrice.currency)
+    : product
+      ? fmtUsd(product.price_cents)
+      : "";
 
   const cover = product?.cover_image_url || meta.covers[lang] || meta.covers.en || "";
   const langLabel = lang === "tr" ? "Türkçe" : "English";
@@ -189,17 +249,28 @@ function BookBlock({
             </div>
 
             <div className="mt-4 flex flex-wrap items-baseline gap-3">
-              <div className="font-serif text-2xl text-primary">{fmtUsd(product.price_cents)}</div>
-              <div className="text-xs text-muted-foreground">PDF ve EPUB formatlarının ikisi birden.</div>
+              <div className="font-serif text-2xl text-primary">{priceLabel}</div>
+              <div className="text-xs text-muted-foreground">
+                PDF ve EPUB formatlarının ikisi birden · İsme imzalı nüsha
+              </div>
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <BuyButton
+              <BookBuyLauncher
                 productSlug={productSlug}
-                label="İmzalı Nüshanı Al"
-                inquiry={{ kind: "ebook", productLabel: `${meta.title} — İsme İmzalı Nüsha` }}
+                productTitle={meta.title}
+                bookKey={meta.key}
+                currency={currency}
+                prices={data.prices}
+                bundles={bundleShapes}
+                addonLabels={addonLabels}
               />
-              <GiftLauncher productSlug={productSlug} productTitle={meta.title} priceLabel={fmtUsd(product.price_cents)} />
+              <GiftLauncher
+                productSlug={productSlug}
+                productTitle={meta.title}
+                priceLabel={priceLabel}
+                currency={currency}
+              />
             </div>
           </div>
         )}
@@ -291,10 +362,64 @@ function AmazonRow({ label, edition }: { label: string; edition: BooksPayload["e
   );
 }
 
-function GiftLauncher({ productSlug, productTitle, priceLabel }: { productSlug: string; productTitle: string; priceLabel: string }) {
+function BookBuyLauncher(props: {
+  productSlug: string;
+  productTitle: string;
+  bookKey: string;
+  currency: Currency;
+  prices: BooksPayload["prices"];
+  bundles: BundleShape[];
+  addonLabels: Record<string, string>;
+  label?: string;
+  initialAddons?: string[];
+}) {
   const [open, setOpen] = useState(false);
-  const paymentsEnabled = usePaymentsEnabled();
-  if (!paymentsEnabled) {
+  if (!PAYMENTS_LIVE) {
+    return (
+      <button
+        type="button"
+        disabled
+        aria-disabled="true"
+        className="btn-primary cursor-not-allowed opacity-50"
+      >
+        Çok Yakında
+      </button>
+    );
+  }
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="btn-primary hover:btn-primary-hover">
+        {props.label ?? "İmzalı Nüshanı Al"}
+      </button>
+      <CheckoutPanel
+        open={open}
+        onClose={() => setOpen(false)}
+        productSlug={props.productSlug}
+        productTitle={props.productTitle}
+        bookKey={props.bookKey}
+        currency={props.currency}
+        prices={props.prices}
+        bundles={props.bundles}
+        addonLabels={props.addonLabels}
+        {...(props.initialAddons ? { initialAddons: props.initialAddons } : {})}
+      />
+    </>
+  );
+}
+
+function GiftLauncher({
+  productSlug,
+  productTitle,
+  priceLabel,
+  currency,
+}: {
+  productSlug: string;
+  productTitle: string;
+  priceLabel: string;
+  currency: Currency;
+}) {
+  const [open, setOpen] = useState(false);
+  if (!PAYMENTS_LIVE) {
     return (
       <span className="cursor-not-allowed text-xs text-muted-foreground/70">
         Hediye Et · yakında
@@ -310,7 +435,14 @@ function GiftLauncher({ productSlug, productTitle, priceLabel }: { productSlug: 
       >
         Hediye Et →
       </button>
-      <GiftModal productSlug={productSlug} productTitle={productTitle} priceLabel={priceLabel} open={open} onClose={() => setOpen(false)} />
+      <GiftModal
+        productSlug={productSlug}
+        productTitle={productTitle}
+        priceLabel={priceLabel}
+        currency={currency}
+        open={open}
+        onClose={() => setOpen(false)}
+      />
     </>
   );
 }
@@ -319,9 +451,15 @@ function GiftLauncher({ productSlug, productTitle, priceLabel }: { productSlug: 
 function BundlesSection({
   data,
   productBySlug,
+  currency,
+  addonLabels,
+  bundleShapes,
 }: {
   data: BooksPayload;
   productBySlug: Map<string, BooksPayload["products"][number]>;
+  currency: Currency;
+  addonLabels: Record<string, string>;
+  bundleShapes: BundleShape[];
 }) {
   // NOT: HCD paketleri (hcd-seans-kitap vb.) activate_at = 2026-10-23 nedeniyle
   // burada görünmez. Bu bilinçli bir zamanlama; değiştirmeyin.
@@ -346,7 +484,16 @@ function BundlesSection({
 
       <div className="mt-12 space-y-8">
         {liveBundles.map((b) => (
-          <BundleRow key={b.id} bundle={b} priceMap={priceMap} productBySlug={productBySlug} />
+          <BundleRow
+            key={b.id}
+            bundle={b}
+            priceMap={priceMap}
+            productBySlug={productBySlug}
+            currency={currency}
+            prices={data.prices}
+            addonLabels={addonLabels}
+            bundleShapes={bundleShapes}
+          />
         ))}
       </div>
     </section>
@@ -357,10 +504,18 @@ function BundleRow({
   bundle,
   priceMap,
   productBySlug,
+  currency,
+  prices,
+  addonLabels,
+  bundleShapes,
 }: {
   bundle: BooksPayload["bundles"][number];
   priceMap: Record<string, number>;
   productBySlug: Map<string, BooksPayload["products"][number]>;
+  currency: Currency;
+  prices: BooksPayload["prices"];
+  addonLabels: Record<string, string>;
+  bundleShapes: BundleShape[];
 }) {
   const [lang, setLang] = useState<"tr" | "en">(bundle.book_key === "hcd" ? "en" : "tr");
   const price = resolveBundlePrice(
@@ -376,6 +531,30 @@ function BundleRow({
     priceMap,
     lang,
   );
+
+  // Para birimi duyarlı paket fiyatı: liste toplamı − discount_percent.
+  // price_override_cents bilinçli olarak yok sayılır (tek para birimi varsayar).
+  const bundleSlugs = [
+    ...(bundle.includes_book ? [bookSlugFor(bundle.book_key, lang)] : []),
+    ...bundle.items.map((i) => i.product_slug),
+  ];
+  let ccy: Currency = currency;
+  let subtotal = 0;
+  let priced = true;
+  for (const s of bundleSlugs) {
+    const p = priceFor(prices, s, ccy);
+    if (!p) { priced = false; break; }
+    if (p.currency !== ccy) ccy = "usd";
+    subtotal += p.cents;
+  }
+  if (priced && ccy !== currency) {
+    subtotal = bundleSlugs.reduce((sum, s) => sum + (priceFor(prices, s, ccy)?.cents ?? 0), 0);
+  }
+  const bundleTotal = Math.max(
+    0,
+    subtotal - Math.round((subtotal * Math.max(0, Math.min(100, bundle.discount_percent || 0))) / 100),
+  );
+  const bundlePriceLabel = priced ? fmtMoney(bundleTotal, ccy) : fmtUsd(price);
 
   const hasSession = bundle.items.some((i) => i.product_slug === "danismanlik-oturumu");
   const hasAssessment = bundle.items.some((i) => i.product_slug === "tam-assessment-rapor");
@@ -442,7 +621,7 @@ function BundleRow({
           )}
 
           <div className="mt-6 flex flex-wrap items-baseline gap-4">
-            <div className="font-serif text-3xl text-primary">{fmtUsd(price)}</div>
+            <div className="font-serif text-3xl text-primary">{bundlePriceLabel}</div>
           </div>
           {hasSession && (
             <p className="mt-2 text-xs text-muted-foreground">
@@ -451,10 +630,18 @@ function BundleRow({
           )}
 
           <div className="mt-5">
-            <BuyButton
-              bundleSlug={bundle.slug}
-              bookLang={bundle.includes_book && bundle.book_key === "pfa" ? lang : undefined}
+            <BookBuyLauncher
+              productSlug={bookSlugFor(bundle.book_key, lang)}
+              productTitle={bundle.name_tr}
+              bookKey={bundle.book_key}
+              currency={currency}
+              prices={prices}
+              bundles={bundleShapes}
+              addonLabels={addonLabels}
               label="Satın Al"
+              initialAddons={bundle.items
+                .map((i) => i.product_slug)
+                .filter((s) => addonSlugsForBook(bundleShapes, bundle.book_key).includes(s))}
             />
           </div>
         </div>

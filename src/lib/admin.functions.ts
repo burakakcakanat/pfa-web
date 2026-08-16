@@ -138,6 +138,55 @@ export const updateAdminProduct = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// Çok para birimli fiyatlar (product_prices). USD/TRY ayrı satırlardır;
+// TRY satırı yoksa o ürün için TRY checkout açılmaz.
+export const listAdminProductPrices = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data, error } = await context.supabase
+      .from("product_prices")
+      .select("product_id, currency, price_cents, active");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const setAdminProductPrice = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        product_id: z.string().uuid(),
+        currency: z.enum(["usd", "try"]),
+        price_cents: z.number().int().min(0).nullable(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    if (data.price_cents === null) {
+      const { error } = await context.supabase
+        .from("product_prices")
+        .delete()
+        .eq("product_id", data.product_id)
+        .eq("currency", data.currency);
+      if (error) throw new Error(error.message);
+      return { ok: true };
+    }
+    const { error } = await context.supabase.from("product_prices").upsert(
+      {
+        product_id: data.product_id,
+        currency: data.currency,
+        price_cents: data.price_cents,
+        active: true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "product_id,currency" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 // -------- PRODUCT ASSET UPLOADS --------
 // Kapak görseli: blog-images (private) bucket'ta covers/ prefix'i altında saklanır;
 // public bucket engelli olduğu için uzun ömürlü signed URL üretilir.
@@ -1593,6 +1642,7 @@ export const createTestOrder = createServerFn({ method: "POST" })
         amount_cents: amount,
         currency,
         is_test: true,
+        provider: "test",
         metadata: { test: true, book_lang: data.book_lang ?? "tr" },
       })
       .select("id")
