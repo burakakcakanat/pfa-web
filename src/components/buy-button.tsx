@@ -1,25 +1,21 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { createCheckout } from "@/lib/checkout.functions";
-import { usePaymentsEnabled } from "@/lib/use-payments-enabled";
+import { startCheckout } from "@/lib/checkout.functions";
+import { PAYMENTS_LIVE, BANK_TRANSFER_ONLY_SLUG } from "@/lib/payments-config";
+import { guessBrowserCurrency } from "@/lib/pricing";
 import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 import type { PurchaseInquiryKind } from "@/lib/purchase-inquiries";
 
 type Props = {
-  productSlug?: string;
-  bundleSlug?: string;
-  bookLang?: "tr" | "en";
+  productSlug: string;
   label?: string;
   className?: string;
   locale?: "tr" | "en";
-  gift?: { recipient_name: string; recipient_email: string; gift_note?: string | null } | null;
   /**
-   * Non-Paddle (havale) sales channel. When set and payments are disabled, the
-   * button opens an inline enquiry form instead of showing "Yakında".
-   * Only for products sold outside Paddle (sessions, live webinars, licences).
+   * Havale (purchase_inquiries) akışı. YALNIZCA uygulayıcı lisansı
+   * (`pfa-pro-lisans-paketi`) için geçerlidir; diğer ürünlerde kartlı ödeme.
    */
   inquiry?: {
     kind: PurchaseInquiryKind;
@@ -31,12 +27,20 @@ type Props = {
   onSuccess?: () => void;
 };
 
-export function BuyButton({ productSlug, bundleSlug, bookLang, label = "Satın Al", className, locale = "tr", gift, inquiry, onSuccess }: Props) {
-  const doCheckout = useServerFn(createCheckout);
+export function BuyButton({
+  productSlug,
+  label = "Satın Al",
+  className,
+  locale = "tr",
+  inquiry,
+  onSuccess,
+}: Props) {
+  const doCheckout = useServerFn(startCheckout);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const paymentsEnabled = usePaymentsEnabled();
+
+  const bankTransferOnly = productSlug === BANK_TRANSFER_ONLY_SLUG;
 
   async function onClick() {
     setError(null);
@@ -49,11 +53,9 @@ export function BuyButton({ productSlug, bundleSlug, bookLang, label = "Satın A
       }
       const res = await doCheckout({
         data: {
-          ...(productSlug ? { product_slug: productSlug } : {}),
-          ...(bundleSlug ? { bundle_slug: bundleSlug } : {}),
-          ...(bookLang ? { book_lang: bookLang } : {}),
+          product_slug: productSlug,
+          currency: guessBrowserCurrency(),
           origin: window.location.origin,
-          ...(gift ? { gift } : {}),
         },
       });
       if (res?.url) {
@@ -67,51 +69,30 @@ export function BuyButton({ productSlug, bundleSlug, bookLang, label = "Satın A
     }
   }
 
-  if (!paymentsEnabled) {
-    // Products sold outside Paddle stay sellable today via enquiry + bank transfer.
-    if (inquiry && locale === "tr") {
-      return (
-        <PurchaseInquiryForm
-          kind={inquiry.kind}
-          productSlug={productSlug ?? bundleSlug ?? "bilinmeyen"}
-          productLabel={inquiry.productLabel}
-          {...(inquiry.askSlot ? { askSlot: true } : {})}
-          {...(inquiry.slotDefault ? { slotDefault: inquiry.slotDefault } : {})}
-          {...(inquiry.buttonLabel ? { buttonLabel: inquiry.buttonLabel } : {})}
-        />
-      );
-    }
+  // Havale yalnızca uygulayıcı lisansında kalır.
+  if (bankTransferOnly && inquiry) {
     return (
-      <div className="flex flex-col items-start gap-2">
-        <button
-          type="button"
-          disabled
-          aria-disabled="true"
-          className={`${className ?? "btn-primary"} cursor-not-allowed opacity-50`}
-        >
-          {locale === "en" ? "Coming soon" : "Yakında"}
-        </button>
-        {locale === "en" ? (
-          <span className="max-w-xs text-xs leading-relaxed text-muted-foreground">
-            Online purchasing opens shortly. Until then you can write to us at{" "}
-            <a
-              href="mailto:info@psychofunctionalanalysis.com"
-              className="underline underline-offset-4 hover:text-foreground"
-            >
-              info@psychofunctionalanalysis.com
-            </a>
-            .
-          </span>
-        ) : (
-        <span className="max-w-xs text-xs leading-relaxed text-muted-foreground">
-          Online satın alma yakında açılıyor. O zamana kadar{" "}
-          <Link to="/iletisim" className="underline underline-offset-4 hover:text-foreground">
-            iletişim
-          </Link>{" "}
-          sayfasından bize yazabilirsiniz.
-        </span>
-        )}
-      </div>
+      <PurchaseInquiryForm
+        kind={inquiry.kind}
+        productSlug={productSlug}
+        productLabel={inquiry.productLabel}
+        {...(inquiry.askSlot ? { askSlot: true } : {})}
+        {...(inquiry.slotDefault ? { slotDefault: inquiry.slotDefault } : {})}
+        {...(inquiry.buttonLabel ? { buttonLabel: inquiry.buttonLabel } : {})}
+      />
+    );
+  }
+
+  if (!PAYMENTS_LIVE) {
+    return (
+      <button
+        type="button"
+        disabled
+        aria-disabled="true"
+        className={`${className ?? "btn-primary"} cursor-not-allowed opacity-50`}
+      >
+        {locale === "en" ? "Coming soon" : "Çok Yakında"}
+      </button>
     );
   }
 

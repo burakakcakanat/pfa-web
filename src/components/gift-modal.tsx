@@ -1,18 +1,32 @@
 import { useState } from "react";
-import { BuyButton } from "./buy-button";
+import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
+import { startCheckout } from "@/lib/checkout.functions";
+import { PAYMENTS_LIVE } from "@/lib/payments-config";
+import type { Currency } from "@/lib/pricing";
 
 type Props = {
   productSlug: string;
   productTitle: string;
   priceLabel: string;
+  currency: Currency;
   open: boolean;
   onClose: () => void;
 };
 
-export function GiftModal({ productSlug, productTitle, priceLabel, open, onClose }: Props) {
+/**
+ * Hediye akışı bilinçli olarak sade: ek ürün seçimi YOKTUR.
+ * handle_bundle_paid hediyeyi desteklemediği için hediye her zaman tekil
+ * kitap siparişi olarak gider (metadata.is_gift = true).
+ */
+export function GiftModal({ productSlug, productTitle, priceLabel, currency, open, onClose }: Props) {
+  const go = useServerFn(startCheckout);
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   if (!open) return null;
@@ -24,15 +38,45 @@ export function GiftModal({ productSlug, productTitle, priceLabel, open, onClose
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail) &&
     note.length <= 200;
 
+  async function pay() {
+    setErr(null);
+    setBusy(true);
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) {
+        navigate({ to: "/auth", search: { redirect: window.location.pathname } });
+        return;
+      }
+      const res = await go({
+        data: {
+          product_slug: productSlug,
+          currency,
+          origin: window.location.origin,
+          gift: {
+            recipient_name: trimmedName,
+            recipient_email: trimmedEmail,
+            gift_note: note.trim() || null,
+          },
+        },
+      });
+      if (res?.url) window.location.href = res.url;
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Bir hata oluştu.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/50 p-4 py-10">
       <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-lg">
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="text-xs tracking-[0.3em] text-accent">HEDİYE ET</div>
             <h3 className="mt-2 font-serif text-2xl leading-tight">{productTitle}</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Alıcı adına imzalı bir nüsha hazırlanır ve claim bağlantısı size verilir.
+              Alıcı adına imzalı bir nüsha hazırlanır; hediye tek kitap olarak gider,
+              ek ürün eklenmez.
             </p>
           </div>
           <button
@@ -55,6 +99,9 @@ export function GiftModal({ productSlug, productTitle, priceLabel, open, onClose
               className="w-full rounded-md border border-border bg-background px-3 py-2"
               placeholder="Ör: Ayşe Yılmaz"
             />
+            <span className="mt-1 block text-[0.7rem] text-muted-foreground">
+              Bu isim kitabın ithaf sayfasına imza olarak işlenir; lütfen yazımını kontrol edin.
+            </span>
           </label>
           <label className="block">
             <span className="mb-1 block text-foreground/80">Alıcının e-postası</span>
@@ -83,10 +130,14 @@ export function GiftModal({ productSlug, productTitle, priceLabel, open, onClose
             </span>
           </label>
 
+          <div className="flex items-baseline justify-between border-t border-border pt-3 font-serif text-lg">
+            <span>Toplam</span>
+            <span className="text-primary">{priceLabel}</span>
+          </div>
+
           <div className="rounded-md border border-border/60 bg-muted/40 p-3 text-xs text-muted-foreground">
             Ödeme tamamlanınca <strong className="text-foreground/80">Hesabım → Satın Alımlarım</strong>{" "}
             bölümünde alıcı için özel bir <em>claim bağlantısı</em> göreceksiniz — bunu alıcıya iletebilirsiniz.
-            (Otomatik e-posta gönderimi henüz aktif değil.)
           </div>
 
           {err && <div className="text-destructive">{err}</div>}
@@ -99,27 +150,14 @@ export function GiftModal({ productSlug, productTitle, priceLabel, open, onClose
             >
               Vazgeç
             </button>
-            {valid ? (
-              <BuyButton
-                productSlug={productSlug}
-                label={`Hediye Et (${priceLabel})`}
-                gift={{
-                  recipient_name: trimmedName,
-                  recipient_email: trimmedEmail,
-                  gift_note: note.trim() || null,
-                }}
-                onSuccess={() => setErr(null)}
-              />
-            ) : (
-              <button
-                type="button"
-                disabled
-                className="btn-primary opacity-50"
-                onClick={() => setErr("Ad ve geçerli bir e-posta gerekli.")}
-              >
-                Hediye Et ({priceLabel})
-              </button>
-            )}
+            <button
+              type="button"
+              disabled={!valid || busy || !PAYMENTS_LIVE}
+              onClick={pay}
+              className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {PAYMENTS_LIVE ? (busy ? "…" : `Hediye Et (${priceLabel})`) : "Çok Yakında"}
+            </button>
           </div>
         </div>
       </div>

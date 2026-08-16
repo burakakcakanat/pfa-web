@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import type { Currency, CurrencyPriceMap } from "@/lib/pricing";
 
 function makePublicClient() {
   const url = process.env.SUPABASE_URL!;
@@ -30,6 +31,8 @@ export type BooksPayload = {
     language: string;
     cover_image_url: string | null;
   }>;
+  /** slug → { usd, try } — yeni kod fiyatı buradan okur. */
+  prices: CurrencyPriceMap;
   editions: Array<{
     id: string;
     book_key: string;
@@ -64,11 +67,12 @@ export const getBooksData = createServerFn({ method: "GET" }).handler(async (): 
   const sb = makePublicClient();
   const nowIso = new Date().toISOString();
 
-  const [prodRes, edRes, bundleRes, bundleItemsRes] = await Promise.all([
-    sb.from("products").select("slug, name_tr, price_cents, currency, active, activate_at, book_key, language, cover_image_url"),
+  const [prodRes, edRes, bundleRes, bundleItemsRes, priceRes] = await Promise.all([
+    sb.from("products").select("id, slug, name_tr, price_cents, currency, active, activate_at, book_key, language, cover_image_url"),
     sb.from("book_editions").select("id, book_key, format, language, asin, external_url, marketplaces, overrides, active, sort_order").order("sort_order"),
     sb.from("bundles").select("id, slug, name_tr, description_tr, book_key, includes_book, pricing_mode, locked_to_product_slug, discount_percent, price_override_cents, active, activate_at, sort_order").order("sort_order"),
     sb.from("bundle_items").select("bundle_id, product_slug, quantity"),
+    sb.from("product_prices").select("product_id, currency, price_cents, active"),
   ]);
 
   const itemsByBundle = new Map<string, Array<{ product_slug: string; quantity: number }>>();
@@ -78,8 +82,18 @@ export const getBooksData = createServerFn({ method: "GET" }).handler(async (): 
     itemsByBundle.set(it.bundle_id, arr);
   }
 
+  const slugById = new Map<string, string>((prodRes.data ?? []).map((p) => [p.id, p.slug]));
+  const prices: CurrencyPriceMap = {};
+  for (const r of priceRes.data ?? []) {
+    if (!r.active) continue;
+    const slug = slugById.get(r.product_id);
+    if (!slug) continue;
+    prices[slug] = { ...(prices[slug] ?? {}), [r.currency as Currency]: r.price_cents };
+  }
+
   return {
-    products: (prodRes.data ?? []).map((p) => ({ ...p, activate_at: p.activate_at ?? null })),
+    prices,
+    products: (prodRes.data ?? []).map(({ id: _id, ...p }) => ({ ...p, activate_at: p.activate_at ?? null })),
     editions: (edRes.data ?? []).map((e) => ({
       ...e,
       format: e.format as "kindle" | "paperback" | "google_play",
