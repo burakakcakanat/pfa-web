@@ -638,7 +638,7 @@ function ProductsTab() {
                 <Label>Fiyat — TRY</Label>
                 <PriceInput
                   cents={prices[p.id]?.try ?? 0}
-                  onCommit={(cents) => commitPrice(p.id, "try", cents > 0 ? cents : null)}
+                  onCommit={(cents) => commitPrice(p.id, "try", (cents ?? 0) > 0 ? cents : null)}
                 />
                 <p className="mt-1 text-[0.7rem] text-muted-foreground">
                   0 bırakılırsa TRY ile satış açılmaz (USD'ye düşer).
