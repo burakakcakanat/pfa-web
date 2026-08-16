@@ -376,35 +376,78 @@ export const countNewPractitionerApplications = createServerFn({ method: "GET" }
 // -------- KULLANICI DURUMU (Hesabım → Uygulayıcı) --------
 export type MyPractitionerState = {
   isPro: boolean;
+  /** Tek yetki kaynağı: pfa_pro entitlement (satın alma ile verilir). */
+  hasProEntitlement: boolean;
+  certificateStatus: "pending" | "issued" | "revoked" | null;
+  directoryPublished: boolean;
+  /** Açık (henüz tamamlanmamış) PFA-Pro lisans satın alma talebi. */
+  licenseInquiry: { status: string; created_at: string } | null;
   application: {
     id: string;
     status: ApplicationStatus;
     category: PractitionerCategory;
+    admin_note: string | null;
     created_at: string;
   } | null;
   practitioner: { id: string; published: boolean } | null;
   profile: { full_name: string | null; email: string | null };
 };
 
+export const PRO_LICENSE_SLUG = "pfa-pro-lisans-paketi";
+
 export const getMyPractitionerState = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<MyPractitionerState> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const uid = context.userId;
-    const [appRes, practRes, rolesRes, profRes] = await Promise.all([
+    const [appRes, practRes, rolesRes, profRes, entRes] = await Promise.all([
       supabaseAdmin
         .from("practitioner_applications")
-        .select("id, status, category, created_at")
+        .select("id, status, category, admin_note, created_at")
         .eq("user_id", uid)
         .order("created_at", { ascending: false })
         .limit(1),
       supabaseAdmin.from("practitioners").select("id, published").eq("user_id", uid).maybeSingle(),
       supabaseAdmin.from("user_roles").select("role").eq("user_id", uid),
       supabaseAdmin.from("profiles").select("full_name, email").eq("id", uid).maybeSingle(),
+      supabaseAdmin
+        .from("user_entitlements")
+        .select("id, metadata, created_at")
+        .eq("user_id", uid)
+        .eq("type", "pfa_pro")
+        .order("created_at", { ascending: false }),
     ]);
     const roles = ((rolesRes.data ?? []) as Array<{ role: string }>).map((r) => r.role);
+    const ents = (entRes.data ?? []) as Array<{ metadata: Record<string, unknown> | null }>;
+    const hasProEntitlement = ents.length > 0;
+    const rawCert = String((ents[0]?.metadata as any)?.certificate_status ?? "");
+    const certificateStatus =
+      rawCert === "pending" || rawCert === "issued" || rawCert === "revoked" ? rawCert : null;
+
+    const email = String(
+      profRes.data?.email ?? (context.claims as { email?: string } | null)?.email ?? "",
+    )
+      .trim()
+      .toLowerCase();
+    let licenseInquiry: MyPractitionerState["licenseInquiry"] = null;
+    if (email && !hasProEntitlement) {
+      const { data: inq } = await supabaseAdmin
+        .from("purchase_inquiries")
+        .select("status, created_at")
+        .eq("email", email)
+        .eq("product_slug", PRO_LICENSE_SLUG)
+        .not("status", "in", "(closed,fulfilled)")
+        .order("created_at", { ascending: false })
+        .limit(1);
+      licenseInquiry = (inq?.[0] ?? null) as MyPractitionerState["licenseInquiry"];
+    }
+
     return {
       isPro: roles.includes("pro") || roles.includes("admin"),
+      hasProEntitlement,
+      certificateStatus,
+      directoryPublished: Boolean(practRes.data?.published),
+      licenseInquiry,
       application: (appRes.data?.[0] ?? null) as MyPractitionerState["application"],
       practitioner: (practRes.data ?? null) as MyPractitionerState["practitioner"],
       profile: {
@@ -412,6 +455,69 @@ export const getMyPractitionerState = createServerFn({ method: "GET" })
         email: profRes.data?.email ?? (context.claims as { email?: string } | null)?.email ?? null,
       },
     };
+  });
+
+/**
+ * 5. adım — PFA-Pro lisansı için havale/satın alma talebi oluşturur.
+ * Ödeme sağlayıcısı henüz bağlı olmadığı için mevcut purchase_inquiries rayını kullanır.
+ */
+export const requestProLicense = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const uid = context.userId;
+    const { data: prof } = await supabaseAdmin
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", uid)
+      .maybeSingle();
+    const email = String(
+      prof?.email ?? (context.claims as { email?: string } | null)?.email ?? "",
+    )
+      .trim()
+      .toLowerCase();
+    if (!email) throw new Error("Hesabınızda kayıtlı e-posta bulunamadı.");
+
+    const { data: ent } = await supabaseAdmin
+      .from("user_entitlements")
+      .select("id")
+      .eq("user_id", uid)
+      .eq("type", "pfa_pro")
+      .limit(1);
+    if (ent && ent.length > 0) throw new Error("Lisansınız zaten tanımlı.");
+
+    const { data: open } = await supabaseAdmin
+      .from("purchase_inquiries")
+      .select("id")
+      .eq("email", email)
+      .eq("product_slug", PRO_LICENSE_SLUG)
+      .not("status", "in", "(closed,fulfilled)")
+      .limit(1);
+    if (open && open.length > 0) return { ok: true, already: true };
+
+    const { data: app } = await supabaseAdmin
+      .from("practitioner_applications")
+      .select("full_name, phone")
+      .eq("user_id", uid)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    const { createPurchaseInquiry } = await import("@/lib/purchase-inquiries.server");
+    await createPurchaseInquiry({
+      kind: "pro_license",
+      product_slug: PRO_LICENSE_SLUG,
+      product_label: "PFA-Pro Lisans Paketi",
+      full_name: prof?.full_name || app?.[0]?.full_name || email,
+      email,
+      phone: app?.[0]?.phone ?? "",
+      preferred_slot: "",
+      message: "Uygulayıcı programı 5. adım — lisans talebi (Hesabım → Uygulayıcı).",
+      addon_bundle_slug: null,
+      book_lang: "tr",
+      locale: "tr",
+      website_hp: "",
+    });
+    return { ok: true, already: false };
   });
 
 // -------- ADMIN: kullanıcıyı uygulayıcı yap --------
@@ -427,12 +533,8 @@ async function promoteToPractitioner(
     long_bio?: string | null;
   },
 ): Promise<{ practitionerId: string; created: boolean }> {
-  // pro rolü (idempotent)
-  const { error: roleErr } = await supabaseAdmin
-    .from("user_roles")
-    .upsert({ user_id: input.userId, role: "pro" }, { onConflict: "user_id,role", ignoreDuplicates: true });
-  if (roleErr) throw new Error(roleErr.message);
-
+  // NOT: 'pro' rolü burada VERİLMEZ. Tek yetki kaynağı PFA-Pro lisans satın alması
+  // (handle_order_paid trigger'ı) olmalıdır.
   const { data: existing, error: exErr } = await supabaseAdmin
     .from("practitioners")
     .select("id")
