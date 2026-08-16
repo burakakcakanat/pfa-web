@@ -98,8 +98,6 @@ function PractitionerTimeline({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const order: Array<MyPractitionerState["application"] extends null ? never : string> = [];
-  void order;
   const rank: Record<string, number> = {
     yeni: 0,
     incelemede: 1,
