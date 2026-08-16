@@ -33,6 +33,8 @@ import {
   getAdminOverview,
   listAdminProducts,
   updateAdminProduct,
+  listAdminProductPrices,
+  setAdminProductPrice,
   listAdminUsers,
   setUserRole,
   setProQuota,
@@ -454,6 +456,9 @@ function OverviewTab() {
 function ProductsTab() {
   const fetchList = useServerFn(listAdminProducts);
   const update = useServerFn(updateAdminProduct);
+  const fetchPrices = useServerFn(listAdminProductPrices);
+  const savePrice = useServerFn(setAdminProductPrice);
+  const [prices, setPrices] = useState<Record<string, Partial<Record<"usd" | "try", number>>>>({});
   const fetchBundles = useServerFn(listAdminBundles);
   const upsertBundle = useServerFn(upsertAdminBundle);
   const createCoverUpload = useServerFn(createProductCoverUploadUrl);
@@ -474,6 +479,28 @@ function ProductsTab() {
     setDrafts({});
   }, [fetchList]);
   useEffect(() => { reload(); }, [reload]);
+
+  const reloadPrices = useCallback(async () => {
+    const rows = await fetchPrices();
+    const m: Record<string, Partial<Record<"usd" | "try", number>>> = {};
+    for (const r of rows) {
+      if (!r.active) continue;
+      m[r.product_id] = { ...(m[r.product_id] ?? {}), [r.currency as "usd" | "try"]: r.price_cents };
+    }
+    setPrices(m);
+  }, [fetchPrices]);
+  useEffect(() => { reloadPrices(); }, [reloadPrices]);
+
+  const commitPrice = async (productId: string, currency: "usd" | "try", cents: number | null) => {
+    try {
+      await savePrice({ data: { product_id: productId, currency, price_cents: cents } });
+      await reloadPrices();
+      await queryClient.invalidateQueries({ queryKey: ["books-data"] });
+      toast.success(currency === "try" ? "TRY fiyatı kaydedildi" : "USD fiyatı kaydedildi");
+    } catch (e: any) {
+      toast.error("Fiyat kaydedilemedi: " + (e?.message ?? "bilinmiyor"));
+    }
+  };
 
   const reloadBundles = useCallback(async () => {
     const d = await fetchBundles();
@@ -598,11 +625,24 @@ function ProductsTab() {
                 <Textarea value={currentValue(p, "description_tr") ?? ""} onChange={(e) => patch(p.id, "description_tr", e.target.value)} />
               </div>
               <div>
-                <Label>Fiyat ($)</Label>
+                <Label>Fiyat — USD</Label>
                 <PriceInput
-                  cents={currentValue(p, "price_cents") ?? 0}
-                  onCommit={(cents) => patch(p.id, "price_cents", cents)}
+                  cents={prices[p.id]?.usd ?? currentValue(p, "price_cents") ?? 0}
+                  onCommit={(cents) => commitPrice(p.id, "usd", cents)}
                 />
+                <p className="mt-1 text-[0.7rem] text-muted-foreground">
+                  Fiyatın kaynağı product_prices; anında kaydedilir.
+                </p>
+              </div>
+              <div>
+                <Label>Fiyat — TRY</Label>
+                <PriceInput
+                  cents={prices[p.id]?.try ?? 0}
+                  onCommit={(cents) => commitPrice(p.id, "try", cents > 0 ? cents : null)}
+                />
+                <p className="mt-1 text-[0.7rem] text-muted-foreground">
+                  0 bırakılırsa TRY ile satış açılmaz (USD'ye düşer).
+                </p>
               </div>
               <div>
                 <Label>Yayına giriş (activate_at)</Label>
