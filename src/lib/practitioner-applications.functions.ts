@@ -3,7 +3,13 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { parseFriendly } from "@/lib/zod-friendly";
 
-export type ApplicationStatus = "yeni" | "incelemede" | "gorusme" | "kabul" | "red";
+export type ApplicationStatus =
+  | "yeni"
+  | "incelemede"
+  | "belge_bekleniyor"
+  | "gorusme"
+  | "kabul"
+  | "red";
 export type PractitionerCategory = "terapotik" | "kocluk" | "pedagojik" | "kurumsal";
 
 const CATEGORY = z.enum(["terapotik", "kocluk", "pedagojik", "kurumsal"]);
@@ -268,7 +274,9 @@ export const updateAdminApplication = createServerFn({ method: "POST" })
     z
       .object({
         id: z.string().uuid(),
-        status: z.enum(["yeni", "incelemede", "gorusme", "kabul", "red"]).optional(),
+        status: z
+          .enum(["yeni", "incelemede", "belge_bekleniyor", "gorusme", "kabul", "red"])
+          .optional(),
         admin_note: z.string().max(5000).nullable().optional(),
       })
       .parse(d),
@@ -282,7 +290,7 @@ export const updateAdminApplication = createServerFn({ method: "POST" })
     if (Object.keys(patch).length === 0) return { ok: true };
     const { data: before } = await supabaseAdmin
       .from("practitioner_applications")
-      .select("status, full_name, email")
+      .select("status, full_name, email, admin_note")
       .eq("id", data.id)
       .maybeSingle();
     const { error } = await supabaseAdmin
@@ -313,6 +321,39 @@ export const updateAdminApplication = createServerFn({ method: "POST" })
         });
       } catch (e) {
         console.error("[email] application status acceptance notify failed", e);
+      }
+    }
+
+    // Durum 'belge_bekleniyor'a geçtiyse ek belge bilgilendirmesi (kırılmasın)
+    if (
+      data.status === "belge_bekleniyor" &&
+      before &&
+      before.status !== "belge_bekleniyor" &&
+      before.email
+    ) {
+      try {
+        const { sendEmail } = await import("@/lib/email/send.server");
+        const { renderEmail, esc } = await import("@/lib/email/templates");
+        const firstName =
+          String(before.full_name ?? "").trim().split(/\s+/)[0] || String(before.full_name ?? "");
+        const note =
+          data.admin_note !== undefined ? data.admin_note : (before.admin_note as string | null);
+        await sendEmail({
+          to: before.email,
+          replyTo: "info@psychofunctionalanalysis.com",
+          subject: "Başvurunuz için ek belge bekleniyor — PFA",
+          html: renderEmail({
+            title: "Ek belge bekleniyor",
+            bodyHtml: `
+              <p>Merhaba ${esc(firstName)},</p>
+              <p>Başvurunuzun belge incelemesi sırasında eksik ya da okunamayan bir belge tespit edildi. Süreci sürdürebilmemiz için ek belge bekliyoruz.</p>
+              ${note ? `<p style="white-space:pre-wrap"><strong>Not:</strong> ${esc(note)}</p>` : ""}
+              <p>Durumu <strong>Hesabım → Uygulayıcı</strong> sekmesinden takip edebilir, belgeyi bu e-postayı yanıtlayarak iletebilirsiniz.</p>
+              <p>Sevgiyle,<br/>PFA Ekibi</p>`,
+          }),
+        });
+      } catch (e) {
+        console.error("[email] application document-request notify failed", e);
       }
     }
     return { ok: true };
