@@ -1642,6 +1642,7 @@ export const createTestOrder = createServerFn({ method: "POST" })
         amount_cents: amount,
         currency,
         is_test: true,
+        provider: "test",
         metadata: { test: true, book_lang: data.book_lang ?? "tr" },
       })
       .select("id")
