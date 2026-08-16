@@ -1,5 +1,5 @@
 import { useServerFn } from "@tanstack/react-start";
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { LEVEL_LABEL_TR } from "@/lib/assessment-scoring";
 import {
   getAnonItemStats,
@@ -117,9 +117,8 @@ function DirectSection() {
           </thead>
           <tbody>
             {rows.map((s) => (
-              <>
+              <Fragment key={s.id}>
                 <tr
-                  key={s.id}
                   onClick={() => open(s.id)}
                   className="cursor-pointer border-b border-border/50 hover:bg-muted/40"
                 >
@@ -132,7 +131,7 @@ function DirectSection() {
                   <td className="px-2 py-2"><LevelScores scores={s.level_scores} /></td>
                 </tr>
                 {openId === s.id ? (
-                  <tr key={`${s.id}-d`} className="border-b border-border bg-muted/20">
+                  <tr className="border-b border-border bg-muted/20">
                     <td colSpan={7} className="px-4 py-4">
                       {!detail ? (
                         <p className="text-xs text-muted-foreground">Yükleniyor…</p>
@@ -160,7 +159,7 @@ function DirectSection() {
                     </td>
                   </tr>
                 ) : null}
-              </>
+              </Fragment>
             ))}
           </tbody>
         </table>
@@ -294,9 +293,8 @@ function AnonSessionsView() {
         </thead>
         <tbody>
           {rows.map((s) => (
-            <>
+            <Fragment key={s.research_id}>
               <tr
-                key={s.research_id}
                 onClick={() => open(s.research_id)}
                 className="cursor-pointer border-b border-border/50 hover:bg-muted/40"
               >
@@ -306,7 +304,7 @@ function AnonSessionsView() {
                 <td className="px-2 py-2">{s.month}</td>
               </tr>
               {openId === s.research_id ? (
-                <tr key={`${s.research_id}-d`} className="border-b border-border bg-muted/20">
+                <tr className="border-b border-border bg-muted/20">
                   <td colSpan={4} className="px-3 py-4">
                     {!answers ? (
                       <p className="text-xs text-muted-foreground">Yükleniyor…</p>
@@ -316,7 +314,7 @@ function AnonSessionsView() {
                   </td>
                 </tr>
               ) : null}
-            </>
+            </Fragment>
           ))}
         </tbody>
       </table>
