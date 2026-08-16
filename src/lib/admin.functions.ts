@@ -1677,7 +1677,7 @@ export const deleteTestOrder = createServerFn({ method: "POST" })
     if (!order.is_test) throw new Error("Sadece test siparişleri silinebilir.");
 
     const { data: ents } = await supabaseAdmin
-      .from("user_entitlements").select("id, metadata").eq("source_order_id", data.id);
+      .from("user_entitlements").select("id, metadata, type, user_id").eq("source_order_id", data.id);
     const files = (ents ?? [])
       .map((e) => ((e.metadata ?? {}) as Record<string, unknown>).personalized_pdf_path)
       .filter((p): p is string => typeof p === "string" && p.length > 0);
@@ -1685,6 +1685,29 @@ export const deleteTestOrder = createServerFn({ method: "POST" })
 
     await supabaseAdmin.from("ebook_gifts").delete().eq("order_id", data.id);
     await supabaseAdmin.from("user_entitlements").delete().eq("source_order_id", data.id);
+
+    // Test siparişi pfa_pro verdiyse ve kullanıcıda başka pfa_pro kalmadıysa
+    // 'pro' rolünü de geri al (admin rolüne dokunulmaz).
+    const proUserIds = Array.from(
+      new Set(
+        (ents ?? [])
+          .filter((e) => (e as { type?: string }).type === "pfa_pro")
+          .map((e) => (e as { user_id?: string }).user_id)
+          .filter((u): u is string => !!u),
+      ),
+    );
+    for (const uid of proUserIds) {
+      const { data: remaining } = await supabaseAdmin
+        .from("user_entitlements")
+        .select("id")
+        .eq("user_id", uid)
+        .eq("type", "pfa_pro")
+        .limit(1);
+      if (!remaining || remaining.length === 0) {
+        await supabaseAdmin.from("user_roles").delete().eq("user_id", uid).eq("role", "pro");
+      }
+    }
+
     await supabaseAdmin.from("orders").delete().eq("id", data.id);
     return { ok: true, removed_files: files.length, removed_entitlements: (ents ?? []).length };
   });

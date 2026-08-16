@@ -122,6 +122,7 @@ import {
   type ApplicationStatus,
 } from "@/lib/practitioner-applications.functions";
 import { AdminLicenseInquiries } from "@/components/admin-license-inquiries";
+import { AdminScaleData } from "@/components/admin-scale-data";
 import { AdminPurchaseInquiries, LocaleBadge } from "@/components/admin-purchase-inquiries";
 import { AdminBankTransferSettings } from "@/components/admin-bank-transfer-settings";
 import { AdminSessionAvailability } from "@/components/admin-session-availability";
@@ -195,6 +196,7 @@ function AdminPage() {
           <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
             <TabsTrigger value="pro-accounts">Pro Hesaplar</TabsTrigger>
             <TabsTrigger value="questions">PFA Ölçeği</TabsTrigger>
+            <TabsTrigger value="scale-data">Ölçek Verileri</TabsTrigger>
             <TabsTrigger value="webinars">Webinarlar</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
             <TabsTrigger value="media">Görseller</TabsTrigger>
@@ -223,6 +225,7 @@ function AdminPage() {
             <TabsContent value="pro"><ProLicensesTab /></TabsContent>
             <TabsContent value="pro-accounts"><ProAccountsTab /></TabsContent>
             <TabsContent value="questions"><QuestionsTab /></TabsContent>
+            <TabsContent value="scale-data"><AdminScaleData /></TabsContent>
             <TabsContent value="webinars"><WebinarsTab /></TabsContent>
             <TabsContent value="blog"><BlogTab /></TabsContent>
             <TabsContent value="media"><MediaLibraryManager /></TabsContent>
@@ -3466,6 +3469,7 @@ function PractitionerList({
 const APP_STATUS_LABEL: Record<ApplicationStatus, string> = {
   yeni: "Yeni",
   incelemede: "İncelemede",
+  belge_bekleniyor: "Belge bekleniyor",
   gorusme: "Görüşme",
   kabul: "Kabul",
   red: "Red",

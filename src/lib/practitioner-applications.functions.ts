@@ -3,7 +3,13 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { parseFriendly } from "@/lib/zod-friendly";
 
-export type ApplicationStatus = "yeni" | "incelemede" | "gorusme" | "kabul" | "red";
+export type ApplicationStatus =
+  | "yeni"
+  | "incelemede"
+  | "belge_bekleniyor"
+  | "gorusme"
+  | "kabul"
+  | "red";
 export type PractitionerCategory = "terapotik" | "kocluk" | "pedagojik" | "kurumsal";
 
 const CATEGORY = z.enum(["terapotik", "kocluk", "pedagojik", "kurumsal"]);
@@ -268,7 +274,9 @@ export const updateAdminApplication = createServerFn({ method: "POST" })
     z
       .object({
         id: z.string().uuid(),
-        status: z.enum(["yeni", "incelemede", "gorusme", "kabul", "red"]).optional(),
+        status: z
+          .enum(["yeni", "incelemede", "belge_bekleniyor", "gorusme", "kabul", "red"])
+          .optional(),
         admin_note: z.string().max(5000).nullable().optional(),
       })
       .parse(d),
@@ -282,7 +290,7 @@ export const updateAdminApplication = createServerFn({ method: "POST" })
     if (Object.keys(patch).length === 0) return { ok: true };
     const { data: before } = await supabaseAdmin
       .from("practitioner_applications")
-      .select("status, full_name, email")
+      .select("status, full_name, email, admin_note")
       .eq("id", data.id)
       .maybeSingle();
     const { error } = await supabaseAdmin
@@ -315,6 +323,39 @@ export const updateAdminApplication = createServerFn({ method: "POST" })
         console.error("[email] application status acceptance notify failed", e);
       }
     }
+
+    // Durum 'belge_bekleniyor'a geçtiyse ek belge bilgilendirmesi (kırılmasın)
+    if (
+      data.status === "belge_bekleniyor" &&
+      before &&
+      before.status !== "belge_bekleniyor" &&
+      before.email
+    ) {
+      try {
+        const { sendEmail } = await import("@/lib/email/send.server");
+        const { renderEmail, esc } = await import("@/lib/email/templates");
+        const firstName =
+          String(before.full_name ?? "").trim().split(/\s+/)[0] || String(before.full_name ?? "");
+        const note =
+          data.admin_note !== undefined ? data.admin_note : (before.admin_note as string | null);
+        await sendEmail({
+          to: before.email,
+          replyTo: "info@psychofunctionalanalysis.com",
+          subject: "Başvurunuz için ek belge bekleniyor — PFA",
+          html: renderEmail({
+            title: "Ek belge bekleniyor",
+            bodyHtml: `
+              <p>Merhaba ${esc(firstName)},</p>
+              <p>Başvurunuzun belge incelemesi sırasında eksik ya da okunamayan bir belge tespit edildi. Süreci sürdürebilmemiz için ek belge bekliyoruz.</p>
+              ${note ? `<p style="white-space:pre-wrap"><strong>Not:</strong> ${esc(note)}</p>` : ""}
+              <p>Durumu <strong>Hesabım → Uygulayıcı</strong> sekmesinden takip edebilir, belgeyi bu e-postayı yanıtlayarak iletebilirsiniz.</p>
+              <p>Sevgiyle,<br/>PFA Ekibi</p>`,
+          }),
+        });
+      } catch (e) {
+        console.error("[email] application document-request notify failed", e);
+      }
+    }
     return { ok: true };
   });
 
@@ -335,35 +376,78 @@ export const countNewPractitionerApplications = createServerFn({ method: "GET" }
 // -------- KULLANICI DURUMU (Hesabım → Uygulayıcı) --------
 export type MyPractitionerState = {
   isPro: boolean;
+  /** Tek yetki kaynağı: pfa_pro entitlement (satın alma ile verilir). */
+  hasProEntitlement: boolean;
+  certificateStatus: "pending" | "issued" | "revoked" | null;
+  directoryPublished: boolean;
+  /** Açık (henüz tamamlanmamış) PFA-Pro lisans satın alma talebi. */
+  licenseInquiry: { status: string; created_at: string } | null;
   application: {
     id: string;
     status: ApplicationStatus;
     category: PractitionerCategory;
+    admin_note: string | null;
     created_at: string;
   } | null;
   practitioner: { id: string; published: boolean } | null;
   profile: { full_name: string | null; email: string | null };
 };
 
+export const PRO_LICENSE_SLUG = "pfa-pro-lisans-paketi";
+
 export const getMyPractitionerState = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<MyPractitionerState> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const uid = context.userId;
-    const [appRes, practRes, rolesRes, profRes] = await Promise.all([
+    const [appRes, practRes, rolesRes, profRes, entRes] = await Promise.all([
       supabaseAdmin
         .from("practitioner_applications")
-        .select("id, status, category, created_at")
+        .select("id, status, category, admin_note, created_at")
         .eq("user_id", uid)
         .order("created_at", { ascending: false })
         .limit(1),
       supabaseAdmin.from("practitioners").select("id, published").eq("user_id", uid).maybeSingle(),
       supabaseAdmin.from("user_roles").select("role").eq("user_id", uid),
       supabaseAdmin.from("profiles").select("full_name, email").eq("id", uid).maybeSingle(),
+      supabaseAdmin
+        .from("user_entitlements")
+        .select("id, metadata, created_at")
+        .eq("user_id", uid)
+        .eq("type", "pfa_pro")
+        .order("created_at", { ascending: false }),
     ]);
     const roles = ((rolesRes.data ?? []) as Array<{ role: string }>).map((r) => r.role);
+    const ents = (entRes.data ?? []) as Array<{ metadata: Record<string, unknown> | null }>;
+    const hasProEntitlement = ents.length > 0;
+    const rawCert = String((ents[0]?.metadata as any)?.certificate_status ?? "");
+    const certificateStatus =
+      rawCert === "pending" || rawCert === "issued" || rawCert === "revoked" ? rawCert : null;
+
+    const email = String(
+      profRes.data?.email ?? (context.claims as { email?: string } | null)?.email ?? "",
+    )
+      .trim()
+      .toLowerCase();
+    let licenseInquiry: MyPractitionerState["licenseInquiry"] = null;
+    if (email && !hasProEntitlement) {
+      const { data: inq } = await supabaseAdmin
+        .from("purchase_inquiries")
+        .select("status, created_at")
+        .eq("email", email)
+        .eq("product_slug", PRO_LICENSE_SLUG)
+        .not("status", "in", "(closed,fulfilled)")
+        .order("created_at", { ascending: false })
+        .limit(1);
+      licenseInquiry = (inq?.[0] ?? null) as MyPractitionerState["licenseInquiry"];
+    }
+
     return {
       isPro: roles.includes("pro") || roles.includes("admin"),
+      hasProEntitlement,
+      certificateStatus,
+      directoryPublished: Boolean(practRes.data?.published),
+      licenseInquiry,
       application: (appRes.data?.[0] ?? null) as MyPractitionerState["application"],
       practitioner: (practRes.data ?? null) as MyPractitionerState["practitioner"],
       profile: {
@@ -371,6 +455,69 @@ export const getMyPractitionerState = createServerFn({ method: "GET" })
         email: profRes.data?.email ?? (context.claims as { email?: string } | null)?.email ?? null,
       },
     };
+  });
+
+/**
+ * 5. adım — PFA-Pro lisansı için havale/satın alma talebi oluşturur.
+ * Ödeme sağlayıcısı henüz bağlı olmadığı için mevcut purchase_inquiries rayını kullanır.
+ */
+export const requestProLicense = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const uid = context.userId;
+    const { data: prof } = await supabaseAdmin
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", uid)
+      .maybeSingle();
+    const email = String(
+      prof?.email ?? (context.claims as { email?: string } | null)?.email ?? "",
+    )
+      .trim()
+      .toLowerCase();
+    if (!email) throw new Error("Hesabınızda kayıtlı e-posta bulunamadı.");
+
+    const { data: ent } = await supabaseAdmin
+      .from("user_entitlements")
+      .select("id")
+      .eq("user_id", uid)
+      .eq("type", "pfa_pro")
+      .limit(1);
+    if (ent && ent.length > 0) throw new Error("Lisansınız zaten tanımlı.");
+
+    const { data: open } = await supabaseAdmin
+      .from("purchase_inquiries")
+      .select("id")
+      .eq("email", email)
+      .eq("product_slug", PRO_LICENSE_SLUG)
+      .not("status", "in", "(closed,fulfilled)")
+      .limit(1);
+    if (open && open.length > 0) return { ok: true, already: true };
+
+    const { data: app } = await supabaseAdmin
+      .from("practitioner_applications")
+      .select("full_name, phone")
+      .eq("user_id", uid)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    const { createPurchaseInquiry } = await import("@/lib/purchase-inquiries.server");
+    await createPurchaseInquiry({
+      kind: "pro_license",
+      product_slug: PRO_LICENSE_SLUG,
+      product_label: "PFA-Pro Lisans Paketi",
+      full_name: prof?.full_name || app?.[0]?.full_name || email,
+      email,
+      phone: app?.[0]?.phone ?? "",
+      preferred_slot: "",
+      message: "Uygulayıcı programı 5. adım — lisans talebi (Hesabım → Uygulayıcı).",
+      addon_bundle_slug: null,
+      book_lang: "tr",
+      locale: "tr",
+      website_hp: "",
+    });
+    return { ok: true, already: false };
   });
 
 // -------- ADMIN: kullanıcıyı uygulayıcı yap --------
@@ -386,12 +533,8 @@ async function promoteToPractitioner(
     long_bio?: string | null;
   },
 ): Promise<{ practitionerId: string; created: boolean }> {
-  // pro rolü (idempotent)
-  const { error: roleErr } = await supabaseAdmin
-    .from("user_roles")
-    .upsert({ user_id: input.userId, role: "pro" }, { onConflict: "user_id,role", ignoreDuplicates: true });
-  if (roleErr) throw new Error(roleErr.message);
-
+  // NOT: 'pro' rolü burada VERİLMEZ. Tek yetki kaynağı PFA-Pro lisans satın alması
+  // (handle_order_paid trigger'ı) olmalıdır.
   const { data: existing, error: exErr } = await supabaseAdmin
     .from("practitioners")
     .select("id")
@@ -474,9 +617,9 @@ export const acceptApplicationAsPractitioner = createServerFn({ method: "POST" }
             title: "Başvurunuz kabul edildi",
             bodyHtml: `
               <p>Merhaba ${esc(firstName)},</p>
-              <p>PFA Uygulayıcı Programı başvurunuz kabul edildi. Hesabınıza uygulayıcı erişimi tanımlandı.</p>
-              <p>Bunu <strong>Hesabım → Uygulayıcı</strong> sekmesinden görebilirsiniz.</p>
-              <p>Dizindeki uygulayıcı profiliniz hazırlanıyor. Programın kalan aşamaları için sizinle ayrıca iletişime geçeceğiz.</p>
+              <p>PFA Uygulayıcı Programı başvurunuz kabul edildi.</p>
+              <p>Sürecin bir sonraki adımı <strong>PFA-Pro lisansı</strong>dır. Lisans tamamlandığında uygulayıcı paneliniz ve danışan kontenjanınız açılır.</p>
+              <p>Süreci <strong>Hesabım → Uygulayıcı</strong> sekmesinden takip edebilir, lisans adımını oradan başlatabilirsiniz.</p>
               <p>Sevgiyle,<br/>PFA Ekibi</p>`,
           }),
         });

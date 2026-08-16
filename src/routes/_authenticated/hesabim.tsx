@@ -101,7 +101,9 @@ function AccountPage() {
     fetchGifts().then((g) => setGifts((g ?? []) as unknown as MyGift[])).catch(() => setGifts([]));
   }, [fetchGifts]);
 
-  const isPro = roles.includes("pro") || roles.includes("admin");
+  // Panel erişimi tek kaynağa bağlı: pfa_pro entitlement (admin istisnası korunur).
+  const isPro =
+    entitlements.some((x) => x.type === "pfa_pro") || roles.includes("admin");
   const tabs = [
     ...TABS,
     { id: "practitioner", label: "Uygulayıcı" },

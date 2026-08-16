@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { PRIVACY_COPY } from "@/content/legal";
 import {
   getMyPractitionerState,
+  requestProLicense,
   submitPractitionerApplication,
   type MyPractitionerState,
 } from "@/lib/practitioner-applications.functions";
@@ -14,8 +15,6 @@ const CATEGORIES = [
   { key: "pedagojik", title: "Pedagojik" },
   { key: "kurumsal", title: "Kurumsal" },
 ] as const;
-
-const STATUS_STEPS = ["Alındı", "İncelemede", "Görüşme"] as const;
 
 function fmtDate(v: string) {
   return new Date(v).toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric" });
@@ -38,55 +37,9 @@ export function PractitionerAccountTab({ onGoToClients }: { onGoToClients?: () =
   if (err) return <p className="text-sm text-destructive">{err}</p>;
   if (!state) return <p className="text-sm text-muted-foreground">Yükleniyor…</p>;
 
-  // STATE E — pro rolü var
-  if (state.isPro) {
-    return (
-      <div className="rounded-lg border border-border bg-card p-6">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">Uygulayıcı</div>
-        <h2 className="mt-3 font-serif text-2xl">Uygulayıcı panelinize hoş geldiniz</h2>
-        <p className="mt-3 text-sm text-muted-foreground">
-          Danışan davetlerinizi ve raporlarını “Danışanlarım” sekmesinden yönetebilirsiniz.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-3">
-          {onGoToClients ? (
-            <button
-              type="button"
-              onClick={onGoToClients}
-              className="inline-flex items-center rounded-md bg-accent px-5 py-2.5 text-sm text-accent-foreground"
-            >
-              Danışanlarım →
-            </button>
-          ) : null}
-          <Link to="/uygulayicilar" className="inline-flex items-center rounded-md border border-border px-5 py-2.5 text-sm">
-            Uygulayıcı Rehberi
-          </Link>
-        </div>
-        {state.practitioner && !state.practitioner.published ? (
-          <p className="mt-4 text-xs text-muted-foreground">
-            Rehber profiliniz hazırlanıyor; yayına alındığında bilgilendirileceksiniz.
-          </p>
-        ) : null}
-      </div>
-    );
-  }
-
   const app = state.application;
 
-  // STATE D — kabul, ama henüz pro değil
-  if (app && app.status === "kabul") {
-    return (
-      <div className="rounded-lg border border-border bg-card p-6">
-        <div className="text-xs tracking-[0.3em] text-accent">KABUL EDİLDİ</div>
-        <h2 className="mt-3 font-serif text-2xl">Uygulayıcı Profilinizi Oluşturuyoruz</h2>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Başvurunuz kabul edildi. Uygulayıcı profiliniz hazırlanıyor; süreçle ilgili olarak
-          ekibimiz kısa süre içinde sizinle e-posta üzerinden iletişime geçecek.
-        </p>
-      </div>
-    );
-  }
-
-  // STATE C — red
+  // Red — zaman çizelgesi gösterilmez
   if (app && app.status === "red") {
     return (
       <div className="rounded-lg border border-border bg-card p-6">
@@ -104,40 +57,8 @@ export function PractitionerAccountTab({ onGoToClients }: { onGoToClients?: () =
     );
   }
 
-  // STATE B — süreçte
   if (app) {
-    const stepIndex = app.status === "yeni" ? 0 : app.status === "incelemede" ? 1 : 2;
-    return (
-      <div className="rounded-lg border border-border bg-card p-6">
-        <div className="text-xs uppercase tracking-[0.3em] text-accent">Başvuru durumu</div>
-        <h2 className="mt-3 font-serif text-2xl">Başvurunuz değerlendiriliyor</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Gönderim tarihi: {fmtDate(app.created_at)}
-        </p>
-
-        <ol className="mt-6 grid gap-3 sm:grid-cols-3">
-          {STATUS_STEPS.map((label, i) => {
-            const done = i <= stepIndex;
-            return (
-              <li
-                key={label}
-                className={`rounded-md border p-4 ${done ? "border-accent bg-accent/10" : "border-border"}`}
-              >
-                <div className={`text-[11px] uppercase tracking-[0.2em] ${done ? "text-accent" : "text-muted-foreground"}`}>
-                  Adım {i + 1}
-                </div>
-                <div className="mt-1 text-sm">{label}</div>
-              </li>
-            );
-          })}
-        </ol>
-
-        <p className="mt-6 text-sm text-muted-foreground">
-          Değerlendirme yaklaşık 1–2 hafta içinde e-posta ile iletilir. Bu aşamada başvurunuzda
-          değişiklik yapılamaz.
-        </p>
-      </div>
-    );
+    return <PractitionerTimeline state={state} app={app} onGoToClients={onGoToClients} onChanged={load} />;
   }
 
   // STATE A — başvuru yok
@@ -158,6 +79,201 @@ export function PractitionerAccountTab({ onGoToClients }: { onGoToClients?: () =
       <ApplicationForm profile={state.profile} onSubmitted={load} />
     </div>
   );
+}
+
+type StepTone = "done" | "active" | "warn" | "future";
+
+function PractitionerTimeline({
+  state,
+  app,
+  onGoToClients,
+  onChanged,
+}: {
+  state: MyPractitionerState;
+  app: NonNullable<MyPractitionerState["application"]>;
+  onGoToClients?: () => void;
+  onChanged: () => void;
+}) {
+  const request = useServerFn(requestProLicense);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const rank: Record<string, number> = {
+    yeni: 0,
+    incelemede: 1,
+    belge_bekleniyor: 1,
+    gorusme: 2,
+    kabul: 3,
+    red: 3,
+  };
+  const r = rank[app.status] ?? 0;
+  const waitingDoc = app.status === "belge_bekleniyor";
+  const accepted = app.status === "kabul";
+  const hasLicense = state.hasProEntitlement;
+  const licensePending = !hasLicense && !!state.licenseInquiry;
+
+  async function startLicense() {
+    setBusy(true);
+    setErr(null);
+    try {
+      await request();
+      onChanged();
+    } catch (e: any) {
+      setErr(e?.message ?? "Talep oluşturulamadı.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const steps: Array<{ title: string; tone: StepTone; body?: React.ReactNode }> = [
+    {
+      title: "Başvuru alındı",
+      tone: "done",
+      body: <p className="text-muted-foreground">Gönderim tarihi: {fmtDate(app.created_at)}</p>,
+    },
+    {
+      title: "Belge incelemesi",
+      tone: waitingDoc ? "warn" : r >= 1 ? "done" : "active",
+      body: waitingDoc ? (
+        <div className="space-y-2">
+          <p>Eksik ya da okunamayan bir belge nedeniyle ek belge bekleniyor.</p>
+          {app.admin_note ? (
+            <p className="whitespace-pre-wrap rounded-md border border-border bg-background/60 p-3 text-muted-foreground">
+              {app.admin_note}
+            </p>
+          ) : null}
+          <p className="text-muted-foreground">
+            Belgeyi bilgilendirme e-postasını yanıtlayarak iletebilirsiniz.
+          </p>
+        </div>
+      ) : undefined,
+    },
+    {
+      title: "Değerlendirme görüşmesi",
+      tone: r >= 2 ? "done" : r === 1 && !waitingDoc ? "active" : "future",
+    },
+    {
+      title: "Kabul",
+      tone: accepted || hasLicense ? "done" : "future",
+    },
+    {
+      title: "Lisans",
+      tone: hasLicense ? "done" : accepted ? "active" : "future",
+      body: hasLicense ? (
+        <div className="space-y-3">
+          <p className="text-muted-foreground">PFA-Pro lisansınız tanımlı.</p>
+          <div className="flex flex-wrap gap-3">
+            {onGoToClients ? (
+              <button
+                type="button"
+                onClick={onGoToClients}
+                className="inline-flex items-center rounded-md bg-accent px-5 py-2.5 text-sm text-accent-foreground"
+              >
+                Danışanlarım →
+              </button>
+            ) : null}
+            <Link
+              to="/uygulayicilar"
+              className="inline-flex items-center rounded-md border border-border px-5 py-2.5 text-sm"
+            >
+              Uygulayıcı Rehberi
+            </Link>
+          </div>
+        </div>
+      ) : accepted ? (
+        <div className="space-y-3">
+          {licensePending ? (
+            <p className="text-muted-foreground">
+              Ödeme bildiriminiz alındı, onay bekleniyor. Ödeme yönergeleri e-posta ile iletilir.
+            </p>
+          ) : (
+            <>
+              <p className="text-muted-foreground">
+                Uygulayıcı paneliniz ve danışan kontenjanınız PFA-Pro lisansı ile açılır. Talebinizi
+                ilettiğinizde ödeme yönergelerini e-posta ile paylaşırız.
+              </p>
+              <button
+                type="button"
+                onClick={startLicense}
+                disabled={busy}
+                className="inline-flex items-center rounded-md bg-accent px-5 py-2.5 text-sm text-accent-foreground disabled:opacity-60"
+              >
+                {busy ? "Gönderiliyor…" : "PFA-Pro Lisansını Tamamla"}
+              </button>
+            </>
+          )}
+          {err ? <p className="text-sm text-destructive">{err}</p> : null}
+        </div>
+      ) : undefined,
+    },
+    {
+      title: "Sertifikasyon",
+      tone: state.certificateStatus === "issued" ? "done" : hasLicense ? "active" : "future",
+      body:
+        state.certificateStatus === "issued" ? (
+          <p className="text-muted-foreground">Sertifikanız düzenlendi.</p>
+        ) : hasLikeCert(state) ? (
+          <p className="text-muted-foreground">Sertifikasyon süreciniz devam ediyor.</p>
+        ) : undefined,
+    },
+  ];
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-6">
+      <div className="text-xs uppercase tracking-[0.3em] text-accent">Uygulayıcı süreci</div>
+      <h2 className="mt-3 font-serif text-2xl">Başvuru ve lisans yolculuğunuz</h2>
+
+      <ol className="mt-6 space-y-3">
+        {steps.map((s, i) => (
+          <li
+            key={s.title}
+            className={[
+              "rounded-md border p-4",
+              s.tone === "done"
+                ? "border-accent/60 bg-accent/5"
+                : s.tone === "active"
+                  ? "border-accent bg-accent/10 shadow-sm"
+                  : s.tone === "warn"
+                    ? "border-destructive/60 bg-destructive/5"
+                    : "border-border opacity-60",
+            ].join(" ")}
+          >
+            <div className="flex items-start gap-3">
+              <span
+                className={[
+                  "mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px]",
+                  s.tone === "done"
+                    ? "border-accent bg-accent text-accent-foreground"
+                    : s.tone === "warn"
+                      ? "border-destructive text-destructive"
+                      : s.tone === "active"
+                        ? "border-accent text-accent"
+                        : "border-border text-muted-foreground",
+                ].join(" ")}
+              >
+                {s.tone === "done" ? "✓" : i + 1}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium text-foreground">{s.title}</div>
+                {s.body ? <div className="mt-2 space-y-2 text-sm">{s.body}</div> : null}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border px-4 py-3 text-sm">
+        <span className="text-foreground">Rehber profili</span>
+        <span className={state.directoryPublished ? "text-accent" : "text-muted-foreground"}>
+          {state.directoryPublished ? "Yayında" : "Hazırlanıyor"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function hasLikeCert(state: MyPractitionerState) {
+  return state.hasProEntitlement && state.certificateStatus !== "issued";
 }
 
 function ApplicationForm({

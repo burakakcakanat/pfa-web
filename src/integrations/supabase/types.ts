@@ -2185,7 +2185,13 @@ export type Database = {
     }
     Enums: {
       app_role: "user" | "pro" | "admin"
-      application_status: "yeni" | "incelemede" | "gorusme" | "kabul" | "red"
+      application_status:
+        | "yeni"
+        | "incelemede"
+        | "belge_bekleniyor"
+        | "gorusme"
+        | "kabul"
+        | "red"
       assessment_status: "in_progress" | "completed"
       assessment_type: "mini" | "full"
       entitlement_type:
@@ -2331,7 +2337,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["user", "pro", "admin"],
-      application_status: ["yeni", "incelemede", "gorusme", "kabul", "red"],
+      application_status: [
+        "yeni",
+        "incelemede",
+        "belge_bekleniyor",
+        "gorusme",
+        "kabul",
+        "red",
+      ],
       assessment_status: ["in_progress", "completed"],
       assessment_type: ["mini", "full"],
       entitlement_type: [
