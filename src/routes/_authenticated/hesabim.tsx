@@ -538,10 +538,6 @@ function ClientsTab() {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  return <StatusBadgeInner status={status} />;
-}
-
 const CURRENCY_SYMBOL: Record<string, string> = { usd: "$", try: "₺", eur: "€", gbp: "£" };
 
 /** Kaydın kendi para birimiyle biçimlendirir; bilinmeyen kodda kodu gösterir. */
@@ -564,7 +560,7 @@ function inviteMessage(clientName: string, toolLabel: string, url: string): stri
   ].join("\n");
 }
 
-function StatusBadgeInner({ status }: { status: string }) {
+function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     paid: { label: "Ödendi", cls: "bg-emerald-100 text-emerald-800" },
     pending: { label: "Beklemede", cls: "bg-amber-100 text-amber-800" },
