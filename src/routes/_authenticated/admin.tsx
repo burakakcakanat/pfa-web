@@ -142,6 +142,11 @@ import {
 } from "@/lib/newsletter.functions";
 import { MediaLibraryManager, MediaPickerButton } from "@/components/media-library";
 import {
+  PAYMENT_MODE_DEFAULT,
+  PAYMENT_MODE_LABEL,
+  normalizePaymentMode,
+} from "@/lib/payment-mode";
+import {
   FREE_LABEL_TR,
   buildInstagramCaptionEn,
   buildInstagramCaptionTr,
