@@ -74,6 +74,7 @@ export function AdminPurchaseInquiries() {
   const [selLang, setSelLang] = useState<"tr" | "en">("tr");
   const [fulfilling, setFulfilling] = useState(false);
   const [statusFilter, setStatusFilter] = useState<PurchaseInquiryStatus | "all">("all");
+  const paymentMode = usePaymentMode();
   const [localeFilter, setLocaleFilter] = useState<"all" | "tr" | "en">("all");
   const [openId, setOpenId] = useState<string | null>(null);
   const [note, setNote] = useState("");
