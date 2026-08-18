@@ -85,7 +85,7 @@ function AccountPage() {
         supabase.from("orders").select("id,status,amount_cents,currency,created_at,products(name_tr,slug)").order("created_at", { ascending: false }),
         supabase.from("user_entitlements").select("id,type,created_at,metadata").order("created_at", { ascending: false }),
         supabase.from("user_roles").select("role"),
-        supabase.from("assessment_sessions").select("id, type, status, created_at, completed_at").eq("status", "completed").order("completed_at", { ascending: false }),
+        supabase.from("assessment_sessions").select("id, type, status, created_at, completed_at").eq("user_id", uid).eq("status", "completed").order("completed_at", { ascending: false }),
         supabase.from("sevenq_sessions").select("id, status, created_at, completed_at").eq("user_id", uid).eq("status", "completed").order("completed_at", { ascending: false }),
       ]);
       if (p) { setProfile(p as Profile); setFullName((p as Profile).full_name ?? ""); setPreferredLanguage((p as Profile).preferred_language ?? "tr"); }
@@ -184,7 +184,7 @@ function AccountPage() {
                       <div className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleString("tr-TR")}</div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="font-serif text-lg">${(o.amount_cents / 100).toFixed(2)}</span>
+                      <span className="font-serif text-lg">{fmtMoney(o.amount_cents, o.currency)}</span>
                       <StatusBadge status={o.status} />
                     </div>
                   </li>
@@ -451,19 +451,33 @@ function ClientsTab() {
           <div className="text-xs text-muted-foreground">{data.used} kullanıldı</div>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <div className="text-sm text-muted-foreground">Ek paket: 10 hak · $50</div>
+          <div className="text-sm text-muted-foreground">
+            Ek paket: 10 hak
+            {data.clientPackPriceCents != null
+              ? ` · ${fmtMoney(data.clientPackPriceCents, data.clientPackCurrency)}`
+              : ""}
+          </div>
           <BuyButton productSlug="client-pack-10" label="Ek Paket Satın Al (+10)" />
         </div>
       </div>
 
       <form onSubmit={submit} className="rounded-lg border border-border bg-card p-6">
-        <div className="font-serif text-xl">Yeni danışan davet et</div>
+        <div className="font-serif text-xl">Danışan bağlantısı oluştur</div>
         <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-          <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Danışan adı" className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm" />
-          <button type="submit" disabled={busy || exhausted || !name.trim()} className="btn-primary disabled:opacity-50">
-            {busy ? "..." : "Davet Oluştur"}
+          <div className="flex-1">
+            <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Danışan adı" className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Gerçek ad zorunlu değil — takma ad kullanabilirsiniz.
+            </p>
+          </div>
+          <button type="submit" disabled={busy || exhausted || !name.trim()} className="btn-primary h-fit disabled:opacity-50">
+            {busy ? "..." : "Danışan bağlantısı oluştur"}
           </button>
         </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Otomatik e-posta gönderilmez. Bağlantı oluşturulduktan sonra aşağıdaki listeden
+          kopyalayıp danışanınıza kendiniz iletirsiniz.
+        </p>
         {exhausted && <div className="mt-3 text-sm text-muted-foreground">Kalan hakkınız kalmadı — yukarıdan ek paket satın alabilirsiniz.</div>}
         {err && <div className="mt-3 text-sm text-destructive">{err}</div>}
       </form>
@@ -506,12 +520,12 @@ function ClientsTab() {
                     <div className="flex items-center gap-2">
                       <span className="w-16 shrink-0 text-xs text-muted-foreground">Ölçek</span>
                       <input readOnly value={link} className="flex-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs" />
-                      <button type="button" onClick={() => navigator.clipboard?.writeText(link)} className="btn-outline text-xs">Kopyala</button>
+                      <button type="button" onClick={() => navigator.clipboard?.writeText(inviteMessage(i.client_name, "Ölçek", link))} className="btn-outline text-xs">Mesajı kopyala</button>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-16 shrink-0 text-xs text-muted-foreground">7Q</span>
                       <input readOnly value={sevenqLink} className="flex-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs" />
-                      <button type="button" onClick={() => navigator.clipboard?.writeText(sevenqLink)} className="btn-outline text-xs">Kopyala</button>
+                      <button type="button" onClick={() => navigator.clipboard?.writeText(inviteMessage(i.client_name, "7Q Profili", sevenqLink))} className="btn-outline text-xs">Mesajı kopyala</button>
                     </div>
                   </div>
                 </li>
