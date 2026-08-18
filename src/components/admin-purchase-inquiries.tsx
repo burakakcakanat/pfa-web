@@ -36,6 +36,7 @@ import {
   type AdminPurchaseInquiryRow,
   type PurchaseInquiryStatus,
 } from "@/lib/purchase-inquiries";
+import { usePaymentMode } from "@/lib/payment-mode";
 
 const fmtDate = (s: string | null) =>
   s
@@ -73,6 +74,7 @@ export function AdminPurchaseInquiries() {
   const [selLang, setSelLang] = useState<"tr" | "en">("tr");
   const [fulfilling, setFulfilling] = useState(false);
   const [statusFilter, setStatusFilter] = useState<PurchaseInquiryStatus | "all">("all");
+  const paymentMode = usePaymentMode();
   const [localeFilter, setLocaleFilter] = useState<"all" | "tr" | "en">("all");
   const [openId, setOpenId] = useState<string | null>(null);
   const [note, setNote] = useState("");
@@ -421,6 +423,12 @@ export function AdminPurchaseInquiries() {
             ) : null}
           </div>
 
+          {paymentMode === "card" ? (
+            <div className="rounded-md border border-border bg-muted/30 p-4 text-xs text-muted-foreground">
+              Ödeme yöntemi "yalnızca kart" olarak ayarlı — havale bilgisi gönderme adımı
+              gizlendi. Site Ayarları → Ödeme Sistemi bölümünden değiştirebilirsiniz.
+            </div>
+          ) : (
           <div className="space-y-3 rounded-md border border-border bg-muted/30 p-4">
             <div className="flex flex-wrap items-end gap-3">
               <div>
@@ -478,6 +486,7 @@ export function AdminPurchaseInquiries() {
               — talebin geldiği sayfanın diline göre seçilir.
             </p>
           </div>
+          )}
 
           <div>
             <Label className="text-xs">Durum akışı</Label>

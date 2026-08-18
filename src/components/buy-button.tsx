@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { startCheckout } from "@/lib/checkout.functions";
 import { PAYMENTS_LIVE, BANK_TRANSFER_ONLY_SLUG } from "@/lib/payments-config";
+import { usePaymentMode } from "@/lib/payment-mode";
 import { guessBrowserCurrency } from "@/lib/pricing";
 import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 import type { PurchaseInquiryKind } from "@/lib/purchase-inquiries";
@@ -39,6 +40,8 @@ export function BuyButton({
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const paymentMode = usePaymentMode();
+  const [channel, setChannel] = useState<"transfer" | "card">("transfer");
 
   const bankTransferOnly = productSlug === BANK_TRANSFER_ONLY_SLUG;
 
@@ -69,9 +72,8 @@ export function BuyButton({
     }
   }
 
-  // Havale yalnızca uygulayıcı lisansında kalır.
-  if (bankTransferOnly && inquiry) {
-    return (
+  const transferForm =
+    bankTransferOnly && inquiry ? (
       <PurchaseInquiryForm
         kind={inquiry.kind}
         productSlug={productSlug}
@@ -80,11 +82,10 @@ export function BuyButton({
         {...(inquiry.slotDefault ? { slotDefault: inquiry.slotDefault } : {})}
         {...(inquiry.buttonLabel ? { buttonLabel: inquiry.buttonLabel } : {})}
       />
-    );
-  }
+    ) : null;
 
-  if (!PAYMENTS_LIVE) {
-    return (
+  const cardPath = !PAYMENTS_LIVE ? (
+    <div className="flex flex-col items-start gap-2">
       <button
         type="button"
         disabled
@@ -93,10 +94,13 @@ export function BuyButton({
       >
         {locale === "en" ? "Coming soon" : "Çok Yakında"}
       </button>
-    );
-  }
-
-  return (
+      <span className="max-w-xs text-xs leading-relaxed text-muted-foreground">
+        {locale === "en"
+          ? "Card payment is being set up; it will be available here shortly."
+          : "Kart ile ödeme hazırlanıyor; kısa süre içinde buradan aktif olacak."}
+      </span>
+    </div>
+  ) : (
     <div className="flex flex-col items-start gap-2">
       <button
         type="button"
@@ -109,4 +113,38 @@ export function BuyButton({
       {error && <span className="text-xs text-destructive">{error}</span>}
     </div>
   );
+
+  // Havale akışı yalnızca uygulayıcı lisansında tanımlı; site genelindeki
+  // payment_mode ayarı hangi kanalın görüneceğine karar verir.
+  if (transferForm && paymentMode === "bank_transfer") return transferForm;
+
+  if (transferForm && paymentMode === "both") {
+    return (
+      <div className="flex flex-col items-start gap-4">
+        <div className="flex flex-wrap gap-2">
+          {(["transfer", "card"] as const).map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setChannel(c)}
+              className={`rounded-md border px-3 py-1.5 text-xs ${
+                channel === c ? "border-accent text-accent" : "border-border text-muted-foreground"
+              }`}
+            >
+              {c === "transfer"
+                ? locale === "en"
+                  ? "Bank transfer"
+                  : "Havale / EFT"
+                : locale === "en"
+                  ? "Pay by card"
+                  : "Kart ile ödeme"}
+            </button>
+          ))}
+        </div>
+        {channel === "transfer" ? transferForm : cardPath}
+      </div>
+    );
+  }
+
+  return cardPath;
 }

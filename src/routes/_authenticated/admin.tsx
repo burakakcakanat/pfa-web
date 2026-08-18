@@ -142,6 +142,11 @@ import {
 } from "@/lib/newsletter.functions";
 import { MediaLibraryManager, MediaPickerButton } from "@/components/media-library";
 import {
+  PAYMENT_MODE_DEFAULT,
+  PAYMENT_MODE_LABEL,
+  normalizePaymentMode,
+} from "@/lib/payment-mode";
+import {
   FREE_LABEL_TR,
   buildInstagramCaptionEn,
   buildInstagramCaptionTr,
@@ -1828,7 +1833,7 @@ function SiteSettingsTab() {
   const [msg, setMsg] = useState<string | null>(null);
   useEffect(() => {
     fetchList().then((data) => {
-      const out: Record<string, string> = { social_instagram: "", social_linkedin: "", social_x: "", social_youtube: "", podcast_program_url: "", admin_notification_email: "", payments_enabled: "false" };
+      const out: Record<string, string> = { social_instagram: "", social_linkedin: "", social_x: "", social_youtube: "", podcast_program_url: "", admin_notification_email: "", payments_enabled: "false", payment_mode: PAYMENT_MODE_DEFAULT };
       for (const r of data as any[]) out[r.key] = r.value ?? "";
       setRows(out);
     });
@@ -1850,6 +1855,28 @@ function SiteSettingsTab() {
     <AdminBankTransferSettings />
     <AdminSessionAvailability />
     <Card title="Ödeme Sistemi">
+      <div className="mb-5">
+        <Label>Ödeme yöntemi (payment_mode)</Label>
+        <div className="mt-2 space-y-2">
+          {(["bank_transfer", "card", "both"] as const).map((m) => (
+            <label key={m} className="flex items-start gap-3 text-sm">
+              <input
+                type="radio"
+                name="payment_mode"
+                className="mt-1"
+                checked={normalizePaymentMode(rows.payment_mode) === m}
+                onChange={() => upd("payment_mode", m)}
+              />
+              <span>{PAYMENT_MODE_LABEL[m]}</span>
+            </label>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Tek tıkla değişir, yeniden yayına alma gerekmez. Havale/IBAN akışı yalnızca
+          "havale" ve "her ikisi" seçeneklerinde görünür; "kart" seçildiğinde kart ile
+          ödeme yolu gösterilir (sağlayıcı bağlanana kadar "Çok Yakında" olarak).
+        </p>
+      </div>
       <label className="flex items-start gap-3 text-sm">
         <input
           type="checkbox"

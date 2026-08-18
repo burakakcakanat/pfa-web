@@ -13,6 +13,7 @@ const PUBLIC_SETTING_KEYS = [
   "podcast_program_url",
   "sevenq_pilot_open",
   "payments_enabled",
+  "payment_mode",
   "newsletter_bg_image_url",
   "newsletter_bg_side",
 ];
