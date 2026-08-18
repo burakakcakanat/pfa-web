@@ -20,6 +20,27 @@ export const getProDashboard = createServerFn({ method: "GET" })
     const quota = meta.client_quota ?? 0;
     const used = meta.client_used ?? 0;
 
+    // Ek paket fiyatı katalogdan okunur (hardcoded fiyat yok).
+    let clientPackPriceCents: number | null = null;
+    let clientPackCurrency = "usd";
+    const { data: pack } = await supabase
+      .from("products")
+      .select("id, price_cents, currency")
+      .eq("slug", "client-pack-10")
+      .maybeSingle();
+    if (pack) {
+      const { data: price } = await supabase
+        .from("product_prices")
+        .select("price_cents, currency")
+        .eq("product_id", pack.id)
+        .eq("active", true)
+        .order("currency", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      clientPackPriceCents = price?.price_cents ?? pack.price_cents ?? null;
+      clientPackCurrency = price?.currency ?? pack.currency ?? "usd";
+    }
+
     const { data: invites } = await supabase
       .from("pro_client_invites")
       .select("id, client_name, token, status, created_at")
@@ -62,6 +83,8 @@ export const getProDashboard = createServerFn({ method: "GET" })
       quota,
       used,
       remaining: Math.max(0, quota - used),
+      clientPackPriceCents,
+      clientPackCurrency,
       invites: (invites ?? []).map((i) => ({
         ...i,
         session_id: sessionByInvite[i.id] ?? null,
