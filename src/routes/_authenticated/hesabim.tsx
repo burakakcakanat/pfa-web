@@ -539,6 +539,32 @@ function ClientsTab() {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  return <StatusBadgeInner status={status} />;
+}
+
+const CURRENCY_SYMBOL: Record<string, string> = { usd: "$", try: "₺", eur: "€", gbp: "£" };
+
+/** Kaydın kendi para birimiyle biçimlendirir; bilinmeyen kodda kodu gösterir. */
+function fmtMoney(cents: number, currency?: string | null): string {
+  const code = (currency ?? "usd").toLowerCase();
+  const amount = (cents / 100).toFixed(2);
+  const sym = CURRENCY_SYMBOL[code];
+  return sym ? `${sym}${amount}` : `${amount} ${code.toUpperCase()}`;
+}
+
+/** Kopyalanacak hazır mesaj — çıplak URL değil. */
+function inviteMessage(clientName: string, toolLabel: string, url: string): string {
+  return [
+    `Merhaba ${clientName},`,
+    "",
+    `PFA ${toolLabel} çalışmasını aşağıdaki bağlantıdan doldurabilirsiniz:`,
+    url,
+    "",
+    "Bağlantı yalnızca sizin için oluşturuldu. Yanıtlarınız tamamlandığında birlikte değerlendireceğiz.",
+  ].join("\n");
+}
+
+function StatusBadgeInner({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     paid: { label: "Ödendi", cls: "bg-emerald-100 text-emerald-800" },
     pending: { label: "Beklemede", cls: "bg-amber-100 text-amber-800" },
