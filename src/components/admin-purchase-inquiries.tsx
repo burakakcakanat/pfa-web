@@ -36,6 +36,7 @@ import {
   type AdminPurchaseInquiryRow,
   type PurchaseInquiryStatus,
 } from "@/lib/purchase-inquiries";
+import { usePaymentMode } from "@/lib/payment-mode";
 
 const fmtDate = (s: string | null) =>
   s
