@@ -34,7 +34,7 @@ export async function fetchTcmbRates(): Promise<FxSnapshot> {
   const eurSatis = pick(xml, "EUR", "ForexSelling");
   if (!usdSatis || !eurSatis) throw new Error("TCMB yanıtında USD/EUR satış kuru bulunamadı.");
 
-  const dateAttr = /Date="(\d{2})\.(\d{2})\.(\d{4})"/.exec(xml);
+  const dateAttr = /Tarih="(\d{2})\.(\d{2})\.(\d{4})"/.exec(xml);
   const tarih = dateAttr
     ? `${dateAttr[3]}-${dateAttr[2]}-${dateAttr[1]}`
     : new Date().toISOString().slice(0, 10);
