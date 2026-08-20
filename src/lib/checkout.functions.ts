@@ -13,7 +13,7 @@ export const startCheckout = createServerFn({ method: "POST" })
       .object({
         product_slug: z.string().min(1),
         addon_slugs: z.array(z.string().min(1)).max(6).optional(),
-        currency: z.enum(["usd", "try"]),
+        currency: z.enum(["usd", "try", "eur"]),
         origin: z.string().url(),
         discount_code: z.string().trim().max(64).optional().nullable(),
         gift: z

@@ -9,7 +9,6 @@ import { PAYMENTS_LIVE } from "@/lib/payments-config";
 import {
   addonSlugsForBook,
   fmtMoney,
-  guessBrowserCurrency,
   priceFor,
   type BundleShape,
   type Currency,
@@ -121,7 +120,8 @@ function BooksPage() {
 
 function BooksContent() {
   const { data } = useSuspenseQuery(booksQuery());
-  const [currency] = useState<Currency>(() => guessBrowserCurrency());
+  // TR yüzeyinde para birimi seçici yoktur — her zaman TRY.
+  const [currency] = useState<Currency>("try");
   const addonLabels = useMemo(() => {
     const m: Record<string, string> = {};
     for (const p of data.products) m[p.slug] = p.name_tr;

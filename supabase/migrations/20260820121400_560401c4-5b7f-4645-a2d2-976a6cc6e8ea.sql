@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.log_rate_change() FROM anon, authenticated, public;

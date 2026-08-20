@@ -3,7 +3,9 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { BuyButton } from "@/components/buy-button";
 import { getBooksData, type BooksPayload } from "@/lib/books.functions";
-import { amazonUrlFor, bookSlugFor, fmtUsd, isLive, MARKETPLACE_NAMES_EN } from "@/lib/bundles";
+import { amazonUrlFor, bookSlugFor, isLive, MARKETPLACE_NAMES_EN } from "@/lib/bundles";
+import { CurrencySelector, useCurrency } from "@/components/currency-selector";
+import { fmtMoney, priceFor } from "@/lib/pricing";
 import { BOOKS_COPY } from "@/content/en-pages";
 import { SITE_URL, alternateLinksForEn } from "@/lib/i18n";
 import hcdCover from "@/assets/hcd-cover.png.asset.json";
@@ -62,6 +64,10 @@ function BooksContent() {
 
   return (
     <div className="mt-16 space-y-24">
+      <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+        <span>Currency</span>
+        <CurrencySelector />
+      </div>
       <BookBlock meta={C.pfa} bookKey="pfa" data={data} products={products} showSigned />
       <BookBlock meta={C.hcd} bookKey="hcd" data={data} products={products} showSigned />
     </div>
@@ -83,6 +89,8 @@ function BookBlock({
 }) {
   const productSlug = bookSlugFor(bookKey, "en");
   const product = products.get(productSlug);
+  const [currency] = useCurrency("en");
+  const resolved = priceFor(data.prices, productSlug, currency);
   // HCD site sales stay hidden until their activate_at date — same rule as the
   // Turkish books page. Do not bypass isLive().
   const productLive = product ? isLive(product) : false;
@@ -140,7 +148,9 @@ function BookBlock({
               <span aria-hidden>✒</span> {C.signedHeading}
             </div>
             <div className="mt-4 flex flex-wrap items-baseline gap-3">
-              <div className="font-serif text-2xl text-primary">{fmtUsd(product.price_cents)}</div>
+              <div className="font-serif text-2xl text-primary">
+                {resolved ? fmtMoney(resolved.cents, resolved.currency) : "—"}
+              </div>
               <div className="text-xs text-muted-foreground">{C.signedPriceNote}</div>
             </div>
             <div className="mt-4">

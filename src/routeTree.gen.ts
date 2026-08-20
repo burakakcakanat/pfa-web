@@ -57,6 +57,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as ApiPublicWebinarRemindersRouteImport } from './routes/api/public/webinar-reminders'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
+import { Route as ApiPublicFxSyncRouteImport } from './routes/api/public/fx-sync'
 import { Route as AuthenticatedRaporSessionIdRouteImport } from './routes/_authenticated/rapor.$sessionId'
 import { Route as AuthenticatedDegerlendirmeTamRouteImport } from './routes/_authenticated/degerlendirme.tam'
 import { Route as Authenticated7qFormRouteImport } from './routes/_authenticated/7q.form'
@@ -311,6 +312,11 @@ const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   path: '/api/public/stripe-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicFxSyncRoute = ApiPublicFxSyncRouteImport.update({
+  id: '/api/public/fx-sync',
+  path: '/api/public/fx-sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRaporSessionIdRoute =
   AuthenticatedRaporSessionIdRouteImport.update({
     id: '/rapor/$sessionId',
@@ -412,6 +418,7 @@ export interface FileRoutesByFullPath {
   '/7q/form': typeof Authenticated7qFormRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
   '/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
+  '/api/public/fx-sync': typeof ApiPublicFxSyncRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
@@ -469,6 +476,7 @@ export interface FileRoutesByTo {
   '/7q/form': typeof Authenticated7qFormRoute
   '/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
   '/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
+  '/api/public/fx-sync': typeof ApiPublicFxSyncRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
@@ -529,6 +537,7 @@ export interface FileRoutesById {
   '/_authenticated/7q/form': typeof Authenticated7qFormRoute
   '/_authenticated/degerlendirme/tam': typeof AuthenticatedDegerlendirmeTamRoute
   '/_authenticated/rapor/$sessionId': typeof AuthenticatedRaporSessionIdRoute
+  '/api/public/fx-sync': typeof ApiPublicFxSyncRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/_authenticated/7q/rapor/$sessionId': typeof Authenticated7qRaporSessionIdRoute
@@ -589,6 +598,7 @@ export interface FileRouteTypes {
     | '/7q/form'
     | '/degerlendirme/tam'
     | '/rapor/$sessionId'
+    | '/api/public/fx-sync'
     | '/api/public/stripe-webhook'
     | '/api/public/webinar-reminders'
     | '/7q/rapor/$sessionId'
@@ -646,6 +656,7 @@ export interface FileRouteTypes {
     | '/7q/form'
     | '/degerlendirme/tam'
     | '/rapor/$sessionId'
+    | '/api/public/fx-sync'
     | '/api/public/stripe-webhook'
     | '/api/public/webinar-reminders'
     | '/7q/rapor/$sessionId'
@@ -705,6 +716,7 @@ export interface FileRouteTypes {
     | '/_authenticated/7q/form'
     | '/_authenticated/degerlendirme/tam'
     | '/_authenticated/rapor/$sessionId'
+    | '/api/public/fx-sync'
     | '/api/public/stripe-webhook'
     | '/api/public/webinar-reminders'
     | '/_authenticated/7q/rapor/$sessionId'
@@ -751,6 +763,7 @@ export interface RootRouteChildren {
   WebinarlarIndexRoute: typeof WebinarlarIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
+  ApiPublicFxSyncRoute: typeof ApiPublicFxSyncRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicWebinarRemindersRoute: typeof ApiPublicWebinarRemindersRoute
   ApiPublicMediaFileRoute: typeof ApiPublicMediaFileRoute
@@ -1096,6 +1109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/fx-sync': {
+      id: '/api/public/fx-sync'
+      path: '/api/public/fx-sync'
+      fullPath: '/api/public/fx-sync'
+      preLoaderRoute: typeof ApiPublicFxSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/rapor/$sessionId': {
       id: '/_authenticated/rapor/$sessionId'
       path: '/rapor/$sessionId'
@@ -1249,6 +1269,7 @@ const rootRouteChildren: RootRouteChildren = {
   WebinarlarIndexRoute: WebinarlarIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
+  ApiPublicFxSyncRoute: ApiPublicFxSyncRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicWebinarRemindersRoute: ApiPublicWebinarRemindersRoute,
   ApiPublicMediaFileRoute: ApiPublicMediaFileRoute,

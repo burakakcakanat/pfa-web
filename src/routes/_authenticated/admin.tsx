@@ -124,6 +124,8 @@ import {
   type ApplicationStatus,
 } from "@/lib/practitioner-applications.functions";
 import { AdminLicenseInquiries } from "@/components/admin-license-inquiries";
+import { AdminRateCenter } from "@/components/admin-rate-center";
+import { type Currency } from "@/lib/pricing";
 import { AdminScaleData } from "@/components/admin-scale-data";
 import { AdminPurchaseInquiries, LocaleBadge } from "@/components/admin-purchase-inquiries";
 import { AdminBankTransferSettings } from "@/components/admin-bank-transfer-settings";
@@ -182,6 +184,24 @@ const fmtMoney = (cents: number, currency = "usd") =>
 const fmtDate = (s: string | null) =>
   s ? new Date(s).toLocaleString("tr-TR", { dateStyle: "medium", timeStyle: "short" }) : "—";
 
+/** Fiyat & Oran Merkezi tek yazma yüzeyidir; bu alanlar salt okunurdur. */
+function ReadOnlyPrice({ cents, currency }: { cents: number | null; currency: Currency }) {
+  return (
+    <div className="mt-2 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+      <span className="mr-2 text-[0.65rem] uppercase tracking-wide">{currency}</span>
+      {cents == null || cents <= 0 ? "—" : fmtMoney(cents, currency)}
+    </div>
+  );
+}
+
+function RateCentreLink() {
+  return (
+    <p className="mt-1 text-[0.7rem] text-muted-foreground">
+      Fiyat &amp; Oran Merkezi'nden yönetilir →
+    </p>
+  );
+}
+
 function AdminPage() {
   const countNew = useServerFn(countNewPractitionerApplications);
   const [newApps, setNewApps] = useState(0);
@@ -198,6 +218,7 @@ function AdminPage() {
           <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-transparent">
             <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
             <TabsTrigger value="products">Ürünler ve Paketler</TabsTrigger>
+            <TabsTrigger value="rates">Fiyat &amp; Oran Merkezi</TabsTrigger>
             <TabsTrigger value="editions">Kitap Baskıları</TabsTrigger>
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
           <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
@@ -227,6 +248,7 @@ function AdminPage() {
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
             <TabsContent value="products"><ProductsTab /></TabsContent>
+            <TabsContent value="rates"><AdminRateCenter /></TabsContent>
             <TabsContent value="editions"><EditionsTab /></TabsContent>
             <TabsContent value="users"><UsersTab /></TabsContent>
             <TabsContent value="pro"><ProLicensesTab /></TabsContent>
@@ -463,7 +485,7 @@ function ProductsTab() {
   const update = useServerFn(updateAdminProduct);
   const fetchPrices = useServerFn(listAdminProductPrices);
   const savePrice = useServerFn(setAdminProductPrice);
-  const [prices, setPrices] = useState<Record<string, Partial<Record<"usd" | "try", number>>>>({});
+  const [prices, setPrices] = useState<Record<string, Partial<Record<Currency, number>>>>({});
   const fetchBundles = useServerFn(listAdminBundles);
   const upsertBundle = useServerFn(upsertAdminBundle);
   const createCoverUpload = useServerFn(createProductCoverUploadUrl);
@@ -487,10 +509,10 @@ function ProductsTab() {
 
   const reloadPrices = useCallback(async () => {
     const rows = await fetchPrices();
-    const m: Record<string, Partial<Record<"usd" | "try", number>>> = {};
+    const m: Record<string, Partial<Record<Currency, number>>> = {};
     for (const r of rows) {
       if (!r.active) continue;
-      m[r.product_id] = { ...(m[r.product_id] ?? {}), [r.currency as "usd" | "try"]: r.price_cents };
+      m[r.product_id] = { ...(m[r.product_id] ?? {}), [r.currency as Currency]: r.price_cents };
     }
     setPrices(m);
   }, [fetchPrices]);
@@ -631,23 +653,15 @@ function ProductsTab() {
               </div>
               <div>
                 <Label>Fiyat — USD</Label>
-                <PriceInput
-                  cents={prices[p.id]?.usd ?? currentValue(p, "price_cents") ?? 0}
-                  onCommit={(cents) => commitPrice(p.id, "usd", cents)}
-                />
-                <p className="mt-1 text-[0.7rem] text-muted-foreground">
-                  Fiyatın kaynağı product_prices; anında kaydedilir.
-                </p>
+                <ReadOnlyPrice cents={prices[p.id]?.usd ?? null} currency="usd" />
               </div>
               <div>
-                <Label>Fiyat — TRY</Label>
-                <PriceInput
-                  cents={prices[p.id]?.try ?? 0}
-                  onCommit={(cents) => commitPrice(p.id, "try", (cents ?? 0) > 0 ? cents : null)}
-                />
-                <p className="mt-1 text-[0.7rem] text-muted-foreground">
-                  0 bırakılırsa TRY ile satış açılmaz (USD'ye düşer).
-                </p>
+                <Label>Fiyat — TRY / EUR</Label>
+                <div className="mt-2 flex gap-2">
+                  <ReadOnlyPrice cents={prices[p.id]?.try ?? null} currency="try" />
+                  <ReadOnlyPrice cents={prices[p.id]?.eur ?? null} currency="eur" />
+                </div>
+                <RateCentreLink />
               </div>
               <div>
                 <Label>Yayına giriş (activate_at)</Label>
@@ -752,7 +766,10 @@ function ProductsTab() {
           </div>
           <div>
             <Label>İndirim (%)</Label>
-            <Input type="number" value={bundleValue(b, "discount_percent") ?? 0} onChange={(e) => bundlePatch(b.id, "discount_percent", parseInt(e.target.value) || 0)} />
+            <div className="mt-2 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+              %{bundleValue(b, "discount_percent") ?? 0}
+            </div>
+            <RateCentreLink />
           </div>
           <div>
             <Label>Yayına giriş</Label>
