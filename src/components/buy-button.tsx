@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { startCheckout } from "@/lib/checkout.functions";
 import { PAYMENTS_LIVE, BANK_TRANSFER_ONLY_SLUG } from "@/lib/payments-config";
 import { usePaymentMode } from "@/lib/payment-mode";
-import { guessBrowserCurrency } from "@/lib/pricing";
+import { useCurrency } from "@/components/currency-selector";
 import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 import type { PurchaseInquiryKind } from "@/lib/purchase-inquiries";
 
@@ -42,6 +42,8 @@ export function BuyButton({
   const [error, setError] = useState<string | null>(null);
   const paymentMode = usePaymentMode();
   const [channel, setChannel] = useState<"transfer" | "card">("transfer");
+  // TR yüzeyler her zaman TRY; EN yüzeylerde kullanıcının USD/EUR seçimi.
+  const [currency] = useCurrency(locale);
 
   const bankTransferOnly = productSlug === BANK_TRANSFER_ONLY_SLUG;
 
@@ -57,7 +59,7 @@ export function BuyButton({
       const res = await doCheckout({
         data: {
           product_slug: productSlug,
-          currency: guessBrowserCurrency(),
+          currency,
           origin: window.location.origin,
         },
       });

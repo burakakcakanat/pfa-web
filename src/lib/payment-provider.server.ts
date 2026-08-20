@@ -3,7 +3,7 @@ import { PAYMENTS_LIVE, type PaymentProvider } from "@/lib/payments-config";
 export type ProviderOrder = {
   order_id: string;
   amount_cents: number;
-  currency: "usd" | "try";
+  currency: "usd" | "try" | "eur";
   description: string;
   origin: string;
   customer_email: string | null;

@@ -456,6 +456,33 @@ export type Database = {
         }
         Relationships: []
       }
+      corporate_package_tiers: {
+        Row: {
+          aktif: boolean
+          created_at: string
+          id: string
+          indirim_orani: number
+          tier: number
+          updated_at: string
+        }
+        Insert: {
+          aktif?: boolean
+          created_at?: string
+          id?: string
+          indirim_orani?: number
+          tier: number
+          updated_at?: string
+        }
+        Update: {
+          aktif?: boolean
+          created_at?: string
+          id?: string
+          indirim_orani?: number
+          tier?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ebook_dedication_templates: {
         Row: {
           author_name: string
@@ -541,6 +568,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fx_rates: {
+        Row: {
+          created_at: string
+          kaynak: string
+          para_birimi: string
+          tarih: string
+          tcmb_alis: number | null
+          tcmb_satis: number | null
+        }
+        Insert: {
+          created_at?: string
+          kaynak?: string
+          para_birimi: string
+          tarih: string
+          tcmb_alis?: number | null
+          tcmb_satis?: number | null
+        }
+        Update: {
+          created_at?: string
+          kaynak?: string
+          para_birimi?: string
+          tarih?: string
+          tcmb_alis?: number | null
+          tcmb_satis?: number | null
+        }
+        Relationships: []
       }
       instrument_item_snapshots: {
         Row: {
@@ -1202,25 +1256,40 @@ export type Database = {
       product_prices: {
         Row: {
           active: boolean
+          auto_update_frozen: boolean
           created_at: string
           currency: string
+          last_fx_rate: number | null
+          previous_price_cents: number | null
+          previous_valid_until: string | null
           price_cents: number
+          price_set_at: string
           product_id: string
           updated_at: string
         }
         Insert: {
           active?: boolean
+          auto_update_frozen?: boolean
           created_at?: string
           currency: string
+          last_fx_rate?: number | null
+          previous_price_cents?: number | null
+          previous_valid_until?: string | null
           price_cents?: number
+          price_set_at?: string
           product_id: string
           updated_at?: string
         }
         Update: {
           active?: boolean
+          auto_update_frozen?: boolean
           created_at?: string
           currency?: string
+          last_fx_rate?: number | null
+          previous_price_cents?: number | null
+          previous_valid_until?: string | null
           price_cents?: number
+          price_set_at?: string
           product_id?: string
           updated_at?: string
         }
@@ -1408,6 +1477,36 @@ export type Database = {
           transfer_currency?: string
           transfer_sent_at?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      rate_change_log: {
+        Row: {
+          degisim_at: string
+          degistiren: string | null
+          eski_deger: number | null
+          id: string
+          key: string
+          not_metni: string | null
+          yeni_deger: number | null
+        }
+        Insert: {
+          degisim_at?: string
+          degistiren?: string | null
+          eski_deger?: number | null
+          id?: string
+          key: string
+          not_metni?: string | null
+          yeni_deger?: number | null
+        }
+        Update: {
+          degisim_at?: string
+          degistiren?: string | null
+          eski_deger?: number | null
+          id?: string
+          key?: string
+          not_metni?: string | null
+          yeni_deger?: number | null
         }
         Relationships: []
       }
@@ -1852,6 +1951,54 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: string | null
+        }
+        Relationships: []
+      }
+      system_rates: {
+        Row: {
+          aciklama: string | null
+          currency: string | null
+          kategori: string
+          kaynak_karar: string | null
+          key: string
+          label_en: string | null
+          label_tr: string
+          max_value: number | null
+          min_value: number | null
+          updated_at: string
+          updated_by: string | null
+          value_numeric: number
+          value_type: string
+        }
+        Insert: {
+          aciklama?: string | null
+          currency?: string | null
+          kategori: string
+          kaynak_karar?: string | null
+          key: string
+          label_en?: string | null
+          label_tr: string
+          max_value?: number | null
+          min_value?: number | null
+          updated_at?: string
+          updated_by?: string | null
+          value_numeric?: number
+          value_type: string
+        }
+        Update: {
+          aciklama?: string | null
+          currency?: string | null
+          kategori?: string
+          kaynak_karar?: string | null
+          key?: string
+          label_en?: string | null
+          label_tr?: string
+          max_value?: number | null
+          min_value?: number | null
+          updated_at?: string
+          updated_by?: string | null
+          value_numeric?: number
+          value_type?: string
         }
         Relationships: []
       }

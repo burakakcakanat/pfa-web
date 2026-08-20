@@ -45,15 +45,22 @@ async function loadPrices(sb: AnyClient, slugs: string[]): Promise<CurrencyPrice
   const ids = (products ?? []).map((p: any) => p.id);
   const { data: prices } = await sb
     .from("product_prices")
-    .select("product_id, currency, price_cents, active")
+    .select("product_id, currency, price_cents, active, previous_price_cents, previous_valid_until")
     .in("product_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
   const bySlug: CurrencyPriceMap = {};
   const idToSlug = new Map<string, string>((products ?? []).map((p: any) => [p.id, p.slug]));
+  const now = Date.now();
   for (const r of prices ?? []) {
     if (!r.active) continue;
     const slug = idToSlug.get(r.product_id);
     if (!slug) continue;
-    bySlug[slug] = { ...(bySlug[slug] ?? {}), [r.currency as Currency]: r.price_cents };
+    // 24 saatlik geçiş penceresi: pencere açıkken mevcut ve önceki fiyattan
+    // DÜŞÜK olan uygulanır. Tutar her zaman sunucuda çözülür.
+    let cents: number = r.price_cents;
+    const prev = r.previous_price_cents as number | null;
+    const until = r.previous_valid_until ? new Date(r.previous_valid_until).getTime() : 0;
+    if (typeof prev === "number" && prev > 0 && until > now) cents = Math.min(cents, prev);
+    bySlug[slug] = { ...(bySlug[slug] ?? {}), [r.currency as Currency]: cents };
   }
   return bySlug;
 }

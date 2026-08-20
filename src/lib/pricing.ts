@@ -2,7 +2,44 @@
 // Tek doğruluk kaynağı: public.product_prices (products.price_cents geriye
 // dönük uyumluluk için duruyor, yeni kod burayı okur).
 
-export type Currency = "usd" | "try";
+export type Currency = "usd" | "try" | "eur";
+
+export const CURRENCIES: readonly Currency[] = ["usd", "try", "eur"] as const;
+
+/** İngilizce yüzeylerde kullanıcının seçebildiği para birimleri. USD çapadır. */
+export const SELECTABLE_CURRENCIES: readonly Currency[] = ["usd", "eur"] as const;
+
+const CURRENCY_STORAGE_KEY = "pfa.currency";
+
+export function readStoredCurrency(): Currency | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const v = window.localStorage.getItem(CURRENCY_STORAGE_KEY);
+    return v === "usd" || v === "eur" || v === "try" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+export function storeCurrency(c: Currency): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CURRENCY_STORAGE_KEY, c);
+  } catch {
+    /* yoksay */
+  }
+}
+
+/**
+ * Türetilen fiyatı temiz bir sayıya YUKARI yuvarlar. Basamak yapılandırılabilir
+ * (system_rates → kur.yuvarlama_basamagi, minör birim: kuruş/cent).
+ * Örn. step=1000 → 284.712 kuruş → 285.000 kuruş.
+ */
+export function roundUpToStep(cents: number, stepMinorUnits: number): number {
+  const step = Math.max(1, Math.round(stepMinorUnits || 1));
+  const rounded = Math.ceil(cents / step) * step;
+  return Math.max(step, rounded);
+}
 
 export type CurrencyPriceMap = Record<string, Partial<Record<Currency, number>>>;
 
@@ -15,6 +52,7 @@ export function resolveCurrency(hint?: {
   if (country === "TR") return "try";
   const locale = (hint?.locale ?? "").toLowerCase();
   if (locale === "tr" || locale.startsWith("tr-") || locale.endsWith("-tr")) return "try";
+  // EUR asla otomatik seçilmez — yalnız kullanıcı seçerse.
   return "usd";
 }
 
@@ -53,9 +91,11 @@ export function hasPriceIn(prices: CurrencyPriceMap, slug: string, currency: Cur
 }
 
 export function fmtMoney(cents: number, currency: Currency): string {
-  return new Intl.NumberFormat(currency === "try" ? "tr-TR" : "en-US", {
+  const locale = currency === "try" ? "tr-TR" : currency === "eur" ? "de-DE" : "en-US";
+  const code = currency === "try" ? "TRY" : currency === "eur" ? "EUR" : "USD";
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: currency === "try" ? "TRY" : "USD",
+    currency: code,
     maximumFractionDigits: 2,
   }).format(cents / 100);
 }
