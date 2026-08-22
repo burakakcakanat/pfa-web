@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LicensePage, type LicensePageCopy } from "@/components/license-page";
 
-const CANONICAL = "https://psychofunctionalanalysis.com/kurumsal-lisans";
+const CANONICAL = "https://psychofunctionalanalysis.com/kurumsal-program-lisansi";
 
 export const Route = createFileRoute("/kurumsal-program-lisansi")({
   head: () => ({
