@@ -10,13 +10,13 @@ export const Route = createFileRoute("/kurumsal-program-lisansi")({
       {
         name: "description",
         content:
-          "Eğitim kurumları, akademiler, üniversite birimleri ve danışmanlık şirketleri için PFA kurumsal lisansı: PFA'yı kendi programlarınızın içinde yürütme başvurusu.",
+          "Eğitim kurumları, akademiler, üniversite birimleri ve danışmanlık şirketleri için PFA Kurumsal Program Lisansı: PFA'yı kendi programlarınızın içinde yürütme başvurusu.",
       },
       { property: "og:title", content: "PFA Kurumsal Lisans" },
       {
         property: "og:description",
         content:
-          "PFA'yı kendi eğitim programlarınıza yerleştirmek ve kendi kitlenize sunmak için kurumsal lisans başvurusu.",
+          "PFA'yı kendi eğitim programlarınıza yerleştirmek ve kendi kitlenize sunmak için Kurumsal Program Lisansı başvurusu.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: CANONICAL },
