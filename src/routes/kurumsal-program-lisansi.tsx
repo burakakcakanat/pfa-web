@@ -63,7 +63,7 @@ const COPY: LicensePageCopy = {
     },
     {
       title: "Kendi kitlenize satış",
-      body: "PFA içeren programın kurumunuzun kendi katılımcı kitlesine, kendi fiyatlandırmanızla sunulması. Kapsam ve koşullar sözleşmeye bağlıdır.",
+      body: "PFA içeren programın kurumunuzun kendi katılımcı kitlesine, kendi fiyatlandırmanızla sunulması. Kapsam ve koşullar sözleşmeye bağlıdır. Programınızın fiyatını siz belirlersiniz. PFA Ölçeği ve 7Q Profili ise katılımcıya PFA'nın ilan ettiği fiyattan ulaşır; ölçme araçlarının fiyatlandırması lisans kapsamında değildir.",
     },
     {
       title: "Akademik kullanım",
