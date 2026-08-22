@@ -605,7 +605,15 @@ function BundleRow({
           <div className="text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
             {bundle.book_key === "pfa" ? "PFA · Paket" : "HCD · Paket"}
           </div>
-          <h3 className="mt-2 font-serif text-2xl text-primary md:text-3xl">{bundle.name_tr}</h3>
+          <h3 className="mt-2 font-serif text-2xl text-primary md:text-3xl">
+            {bundle.name_tr}
+            {bundle.includes_book && (
+              <span className="ml-3 inline-flex items-center gap-1 align-middle rounded-full border border-accent/50 bg-accent/10 px-2.5 py-1 text-[0.6rem] uppercase tracking-[0.18em] text-accent">
+                <span aria-hidden>✒</span> İmzalı Sürüm
+              </span>
+            )}
+          </h3>
+
           {bundle.description_tr && (
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-foreground/80">
               {bundle.description_tr}

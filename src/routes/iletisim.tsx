@@ -18,6 +18,16 @@ export const Route = createFileRoute("/iletisim")({
   component: ContactPage,
 });
 
+const SUBJECTS = [
+  "Genel Soru",
+  "Uygulayıcı Programı",
+  "Kurumsal Program Lisansı",
+  "Ülke Lisansı",
+  "Basın/Medya",
+  "Teknik Destek",
+  "Diğer",
+] as const;
+
 function ContactPage() {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -100,11 +110,22 @@ function ContactPage() {
                 placeholder="E-posta"
                 className="rounded-md border border-input bg-background px-3 py-2.5 text-sm"
               />
-              <input
+              <select
+                required
                 name="subject"
-                placeholder="Konu"
+                defaultValue=""
                 className="rounded-md border border-input bg-background px-3 py-2.5 text-sm"
-              />
+              >
+                <option value="" disabled>
+                  Konu seçin
+                </option>
+                {SUBJECTS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+
               <textarea
                 required
                 name="message"

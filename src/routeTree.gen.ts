@@ -15,6 +15,7 @@ import { Route as UlkeLisansiRouteImport } from './routes/ulke-lisansi'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SeanslarRouteImport } from './routes/seanslar'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as KurumsalProgramLisansiRouteImport } from './routes/kurumsal-program-lisansi'
 import { Route as KurumsalLisansRouteImport } from './routes/kurumsal-lisans'
 import { Route as KullanimKosullariRouteImport } from './routes/kullanim-kosullari'
 import { Route as KitaplarRouteImport } from './routes/kitaplar'
@@ -96,6 +97,11 @@ const SeanslarRoute = SeanslarRouteImport.update({
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KurumsalProgramLisansiRoute = KurumsalProgramLisansiRouteImport.update({
+  id: '/kurumsal-program-lisansi',
+  path: '/kurumsal-program-lisansi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KurumsalLisansRoute = KurumsalLisansRouteImport.update({
@@ -381,6 +387,7 @@ export interface FileRoutesByFullPath {
   '/kitaplar': typeof KitaplarRoute
   '/kullanim-kosullari': typeof KullanimKosullariRoute
   '/kurumsal-lisans': typeof KurumsalLisansRoute
+  '/kurumsal-program-lisansi': typeof KurumsalProgramLisansiRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -439,6 +446,7 @@ export interface FileRoutesByTo {
   '/kitaplar': typeof KitaplarRoute
   '/kullanim-kosullari': typeof KullanimKosullariRoute
   '/kurumsal-lisans': typeof KurumsalLisansRoute
+  '/kurumsal-program-lisansi': typeof KurumsalProgramLisansiRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -500,6 +508,7 @@ export interface FileRoutesById {
   '/kitaplar': typeof KitaplarRoute
   '/kullanim-kosullari': typeof KullanimKosullariRoute
   '/kurumsal-lisans': typeof KurumsalLisansRoute
+  '/kurumsal-program-lisansi': typeof KurumsalProgramLisansiRoute
   '/mcp': typeof McpRoute
   '/seanslar': typeof SeanslarRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -561,6 +570,7 @@ export interface FileRouteTypes {
     | '/kitaplar'
     | '/kullanim-kosullari'
     | '/kurumsal-lisans'
+    | '/kurumsal-program-lisansi'
     | '/mcp'
     | '/seanslar'
     | '/sitemap.xml'
@@ -619,6 +629,7 @@ export interface FileRouteTypes {
     | '/kitaplar'
     | '/kullanim-kosullari'
     | '/kurumsal-lisans'
+    | '/kurumsal-program-lisansi'
     | '/mcp'
     | '/seanslar'
     | '/sitemap.xml'
@@ -679,6 +690,7 @@ export interface FileRouteTypes {
     | '/kitaplar'
     | '/kullanim-kosullari'
     | '/kurumsal-lisans'
+    | '/kurumsal-program-lisansi'
     | '/mcp'
     | '/seanslar'
     | '/sitemap.xml'
@@ -740,6 +752,7 @@ export interface RootRouteChildren {
   KitaplarRoute: typeof KitaplarRoute
   KullanimKosullariRoute: typeof KullanimKosullariRoute
   KurumsalLisansRoute: typeof KurumsalLisansRoute
+  KurumsalProgramLisansiRoute: typeof KurumsalProgramLisansiRoute
   McpRoute: typeof McpRoute
   SeanslarRoute: typeof SeanslarRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -813,6 +826,13 @@ declare module '@tanstack/react-router' {
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kurumsal-program-lisansi': {
+      id: '/kurumsal-program-lisansi'
+      path: '/kurumsal-program-lisansi'
+      fullPath: '/kurumsal-program-lisansi'
+      preLoaderRoute: typeof KurumsalProgramLisansiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kurumsal-lisans': {
@@ -1245,6 +1265,7 @@ const rootRouteChildren: RootRouteChildren = {
   KitaplarRoute: KitaplarRoute,
   KullanimKosullariRoute: KullanimKosullariRoute,
   KurumsalLisansRoute: KurumsalLisansRoute,
+  KurumsalProgramLisansiRoute: KurumsalProgramLisansiRoute,
   McpRoute: McpRoute,
   SeanslarRoute: SeanslarRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

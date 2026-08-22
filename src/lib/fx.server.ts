@@ -107,8 +107,11 @@ export function derivePrice(
   rates: RateMap,
 ): { cents: number; rate: number } {
   const rate = effectiveRate(target, snap, rates);
-  const step = rates["kur.yuvarlama_basamagi"] ?? 1000;
+  // Yuvarlama basamağı para birimi başına ayrıdır (TRY: kuruş, EUR/USD: sent).
+  // Güvenli varsayılan 100 — tek ortak 1000 basamağı EUR'u aşırı fiyatlandırıyordu.
+  const step = rates[`kur.yuvarlama_basamagi_${target}`] ?? 100;
   return { cents: roundUpToStep(Math.round(usdCents * rate), step), rate };
+
 }
 
 function monthsSince(iso: string | null): number {
