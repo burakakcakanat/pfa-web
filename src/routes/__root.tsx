@@ -494,7 +494,6 @@ const MOBILE_GROUPS: { label: string; links: NavItem[] }[] = [
     links: [
       { to: "/uygulayicilar", label: "Uygulayıcı Bul" },
       { to: "/uygulayici-olun", label: "Uygulayıcı Programı" },
-      { to: "/uygulayici-ekosistemi", label: "Uygulayıcı Ekosistemi" },
     ],
   },
   {
@@ -522,7 +521,6 @@ const FOOTER_MORE: NavItem[] = [
   { to: "/egitim", label: "Eğitim" },
   { to: "/uygulayicilar", label: "Uygulayıcı Bul" },
   { to: "/uygulayici-olun", label: "Uygulayıcı Programı" },
-  { to: "/uygulayici-ekosistemi", label: "Uygulayıcı Ekosistemi" },
   { to: "/kullanim-kosullari", label: "Kullanım Koşulları" },
   { to: "/iade-politikasi", label: "İade Politikası" },
   { to: "/gizlilik", label: "Gizlilik" },
