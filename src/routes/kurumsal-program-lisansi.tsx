@@ -35,7 +35,7 @@ const COPY: LicensePageCopy = {
   eyebrow: "PFA KURUMSAL LİSANS",
   h1: "PFA'yı kendi programınızın içinde yürütün.",
   proposition:
-    "Kurumsal lisans, hâlihazırda eğitim veren bir kuruma PFA'yı kendi müfredatında yürütme ve kendi kitlesine sunma imkânı tanır.",
+    "Kurumsal Program Lisansı, hâlihazırda eğitim veren bir kuruma PFA'yı kendi müfredatında yürütme ve kendi kitlesine sunma imkânı tanır.",
   heroNote:
     "Bu bir satış sayfası değil, başvuru sayfasıdır. İlan edilmiş bir bedel ya da hazır bir sözleşme yoktur; kapsam, süre ve ticari koşullar değerlendirme sonrasında karşılıklı görüşmeyle belirlenir.",
   ctaLabel: "BAŞVURU FORMUNA GİT",
@@ -43,7 +43,7 @@ const COPY: LicensePageCopy = {
   coversEyebrow: "LİSANS NEYİ KAPSAR",
   coversTitle: "Mevcut programınıza yerleşen bir modül",
   coversIntro:
-    "Kurumsal lisans, PFA'yı sıfırdan bir eğitim işi kurmak için değil, hâlihazırda yürüttüğünüz programların içine yerleştirmek için konuşulur. Kapsamın sınırı sözleşmede tanımlanır.",
+    "Kurumsal Program Lisansı, PFA'yı sıfırdan bir eğitim işi kurmak için değil, hâlihazırda yürüttüğünüz programların içine yerleştirmek için konuşulur. Kapsamın sınırı sözleşmede tanımlanır.",
   covers: [
     {
       title: "Müfredata yerleştirme",
@@ -76,7 +76,7 @@ const COPY: LicensePageCopy = {
   audienceEyebrow: "KİME UYGUN",
   audienceTitle: "Zaten eğitim veren kurumlar",
   audienceIntro:
-    "Kurumsal lisans, kendi katılımcı kitlesi ve kendi eğitim altyapısı olan yapılar için tasarlanmıştır: eğitim kurumları, akademiler, üniversite birimleri ve danışmanlık şirketleri.",
+    "Kurumsal Program Lisansı, kendi katılımcı kitlesi ve kendi eğitim altyapısı olan yapılar için tasarlanmıştır: eğitim kurumları, akademiler, üniversite birimleri ve danışmanlık şirketleri.",
   criteria: [
     "Faal bir eğitim, sertifika programı, akademi ya da danışmanlık hizmeti — yalnızca planlanan değil, yürüyen bir program.",
     "Eğitimi yürütecek kendi eğitmen kadrosu veya sözleşmeli eğitmen ağı.",
@@ -187,7 +187,7 @@ const COPY: LicensePageCopy = {
     },
     {
       q: "Ülke lisansıyla aynı şey mi?",
-      a: "Hayır. Ülke lisansı bir bölgede PFA'yı temsil etmek, yerelleştirmek ve yerel uygulayıcı ağı kurmakla ilgilidir. Kurumsal lisans yalnızca kurumun kendi programları ve kendi kitlesiyle sınırlıdır.",
+      a: "Hayır. Ülke lisansı bir bölgede PFA'yı temsil etmek, yerelleştirmek ve yerel uygulayıcı ağı kurmakla ilgilidir. Kurumsal Program Lisansı yalnızca kurumun kendi programları ve kendi kitlesiyle sınırlıdır.",
     },
   ],
 
