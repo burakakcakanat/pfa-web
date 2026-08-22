@@ -192,7 +192,7 @@ const COPY: LicensePageCopy = {
   ],
 
   formEyebrow: "BAŞVURU",
-  formTitle: "Kurumsal Lisans Başvurusu",
+  formTitle: "Kurumsal Program Lisansı Başvurusu",
   formIntro:
     "Form bir ön başvurudur; doldurmanız taraflar arasında bir yükümlülük doğurmaz. Bilgileri yalnızca değerlendirme için kullanırız.",
   form: {
