@@ -3,7 +3,7 @@ import { LicensePage, type LicensePageCopy } from "@/components/license-page";
 
 const CANONICAL = "https://psychofunctionalanalysis.com/kurumsal-lisans";
 
-export const Route = createFileRoute("/kurumsal-lisans")({
+export const Route = createFileRoute("/kurumsal-program-lisansi")({
   head: () => ({
     meta: [
       { title: "Kurumsal Lisans — PFA'yı Kendi Programınızda Kullanın" },

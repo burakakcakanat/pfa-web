@@ -134,6 +134,7 @@ export type Database = {
         Row: {
           client_invite_id: string | null
           completed_at: string | null
+          country: string | null
           created_at: string
           guest_token: string | null
           id: string
@@ -153,6 +154,7 @@ export type Database = {
         Insert: {
           client_invite_id?: string | null
           completed_at?: string | null
+          country?: string | null
           created_at?: string
           guest_token?: string | null
           id?: string
@@ -172,6 +174,7 @@ export type Database = {
         Update: {
           client_invite_id?: string | null
           completed_at?: string | null
+          country?: string | null
           created_at?: string
           guest_token?: string | null
           id?: string
@@ -416,6 +419,7 @@ export type Database = {
       }
       contact_messages: {
         Row: {
+          country: string | null
           created_at: string
           email: string
           full_name: string
@@ -429,6 +433,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          country?: string | null
           created_at?: string
           email: string
           full_name: string
@@ -442,6 +447,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          country?: string | null
           created_at?: string
           email?: string
           full_name?: string
@@ -715,6 +721,7 @@ export type Database = {
           institution_type: string | null
           intended_use: string | null
           ip_hash: string | null
+          locale: string | null
           message: string
           organisation: string | null
           phone: string | null
@@ -746,6 +753,7 @@ export type Database = {
           institution_type?: string | null
           intended_use?: string | null
           ip_hash?: string | null
+          locale?: string | null
           message: string
           organisation?: string | null
           phone?: string | null
@@ -777,6 +785,7 @@ export type Database = {
           institution_type?: string | null
           intended_use?: string | null
           ip_hash?: string | null
+          locale?: string | null
           message?: string
           organisation?: string | null
           phone?: string | null
@@ -908,10 +917,12 @@ export type Database = {
         Row: {
           amount_cents: number
           bundle_slug: string | null
+          country: string | null
           created_at: string
           currency: string
           id: string
           is_test: boolean
+          locale: string | null
           metadata: Json
           product_id: string | null
           provider: string | null
@@ -924,10 +935,12 @@ export type Database = {
         Insert: {
           amount_cents: number
           bundle_slug?: string | null
+          country?: string | null
           created_at?: string
           currency?: string
           id?: string
           is_test?: boolean
+          locale?: string | null
           metadata?: Json
           product_id?: string | null
           provider?: string | null
@@ -940,10 +953,12 @@ export type Database = {
         Update: {
           amount_cents?: number
           bundle_slug?: string | null
+          country?: string | null
           created_at?: string
           currency?: string
           id?: string
           is_test?: boolean
+          locale?: string | null
           metadata?: Json
           product_id?: string | null
           provider?: string | null
@@ -1400,6 +1415,7 @@ export type Database = {
         Row: {
           addon_bundle_slug: string | null
           admin_note: string | null
+          country: string | null
           created_at: string
           email: string
           fulfil_book_lang: string
@@ -1427,6 +1443,7 @@ export type Database = {
         Insert: {
           addon_bundle_slug?: string | null
           admin_note?: string | null
+          country?: string | null
           created_at?: string
           email: string
           fulfil_book_lang?: string
@@ -1454,6 +1471,7 @@ export type Database = {
         Update: {
           addon_bundle_slug?: string | null
           admin_note?: string | null
+          country?: string | null
           created_at?: string
           email?: string
           fulfil_book_lang?: string
@@ -1824,6 +1842,7 @@ export type Database = {
         Row: {
           client_invite_id: string | null
           completed_at: string | null
+          country: string | null
           created_at: string
           guest_token: string | null
           id: string
@@ -1842,6 +1861,7 @@ export type Database = {
         Insert: {
           client_invite_id?: string | null
           completed_at?: string | null
+          country?: string | null
           created_at?: string
           guest_token?: string | null
           id?: string
@@ -1860,6 +1880,7 @@ export type Database = {
         Update: {
           client_invite_id?: string | null
           completed_at?: string | null
+          country?: string | null
           created_at?: string
           guest_token?: string | null
           id?: string

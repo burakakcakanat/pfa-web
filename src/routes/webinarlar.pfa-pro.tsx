@@ -102,17 +102,24 @@ function Page() {
           </p>
         </Section>
 
-        <div className="mt-10 flex flex-wrap items-center gap-6 rounded-lg border border-border bg-card p-6">
-          <div className="font-serif text-4xl">{priceLabel}</div>
-          <BuyButton
-            productSlug="pfa-pro-lisans-paketi"
-            label="Kayıt Ol"
-            inquiry={{
-              kind: "pro_license",
-              productLabel: "PFA-Pro — Uygulayıcı Lisans Paketi",
-            }}
-          />
+        <div className="mt-10 rounded-lg border border-border bg-card p-6">
+          <div className="flex flex-wrap items-center gap-6">
+            <div className="font-serif text-4xl">{priceLabel}</div>
+            <BuyButton
+              productSlug="pfa-pro-lisans-paketi"
+              label="Kayıt Ol"
+              inquiry={{
+                kind: "pro_license",
+                productLabel: "PFA Uygulayıcı Lisansı",
+              }}
+            />
+          </div>
+          <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+            Bu bedel lisans kayıt bedelidir; 6 oturum ve sertifika, kayıt sonrasında
+            erişime açılan hazırlık materyalinin parçasıdır.
+          </p>
         </div>
+
 
         <p className="mt-8 text-xs text-muted-foreground">
           Not: PFA klinik bir tanı sistemi değildir; sertifika, PFA modelinin uygulama
