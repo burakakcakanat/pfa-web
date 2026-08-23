@@ -138,7 +138,37 @@ export async function startCheckoutOnServer(
     }
   }
 
-  const total = Math.max(0, subtotal - discountCents);
+  // --- Uygulayıcı referans kodu -------------------------------------------
+  // Genel çalışır: assessment tipindeki (ve slug'ında 7q geçen) TÜM ürünler.
+  // Kod geçersizse sessizce yok sayılır: normal fiyat, referans yok.
+  const isScaleProduct = product.type === "assessment" || /7q/i.test(product.slug);
+  const refCode = (input.ref ?? "").trim().toUpperCase();
+  let referralCents = 0;
+  let referringPractitionerId: string | null = null;
+  let referralPct = 0;
+  if (refCode && isScaleProduct && addonSlugs.length === 0) {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: refEnt } = await supabaseAdmin
+      .from("user_entitlements")
+      .select("user_id, metadata")
+      .eq("type", "pfa_pro")
+      .filter("metadata->>referral_code", "eq", refCode)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (refEnt && refEnt.user_id !== userId) {
+      const { data: rate } = await supabaseAdmin
+        .from("system_rates")
+        .select("value_numeric")
+        .eq("key", "indirim.referral")
+        .maybeSingle();
+      referralPct = Number(rate?.value_numeric ?? 5);
+      referralCents = applyDiscount(subtotal - discountCents, referralPct);
+      referringPractitionerId = refEnt.user_id;
+    }
+  }
+
+  const total = Math.max(0, subtotal - discountCents - referralCents);
 
   const bookLang: "tr" | "en" = product.slug.endsWith("-en") ? "en" : "tr";
   const metadata: Record<string, unknown> = {
@@ -150,6 +180,12 @@ export async function startCheckoutOnServer(
     book_lang: bookLang,
     is_gift: isGift,
   };
+  if (referringPractitionerId) {
+    metadata.referring_practitioner_id = referringPractitionerId;
+    metadata.referral_code = refCode;
+    metadata.referral_discount_cents = referralCents;
+    metadata.referral_discount_pct = referralPct;
+  }
   if (isGift && input.gift) {
     metadata.recipient_name = input.gift.recipient_name;
     metadata.recipient_email = input.gift.recipient_email.toLowerCase();
