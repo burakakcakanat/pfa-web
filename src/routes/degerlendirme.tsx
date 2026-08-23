@@ -3,8 +3,14 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BuyButton } from "@/components/buy-button";
+import { useServerFn } from "@tanstack/react-start";
+import { resolveProInvite } from "@/lib/invites.functions";
+
+type InviteInfo = Awaited<ReturnType<typeof resolveProInvite>>;
 
 export const Route = createFileRoute("/degerlendirme")({
+  validateSearch: (search: Record<string, unknown>): { invite?: string } =>
+    typeof search.invite === "string" ? { invite: search.invite } : {},
   head: () => ({
     meta: [
       { title: "PFA Bilinç Seviyeleri Ölçeği | PFA" },
@@ -26,6 +32,20 @@ export const Route = createFileRoute("/degerlendirme")({
 function AssessmentPage() {
   const [sent, setSent] = useState(false);
   const [hasFull, setHasFull] = useState(false);
+  const { invite } = Route.useSearch();
+  const resolveInvite = useServerFn(resolveProInvite);
+  const [inviteInfo, setInviteInfo] = useState<InviteInfo>(null);
+
+  useEffect(() => {
+    if (!invite) return;
+    (async () => {
+      try {
+        setInviteInfo(await resolveInvite({ data: { token: invite } }));
+      } catch {
+        setInviteInfo(null);
+      }
+    })();
+  }, [invite, resolveInvite]);
 
   useEffect(() => {
     (async () => {
@@ -59,6 +79,21 @@ function AssessmentPage() {
         </p>
       </header>
 
+      {inviteInfo && (
+        <div className="mx-auto mt-10 max-w-3xl rounded-lg border border-accent/50 bg-accent/5 p-6 text-sm leading-relaxed">
+          <div className="font-serif text-lg">
+            {inviteInfo.practitioner_name
+              ? `${inviteInfo.practitioner_name} sizi PFA Bilinç Seviyeleri Ölçeği'ne davet etti.`
+              : "PFA Bilinç Seviyeleri Ölçeği'ne davet edildiniz."}
+          </div>
+          <p className="mt-2 text-foreground/80">
+            {inviteInfo.mode === "kota"
+              ? "Bu davet uygulayıcınızın kotasından karşılanıyor; ölçek sizin için ücretsizdir."
+              : "Uygulayıcınızın ücretsiz danışan kotası tükenmiş. Ölçeği kendi adınıza, referans indirimi uygulanmış fiyattan tamamlayabilirsiniz."}
+          </p>
+        </div>
+      )}
+
       <div className="mx-auto mt-12 flex max-w-3xl flex-col items-center gap-4 rounded-lg border border-accent/40 bg-accent/5 p-6 text-center md:flex-row md:justify-between md:text-left">
         <p className="text-sm leading-relaxed text-foreground/85">
           Başlangıç noktası: Ücretsiz Mini Ölçek ile 7 seviyede kendinize ilk bakışı
@@ -91,8 +126,16 @@ function AssessmentPage() {
               <Link to="/degerlendirme/tam" className="btn-primary inline-block">
                 Tam Testi Başlat
               </Link>
+            ) : inviteInfo?.mode === "kota" ? (
+              <Link to="/degerlendirme/tam" className="btn-primary inline-block">
+                Davetli Ölçeği Başlat
+              </Link>
             ) : (
-              <BuyButton productSlug="tam-assessment-rapor" label="Tam Ölçeği Satın Al" />
+              <BuyButton
+                productSlug="tam-assessment-rapor"
+                label="Tam Ölçeği Satın Al"
+                refCode={inviteInfo?.referral_code ?? null}
+              />
             )}
           </div>
         </div>
