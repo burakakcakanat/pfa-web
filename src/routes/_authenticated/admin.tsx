@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -159,6 +159,8 @@ import {
 } from "@/lib/social-drafts";
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  validateSearch: (search: Record<string, unknown>): { tab?: string } =>
+    typeof search.tab === "string" && search.tab ? { tab: search.tab } : {},
   beforeLoad: async () => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) throw redirect({ to: "/auth" });
@@ -176,6 +178,9 @@ export const Route = createFileRoute("/_authenticated/admin")({
   }),
   component: AdminPage,
 });
+
+const LOCKED_HINT =
+  "Bu sürüm kilitli — yeni soru eklemek için önce yeni bir sürüm oluşturun.";
 
 const fmtMoney = (cents: number, currency = "usd") =>
   new Intl.NumberFormat("tr-TR", { style: "currency", currency: currency.toUpperCase() }).format(
@@ -203,6 +208,9 @@ function RateCentreLink() {
 }
 
 function AdminPage() {
+  const { tab } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const activeTab = tab ?? "overview";
   const countNew = useServerFn(countNewPractitionerApplications);
   const [newApps, setNewApps] = useState(0);
   useEffect(() => {
@@ -214,7 +222,13 @@ function AdminPage() {
     <div className="min-h-screen bg-background px-4 py-10 md:px-8">
       <div className="mx-auto max-w-7xl">
         <h1 className="mb-6 font-serif text-3xl text-primary">Admin Paneli</h1>
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) =>
+            navigate({ search: { tab: v === "overview" ? undefined : v }, replace: true })
+          }
+          className="w-full"
+        >
           <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-transparent">
             <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
             <TabsTrigger value="products">Ürünler ve Paketler</TabsTrigger>
@@ -1237,6 +1251,7 @@ function QuestionsTab() {
         <Button
           className="ml-auto"
           disabled={locked}
+          title={locked ? LOCKED_HINT : undefined}
           onClick={() => setEditing({ text_tr: "", level: 1, reverse_coded: false, is_mini: false, active: true, sort_order: 0 })}
         >
           Yeni Soru
@@ -1266,7 +1281,7 @@ function QuestionsTab() {
               <TableCell>{q.reverse_coded ? "✓" : ""}</TableCell>
               <TableCell>{q.active ? "✓" : "—"}</TableCell>
               <TableCell>
-                <Button size="sm" variant="outline" disabled={locked} onClick={() => setEditing(q)}>
+                <Button size="sm" variant="outline" disabled={locked} title={locked ? LOCKED_HINT : undefined} onClick={() => setEditing(q)}>
                   Düzenle
                 </Button>
               </TableCell>
@@ -2767,16 +2782,15 @@ function ProAccountsTab() {
             <TableHead>Verilme</TableHead>
             <TableHead>Kaynak</TableHead>
             <TableHead>Davet (Beklyn/Tmml)</TableHead>
-            <TableHead>Tmml. Ölçek</TableHead>
             <TableHead>Kalan Kredi</TableHead>
             <TableHead className="text-right">İşlem</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {loading && rows.length === 0 ? (
-            <TableRow><TableCell colSpan={9} className="text-center text-xs text-muted-foreground">Yükleniyor…</TableCell></TableRow>
+            <TableRow><TableCell colSpan={8} className="text-center text-xs text-muted-foreground">Yükleniyor…</TableCell></TableRow>
           ) : rows.length === 0 ? (
-            <TableRow><TableCell colSpan={9} className="text-center text-xs text-muted-foreground">Kayıt yok.</TableCell></TableRow>
+            <TableRow><TableCell colSpan={8} className="text-center text-xs text-muted-foreground">Kayıt yok.</TableCell></TableRow>
           ) : rows.map((r) => (
             <>
               <TableRow key={r.entitlement_id}>
@@ -2792,7 +2806,6 @@ function ProAccountsTab() {
                   {r.source === "purchase" ? "Satın alma" : "Manuel"}
                 </TableCell>
                 <TableCell className="text-xs">{r.invites_pending} / {r.invites_completed}</TableCell>
-                <TableCell className="text-xs">{r.invites_completed}</TableCell>
                 <TableCell className="text-xs">
                   {r.remaining} <span className="text-muted-foreground">/ {r.quota}</span>
                 </TableCell>
@@ -2809,7 +2822,7 @@ function ProAccountsTab() {
               </TableRow>
               {expanded === r.user_id && (
                 <TableRow key={r.entitlement_id + "-exp"}>
-                  <TableCell colSpan={9} className="bg-muted/30">
+                  <TableCell colSpan={8} className="bg-muted/30">
                     <div className="p-3">
                       <div className="mb-2 text-xs font-medium">
                         Davetler ({(invites[r.user_id] ?? []).length}) — salt okunur
