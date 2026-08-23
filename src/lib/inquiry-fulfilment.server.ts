@@ -22,7 +22,7 @@ export type FulfilSelection = {
 
 const TYPE_LABEL_TR: Record<string, string> = {
   ebook: "Adınıza imzalı dijital kitap (PDF + EPUB)",
-  assessment_full: "Tam PFA Ölçeği + bilinç seviyesi raporu",
+  assessment_full: "Tam PFA Bilinç Seviyeleri Ölçeği + bilinç seviyesi raporu",
   session: "Birebir danışmanlık oturumu (1 seans kredisi)",
   webinar_bsc: "Bilinç Seviyeleri Çalışmaları",
   pfa_pro: "PFA-Pro lisansı",

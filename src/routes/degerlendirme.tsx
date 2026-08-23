@@ -3,18 +3,24 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BuyButton } from "@/components/buy-button";
+import { useServerFn } from "@tanstack/react-start";
+import { resolveProInvite } from "@/lib/invites.functions";
+
+type InviteInfo = Awaited<ReturnType<typeof resolveProInvite>>;
 
 export const Route = createFileRoute("/degerlendirme")({
+  validateSearch: (search: Record<string, unknown>): { invite?: string } =>
+    typeof search.invite === "string" ? { invite: search.invite } : {},
   head: () => ({
     meta: [
-      { title: "PFA Ölçeği | PFA" },
+      { title: "PFA Bilinç Seviyeleri Ölçeği | PFA" },
       {
         name: "description",
         content:
-          "PFA Ölçeği: her bilinç seviyesi için 30 soru; farkındalığı işlevsel farkındalığa taşıyan değerlendirme aracı.",
+          "PFA Bilinç Seviyeleri Ölçeği: her bilinç seviyesi için 30 soru; farkındalığı işlevsel farkındalığa taşıyan değerlendirme aracı.",
       },
-      { property: "og:title", content: "PFA Ölçeği" },
-      { property: "og:description", content: "PFA Ölçeği: bilinç seviyeleri için işlevsel değerlendirme aracı." },
+      { property: "og:title", content: "PFA Bilinç Seviyeleri Ölçeği" },
+      { property: "og:description", content: "PFA Bilinç Seviyeleri Ölçeği: bilinç seviyeleri için işlevsel değerlendirme aracı." },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://psychofunctionalanalysis.com/degerlendirme" },
     ],
@@ -26,6 +32,20 @@ export const Route = createFileRoute("/degerlendirme")({
 function AssessmentPage() {
   const [sent, setSent] = useState(false);
   const [hasFull, setHasFull] = useState(false);
+  const { invite } = Route.useSearch();
+  const resolveInvite = useServerFn(resolveProInvite);
+  const [inviteInfo, setInviteInfo] = useState<InviteInfo>(null);
+
+  useEffect(() => {
+    if (!invite) return;
+    (async () => {
+      try {
+        setInviteInfo(await resolveInvite({ data: { token: invite } }));
+      } catch {
+        setInviteInfo(null);
+      }
+    })();
+  }, [invite, resolveInvite]);
 
   useEffect(() => {
     (async () => {
@@ -46,18 +66,33 @@ function AssessmentPage() {
       <header className="mx-auto max-w-3xl text-center">
         <div className="text-xs tracking-[0.3em] text-accent">PFA ÖLÇEĞİ</div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">
-          PFA Ölçeği: Farkındalıktan İşlevsel Farkındalığa
+          PFA Bilinç Seviyeleri Ölçeği: Farkındalıktan İşlevsel Farkındalığa
         </h1>
         <p className="mt-8 text-base leading-relaxed text-foreground/80">
           Resiflerde dalış yapan herkes anda ve farkındadır; ama yalnızca bir deniz
           biyoloğu hangi canlının neden renk değiştirdiğini görür. Bu fark,
-          farkındalık ile işlevsel farkındalık arasındaki farktır. PFA Ölçeği bu
+          farkındalık ile işlevsel farkındalık arasındaki farktır. PFA Bilinç Seviyeleri Ölçeği bu
           geçişin aracıdır. Her bilinç seviyesi için 30 soru; hangi seviyede işlev
           aksadığını ve gelişimin nereden destek alacağını gösteren rapor. Bireysel
           gelişimden psikolojiye, eğitimden kurumsal seçme-yerleştirme-geliştirmeye
           uygulanabilir.
         </p>
       </header>
+
+      {inviteInfo && (
+        <div className="mx-auto mt-10 max-w-3xl rounded-lg border border-accent/50 bg-accent/5 p-6 text-sm leading-relaxed">
+          <div className="font-serif text-lg">
+            {inviteInfo.practitioner_name
+              ? `${inviteInfo.practitioner_name} sizi PFA Bilinç Seviyeleri Ölçeği'ne davet etti.`
+              : "PFA Bilinç Seviyeleri Ölçeği'ne davet edildiniz."}
+          </div>
+          <p className="mt-2 text-foreground/80">
+            {inviteInfo.mode === "kota"
+              ? "Bu davet uygulayıcınızın kotasından karşılanıyor; ölçek sizin için ücretsizdir."
+              : "Uygulayıcınızın ücretsiz danışan kotası tükenmiş. Ölçeği kendi adınıza, referans indirimi uygulanmış fiyattan tamamlayabilirsiniz."}
+          </p>
+        </div>
+      )}
 
       <div className="mx-auto mt-12 flex max-w-3xl flex-col items-center gap-4 rounded-lg border border-accent/40 bg-accent/5 p-6 text-center md:flex-row md:justify-between md:text-left">
         <p className="text-sm leading-relaxed text-foreground/85">
@@ -91,8 +126,16 @@ function AssessmentPage() {
               <Link to="/degerlendirme/tam" className="btn-primary inline-block">
                 Tam Testi Başlat
               </Link>
+            ) : inviteInfo?.mode === "kota" ? (
+              <Link to="/degerlendirme/tam" className="btn-primary inline-block">
+                Davetli Ölçeği Başlat
+              </Link>
             ) : (
-              <BuyButton productSlug="tam-assessment-rapor" label="Tam Ölçeği Satın Al" />
+              <BuyButton
+                productSlug="tam-assessment-rapor"
+                label="Tam Ölçeği Satın Al"
+                refCode={inviteInfo?.referral_code ?? null}
+              />
             )}
           </div>
         </div>

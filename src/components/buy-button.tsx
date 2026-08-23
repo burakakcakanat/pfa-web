@@ -12,6 +12,8 @@ import type { PurchaseInquiryKind } from "@/lib/purchase-inquiries";
 type Props = {
   productSlug: string;
   label?: string;
+  /** Uygulayıcı referans kodu — ölçek ürünlerinde %5 indirim + komisyon. */
+  refCode?: string | null;
   className?: string;
   locale?: "tr" | "en";
   /**
@@ -31,6 +33,7 @@ type Props = {
 export function BuyButton({
   productSlug,
   label = "Satın Al",
+  refCode = null,
   className,
   locale = "tr",
   inquiry,
@@ -61,6 +64,7 @@ export function BuyButton({
           product_slug: productSlug,
           currency,
           origin: window.location.origin,
+          ref: refCode,
         },
       });
       if (res?.url) {

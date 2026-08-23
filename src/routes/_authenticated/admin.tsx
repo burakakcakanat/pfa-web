@@ -94,6 +94,8 @@ import {
   upsertAdminEdition,
   deleteAdminEdition,
 } from "@/lib/admin.functions";
+import { setProTier } from "@/lib/admin.functions";
+import { AdminCommissions } from "@/components/admin-commissions";
 import { resolveBundlePrice, fmtUsd, MARKETPLACE_NAMES, AMAZON_DOMAINS } from "@/lib/bundles";
 import {
   refreshWebinarBannerUrl,
@@ -237,7 +239,7 @@ function AdminPage() {
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
           <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
             <TabsTrigger value="pro-accounts">Pro Hesaplar</TabsTrigger>
-            <TabsTrigger value="questions">PFA Ölçeği</TabsTrigger>
+            <TabsTrigger value="questions">PFA BSÖ</TabsTrigger>
             <TabsTrigger value="scale-data">Ölçek Verileri</TabsTrigger>
             <TabsTrigger value="webinars">Webinarlar</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
@@ -245,6 +247,7 @@ function AdminPage() {
             <TabsTrigger value="podcasts">Podcastler</TabsTrigger>
             <TabsTrigger value="ebooks">E-Kitaplar</TabsTrigger>
             <TabsTrigger value="orders">Siparişler</TabsTrigger>
+            <TabsTrigger value="commissions">Cari &amp; Ekstreler</TabsTrigger>
             <TabsTrigger value="purchase-inquiries">Satış Talepleri</TabsTrigger>
             <TabsTrigger value="settings">Site Ayarları</TabsTrigger>
             <TabsTrigger value="practitioners" className="relative">
@@ -275,6 +278,7 @@ function AdminPage() {
             <TabsContent value="podcasts"><PodcastsTab /></TabsContent>
             <TabsContent value="ebooks"><EbooksTab /></TabsContent>
             <TabsContent value="orders"><OrdersTab /></TabsContent>
+            <TabsContent value="commissions"><AdminCommissions /></TabsContent>
             <TabsContent value="purchase-inquiries">
               <div className="space-y-10">
                 <AdminPurchaseInquiries />
@@ -1419,7 +1423,7 @@ function InstrumentVersionExplorer() {
           <Select value={instrument} onValueChange={(v) => { setInstrument(v as "pfa" | "sevenq"); setDiff(null); setFrom(""); setTo(""); }}>
             <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="pfa">PFA Ölçeği</SelectItem>
+              <SelectItem value="pfa">PFA BSÖ</SelectItem>
               <SelectItem value="sevenq">7Q Profili</SelectItem>
             </SelectContent>
           </Select>
@@ -2628,7 +2632,7 @@ function ProLicensesTab() {
               </TableRow>
               {expanded[r.entitlement_id] && (
                 <TableRow key={r.entitlement_id + "-inv"}>
-                  <TableCell colSpan={8} className="bg-muted/30">
+                  <TableCell colSpan={10} className="bg-muted/30">
                     <div className="p-3">
                       <div className="mb-2 text-xs font-medium">Danışan Davetleri ({r.invites.length})</div>
                       {r.invites.length === 0 ? (
@@ -2681,6 +2685,7 @@ function ProAccountsTab() {
   const doGrant = useServerFn(grantProAccount);
   const doRevoke = useServerFn(revokeProAccount);
   const doAddCredits = useServerFn(addProCredits);
+  const doSetTier = useServerFn(setProTier);
 
   const [q, setQ] = useState("");
   const [term, setTerm] = useState("");
@@ -2781,6 +2786,8 @@ function ProAccountsTab() {
             <TableHead>E-posta</TableHead>
             <TableHead>Verilme</TableHead>
             <TableHead>Kaynak</TableHead>
+            <TableHead>Tier</TableHead>
+            <TableHead>Referans Kodu</TableHead>
             <TableHead>Davet (Beklyn/Tmml)</TableHead>
             <TableHead>Kalan Kredi</TableHead>
             <TableHead className="text-right">İşlem</TableHead>
@@ -2788,9 +2795,9 @@ function ProAccountsTab() {
         </TableHeader>
         <TableBody>
           {loading && rows.length === 0 ? (
-            <TableRow><TableCell colSpan={8} className="text-center text-xs text-muted-foreground">Yükleniyor…</TableCell></TableRow>
+            <TableRow><TableCell colSpan={10} className="text-center text-xs text-muted-foreground">Yükleniyor…</TableCell></TableRow>
           ) : rows.length === 0 ? (
-            <TableRow><TableCell colSpan={8} className="text-center text-xs text-muted-foreground">Kayıt yok.</TableCell></TableRow>
+            <TableRow><TableCell colSpan={10} className="text-center text-xs text-muted-foreground">Kayıt yok.</TableCell></TableRow>
           ) : rows.map((r) => (
             <>
               <TableRow key={r.entitlement_id}>
@@ -2804,6 +2811,34 @@ function ProAccountsTab() {
                 <TableCell className="text-xs">{fmtDate(r.granted_at)}</TableCell>
                 <TableCell className="text-xs">
                   {r.source === "purchase" ? "Satın alma" : "Manuel"}
+                </TableCell>
+                <TableCell className="text-xs">
+                  <select
+                    value={r.tier ?? "practitioner"}
+                    onChange={async (e) => {
+                      const tier = e.target.value as "practitioner" | "fellow";
+                      await doSetTier({ data: { entitlement_id: r.entitlement_id, tier } });
+                      await reload();
+                    }}
+                    className="rounded-md border border-border bg-background px-2 py-1 text-xs"
+                  >
+                    <option value="practitioner">Practitioner</option>
+                    <option value="fellow">Fellow</option>
+                  </select>
+                </TableCell>
+                <TableCell className="text-xs">
+                  {r.referral_code ? (
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard?.writeText(r.referral_code)}
+                      title="Kopyala"
+                      className="font-mono hover:text-accent"
+                    >
+                      {r.referral_code}
+                    </button>
+                  ) : (
+                    "—"
+                  )}
                 </TableCell>
                 <TableCell className="text-xs">{r.invites_pending} / {r.invites_completed}</TableCell>
                 <TableCell className="text-xs">
@@ -2822,7 +2857,7 @@ function ProAccountsTab() {
               </TableRow>
               {expanded === r.user_id && (
                 <TableRow key={r.entitlement_id + "-exp"}>
-                  <TableCell colSpan={8} className="bg-muted/30">
+                  <TableCell colSpan={10} className="bg-muted/30">
                     <div className="p-3">
                       <div className="mb-2 text-xs font-medium">
                         Davetler ({(invites[r.user_id] ?? []).length}) — salt okunur

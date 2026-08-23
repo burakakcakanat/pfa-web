@@ -16,7 +16,12 @@ export const getProDashboard = createServerFn({ method: "GET" })
       .limit(1)
       .maybeSingle();
 
-    const meta = (ent?.metadata ?? {}) as { client_quota?: number; client_used?: number };
+    const meta = (ent?.metadata ?? {}) as {
+      client_quota?: number;
+      client_used?: number;
+      tier?: "practitioner" | "fellow";
+      referral_code?: string;
+    };
     const quota = meta.client_quota ?? 0;
     const used = meta.client_used ?? 0;
 
@@ -43,7 +48,7 @@ export const getProDashboard = createServerFn({ method: "GET" })
 
     const { data: invites } = await supabase
       .from("pro_client_invites")
-      .select("id, client_name, token, status, created_at")
+      .select("id, client_name, token, status, created_at, mode")
       .order("created_at", { ascending: false });
 
     // Her tamamlanmış davet için ilgili tamamlanmış ölçek oturumunu eşle.
@@ -80,6 +85,8 @@ export const getProDashboard = createServerFn({ method: "GET" })
 
     return {
       hasPro: !!ent,
+      tier: meta.tier ?? "practitioner",
+      referralCode: meta.referral_code ?? null,
       quota,
       used,
       remaining: Math.max(0, quota - used),

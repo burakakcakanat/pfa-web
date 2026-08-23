@@ -45,7 +45,7 @@ const CATEGORIES: Array<{
     key: "kocluk",
     title: "Koçluk",
     audience: "Profesyonel koçlar",
-    value: "PFA Ölçeği ile ölçülebilir gelişim takibi ve seans mimarisi.",
+    value: "PFA Bilinç Seviyeleri Ölçeği (PFA BSÖ) ile ölçülebilir gelişim takibi ve seans mimarisi.",
   },
   {
     key: "pedagojik",
@@ -138,7 +138,7 @@ const FEATURES: Array<{
   {
     icon: Users,
     title: "Danışan Yönetimi",
-    body: "Danışanlarınızı davet eder, PFA Ölçeği süreçlerini ve sonuçlarını kendi panelinizden takip edersiniz.",
+    body: "Danışanlarınızı davet eder, PFA BSÖ süreçlerini ve sonuçlarını kendi panelinizden takip edersiniz.",
   },
   {
     icon: BookOpen,
@@ -153,7 +153,7 @@ const FEATURES: Array<{
   {
     icon: Percent,
     title: "Ölçek Satışından Kazanç",
-    body: "Referans kodunuzla veya kendi sitenizden yapılan PFA Ölçeği satışlarında komisyon kazanırsınız: Fellow %50, Practitioner %25.",
+    body: "Referans kodunuzla veya kendi sitenizden yapılan PFA BSÖ satışlarında komisyon kazanırsınız: Fellow %50, Practitioner %25.",
   },
   {
     icon: Globe,
@@ -318,7 +318,7 @@ function BecomePractitionerPage() {
             </div>
             <p className="mt-5 text-xs leading-relaxed text-foreground/70">
               Seans ücretlerinizi kendiniz belirlersiniz ve doğrudan tahsil edersiniz. PFA
-              seans gelirinize hiçbir şekilde ortak olmaz; komisyon yalnızca PFA Ölçeği ve
+              seans gelirinize hiçbir şekilde ortak olmaz; komisyon yalnızca PFA BSÖ ve
               kurumsal paket satışlarında geçerlidir.
             </p>
           </div>

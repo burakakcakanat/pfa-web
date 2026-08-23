@@ -417,6 +417,105 @@ export type Database = {
         }
         Relationships: []
       }
+      commission_ledger: {
+        Row: {
+          commission_amount_cents: number
+          commission_rate_pct: number
+          created_at: string
+          currency: string
+          gross_amount_cents: number
+          id: string
+          order_id: string | null
+          practitioner_user_id: string
+          product_slug: string | null
+          statement_id: string | null
+          status: string
+          tier_at_time: string | null
+        }
+        Insert: {
+          commission_amount_cents: number
+          commission_rate_pct: number
+          created_at?: string
+          currency: string
+          gross_amount_cents: number
+          id?: string
+          order_id?: string | null
+          practitioner_user_id: string
+          product_slug?: string | null
+          statement_id?: string | null
+          status?: string
+          tier_at_time?: string | null
+        }
+        Update: {
+          commission_amount_cents?: number
+          commission_rate_pct?: number
+          created_at?: string
+          currency?: string
+          gross_amount_cents?: number
+          id?: string
+          order_id?: string | null
+          practitioner_user_id?: string
+          product_slug?: string | null
+          statement_id?: string | null
+          status?: string
+          tier_at_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_ledger_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_statement_id_fkey"
+            columns: ["statement_id"]
+            isOneToOne: false
+            referencedRelation: "commission_statements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_statements: {
+        Row: {
+          created_at: string
+          currency: string
+          fatura_alindi_at: string | null
+          id: string
+          odeme_tarihi: string | null
+          period_end: string
+          period_start: string
+          practitioner_user_id: string
+          status: string
+          total_amount_cents: number
+        }
+        Insert: {
+          created_at?: string
+          currency: string
+          fatura_alindi_at?: string | null
+          id?: string
+          odeme_tarihi?: string | null
+          period_end: string
+          period_start: string
+          practitioner_user_id: string
+          status?: string
+          total_amount_cents?: number
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          fatura_alindi_at?: string | null
+          id?: string
+          odeme_tarihi?: string | null
+          period_end?: string
+          period_start?: string
+          practitioner_user_id?: string
+          status?: string
+          total_amount_cents?: number
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           country: string | null
@@ -1243,6 +1342,7 @@ export type Database = {
           client_name: string
           created_at: string
           id: string
+          mode: string
           pro_user_id: string
           status: Database["public"]["Enums"]["invite_status"]
           token: string
@@ -1252,6 +1352,7 @@ export type Database = {
           client_name: string
           created_at?: string
           id?: string
+          mode?: string
           pro_user_id: string
           status?: Database["public"]["Enums"]["invite_status"]
           token: string
@@ -1261,6 +1362,7 @@ export type Database = {
           client_name?: string
           created_at?: string
           id?: string
+          mode?: string
           pro_user_id?: string
           status?: Database["public"]["Enums"]["invite_status"]
           token?: string
@@ -2350,6 +2452,7 @@ export type Database = {
           client_name: string
           created_at: string
           id: string
+          mode: string
           pro_user_id: string
           status: Database["public"]["Enums"]["invite_status"]
           token: string
@@ -2364,6 +2467,11 @@ export type Database = {
       }
       current_instrument_version: {
         Args: { _instrument: string }
+        Returns: number
+      }
+      gen_referral_code: { Args: never; Returns: string }
+      generate_commission_statements: {
+        Args: { _period_end: string; _period_start: string }
         Returns: number
       }
       has_role: {

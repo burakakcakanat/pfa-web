@@ -97,7 +97,7 @@ export async function bundlePriceCents(
 
 const ADDON_LABEL_TR: Record<string, string> = {
   ebook: "adınıza imzalı dijital kitap",
-  assessment_full: "tam PFA Ölçeği ve bilinç seviyesi raporu",
+  assessment_full: "tam PFA Bilinç Seviyeleri Ölçeği ve bilinç seviyesi raporu",
   session: "birebir danışmanlık oturumu",
   webinar_bsc: "Bilinç Seviyeleri Çalışmaları kaydı",
   pfa_pro: "PFA-Pro lisansı",
