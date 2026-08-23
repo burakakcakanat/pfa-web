@@ -1,7 +1,7 @@
 // Admin: Cari & Ekstreler — komisyon tahakkukları ve aylık ekstreler.
 // Tahakkuk hesaplaması veritabanında (handle_order_paid) yapılır; bu ekran
 // yalnızca okur ve ekstre yaşam döngüsünü yönetir.
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -192,9 +192,8 @@ export function AdminCommissions() {
             </TableRow>
           ) : (
             rows.map((r) => (
-              <>
+              <Fragment key={r.user_id}>
                 <TableRow
-                  key={r.user_id}
                   className="cursor-pointer"
                   onClick={() => void openDetail(r.user_id)}
                 >
@@ -219,7 +218,7 @@ export function AdminCommissions() {
                   </TableCell>
                 </TableRow>
                 {openUser === r.user_id && (
-                  <TableRow key={`${r.user_id}-detail`}>
+                  <TableRow>
                     <TableCell colSpan={5} className="bg-muted/30">
                       {!detail ? (
                         <div className="text-xs text-muted-foreground">Yükleniyor…</div>
@@ -316,7 +315,7 @@ export function AdminCommissions() {
                     </TableCell>
                   </TableRow>
                 )}
-              </>
+              </Fragment>
             ))
           )}
         </TableBody>
