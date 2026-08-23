@@ -24,6 +24,8 @@ export type StartCheckoutInput = {
   currency: Currency;
   origin: string;
   discount_code?: string | null;
+  /** Uygulayıcı referans kodu (6 karakter). Yalnızca ölçek ürünlerinde geçerlidir. */
+  ref?: string | null;
   gift?: {
     recipient_name: string;
     recipient_email: string;
