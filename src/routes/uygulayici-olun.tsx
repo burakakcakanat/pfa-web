@@ -45,7 +45,7 @@ const CATEGORIES: Array<{
     key: "kocluk",
     title: "Koçluk",
     audience: "Profesyonel koçlar",
-    value: "PFA BSÖ ile ölçülebilir gelişim takibi ve seans mimarisi.",
+    value: "PFA Bilinç Seviyeleri Ölçeği (PFA BSÖ) ile ölçülebilir gelişim takibi ve seans mimarisi.",
   },
   {
     key: "pedagojik",
