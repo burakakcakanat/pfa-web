@@ -58,7 +58,10 @@ export const getUpcomingWebinarForProduct = createServerFn({ method: "POST" })
       .eq("slug", data.slug)
       .maybeSingle();
     if (!prod) return { session: null, price_cents: null };
-    const { data: sess } = await supa
+    // Tanıtım alanları sunucuda okunur: temel tabloda ziyaretçi erişimi yok,
+    // görünüm yalnızca pazarlama kolonlarını içerir (join_url/notes yok).
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: sess } = await supabaseAdmin
       .from("webinar_sessions_public")
       .select("id, title, starts_at, banner_url")
       .eq("product_id", prod.id)
@@ -66,5 +69,6 @@ export const getUpcomingWebinarForProduct = createServerFn({ method: "POST" })
       .order("starts_at", { ascending: true })
       .limit(1)
       .maybeSingle();
+
     return { session: sess ?? null, price_cents: prod.price_cents ?? null };
   });
