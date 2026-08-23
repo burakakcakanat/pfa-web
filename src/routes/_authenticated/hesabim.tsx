@@ -450,14 +450,13 @@ function ClientsTab() {
           <div className="mt-1 font-serif text-3xl">{data.remaining} <span className="text-base text-muted-foreground">/ {data.quota} kalan</span></div>
           <div className="text-xs text-muted-foreground">{data.used} kullanıldı</div>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <div className="text-sm text-muted-foreground">
-            Ek paket: 10 hak
-            {data.clientPackPriceCents != null
-              ? ` · ${fmtMoney(data.clientPackPriceCents, data.clientPackCurrency)}`
-              : ""}
+        <div className="flex flex-col items-end gap-1 text-right">
+          <div className="text-xs uppercase tracking-[0.25em] text-accent">Referans Kodunuz</div>
+          <div className="font-mono text-lg">{data.referralCode ?? "—"}</div>
+          <div className="max-w-xs text-xs text-muted-foreground">
+            Kotanız tükendiğinde oluşturduğunuz davetler bu kod ile indirimli satışa
+            dönüşür; satıştan komisyon hak edersiniz.
           </div>
-          <BuyButton productSlug="client-pack-10" label="Ek Paket Satın Al (+10)" />
         </div>
       </div>
 
@@ -470,7 +469,7 @@ function ClientsTab() {
               Gerçek ad zorunlu değil — takma ad kullanabilirsiniz.
             </p>
           </div>
-          <button type="submit" disabled={busy || exhausted || !name.trim()} className="btn-primary h-fit disabled:opacity-50">
+          <button type="submit" disabled={busy || !name.trim()} className="btn-primary h-fit disabled:opacity-50">
             {busy ? "..." : "Danışan bağlantısı oluştur"}
           </button>
         </div>
@@ -478,7 +477,12 @@ function ClientsTab() {
           Otomatik e-posta gönderilmez. Bağlantı oluşturulduktan sonra aşağıdaki listeden
           kopyalayıp danışanınıza kendiniz iletirsiniz.
         </p>
-        {exhausted && <div className="mt-3 text-sm text-muted-foreground">Kalan hakkınız kalmadı — yukarıdan ek paket satın alabilirsiniz.</div>}
+        {exhausted && (
+          <div className="mt-3 text-sm text-muted-foreground">
+            Ücretsiz kotanız tükendi. Yeni davetler artık "ücretli" modda oluşturulur:
+            danışan ölçeği referans indirimiyle kendi satın alır, siz komisyon hak edersiniz.
+          </div>
+        )}
         {err && <div className="mt-3 text-sm text-destructive">{err}</div>}
       </form>
 
@@ -498,9 +502,14 @@ function ClientsTab() {
                       <div className="font-medium">{i.client_name}</div>
                       <div className="text-xs text-muted-foreground">{new Date(i.created_at).toLocaleString("tr-TR")}</div>
                     </div>
-                    <span className={`rounded-full px-2 py-0.5 text-xs ${i.status === "completed" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
-                      {i.status === "completed" ? "Tamamlandı" : "Beklemede"}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                        {i.mode === "paid" ? "Ücretli (referanslı)" : "Kotadan"}
+                      </span>
+                      <span className={`rounded-full px-2 py-0.5 text-xs ${i.status === "completed" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                        {i.status === "completed" ? "Tamamlandı" : "Beklemede"}
+                      </span>
+                    </div>
                   </div>
                   {(i.session_id || i.sevenq_session_id) && (
                     <div className="mt-2 flex flex-wrap items-center gap-4">
