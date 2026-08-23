@@ -16,6 +16,7 @@ export const startCheckout = createServerFn({ method: "POST" })
         currency: z.enum(["usd", "try", "eur"]),
         origin: z.string().url(),
         discount_code: z.string().trim().max(64).optional().nullable(),
+        ref: z.string().trim().max(16).optional().nullable(),
         gift: z
           .object({
             recipient_name: z.string().trim().min(2).max(120),
