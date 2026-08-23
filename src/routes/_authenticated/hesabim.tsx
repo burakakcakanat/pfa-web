@@ -45,6 +45,7 @@ type ProInvite = {
   token: string;
   status: string;
   created_at: string;
+  mode?: string | null;
   session_id?: string | null;
   sevenq_session_id?: string | null;
 };
