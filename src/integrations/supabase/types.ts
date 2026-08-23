@@ -2373,6 +2373,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_webinar_access: {
+        Args: { _webinar_session_id: string }
+        Returns: boolean
+      }
       instrument_version_locked: {
         Args: { _instrument: string }
         Returns: boolean
