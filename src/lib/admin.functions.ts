@@ -1134,6 +1134,8 @@ export const listProAccounts = createServerFn({ method: "POST" })
         quota,
         used,
         remaining: Math.max(quota - used, 0),
+        tier: (meta.tier as string) ?? "practitioner",
+        referral_code: (meta.referral_code as string) ?? null,
         invites_total: stats.total,
         invites_pending: stats.pending,
         invites_completed: stats.completed,
@@ -1190,7 +1192,8 @@ export const grantProAccount = createServerFn({ method: "POST" })
     z
       .object({
         user_id: z.string().uuid(),
-        initial_quota: z.number().int().min(0).max(1000).default(20),
+        initial_quota: z.number().int().min(0).max(1000).optional(),
+        tier: z.enum(["practitioner", "fellow"]).default("practitioner"),
       })
       .parse(d),
   )
@@ -1208,13 +1211,28 @@ export const grantProAccount = createServerFn({ method: "POST" })
       throw new Error("ALREADY_PRO");
     }
 
+    // Ücretsiz kota Fiyat & Oran Merkezi'nden okunur (sabit değer yok).
+    const quotaKey = data.tier === "fellow" ? "kota.ucretsiz_fellow" : "kota.ucretsiz_pfap";
+    const { data: quotaRate } = await supabaseAdmin
+      .from("system_rates")
+      .select("value_numeric")
+      .eq("key", quotaKey)
+      .maybeSingle();
+    const quota =
+      data.initial_quota ?? Number(quotaRate?.value_numeric ?? (data.tier === "fellow" ? 7 : 3));
+
+    const { data: refCode, error: refErr } = await (supabaseAdmin as any).rpc("gen_referral_code");
+    if (refErr) throw new Error(refErr.message);
+
     const { error: e1 } = await supabaseAdmin.from("user_entitlements").insert({
       user_id: data.user_id,
       type: "pfa_pro",
       metadata: {
         granted_by: "admin",
-        client_quota: data.initial_quota,
+        client_quota: quota,
         client_used: 0,
+        tier: data.tier,
+        referral_code: refCode,
       },
     });
     if (e1) throw new Error(e1.message);
@@ -1789,4 +1807,202 @@ export const listTestOrders = createServerFn({ method: "GET" })
       email: pm.get(o.user_id)?.email ?? null,
       product_name: o.product_id ? dm.get(o.product_id)?.name_tr ?? "—" : o.bundle_slug ? `Paket: ${o.bundle_slug}` : "—",
     }));
+  });
+
+
+// ================= CARİ & EKSTRELER (komisyon) =================
+// Para izleme yüzeyi: yazma işlemleri yalnızca admin doğrulamasından sonra
+// service_role ile yapılır; hesaplama handle_order_paid içinde tahakkuk eder.
+
+export const setProTier = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        entitlement_id: z.string().uuid(),
+        tier: z.enum(["practitioner", "fellow"]),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: cur } = await supabaseAdmin
+      .from("user_entitlements")
+      .select("metadata")
+      .eq("id", data.entitlement_id)
+      .maybeSingle();
+    const meta = { ...(((cur?.metadata as Record<string, unknown>) ?? {}) as any), tier: data.tier };
+    // Kota otomatik değişmez — admin gerekirse "Kredi Ekle" ile farkı ekler.
+    const { error } = await supabaseAdmin
+      .from("user_entitlements")
+      .update({ metadata: meta as never })
+      .eq("id", data.entitlement_id);
+    if (error) throw new Error(error.message);
+    return { ok: true, tier: data.tier };
+  });
+
+export const getCommissionOverview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        period_start: z.string().min(10).max(10),
+        period_end: z.string().min(10).max(10),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const [ledgerRes, stmtRes, entRes, rateRes] = await Promise.all([
+      supabaseAdmin
+        .from("commission_ledger")
+        .select("practitioner_user_id, currency, commission_amount_cents, gross_amount_cents, status, created_at"),
+      supabaseAdmin
+        .from("commission_statements")
+        .select("id, practitioner_user_id, period_start, period_end, currency, total_amount_cents, status, created_at")
+        .order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("user_entitlements")
+        .select("id, user_id, metadata")
+        .eq("type", "pfa_pro"),
+      supabaseAdmin
+        .from("system_rates")
+        .select("key, value_numeric")
+        .in("key", [
+          "komisyon.practitioner",
+          "komisyon.fellow",
+          "indirim.referral",
+          "takvim.ekstre_gunu",
+          "takvim.fatura_penceresi_bitis",
+          "takvim.havale_gunu",
+        ]),
+    ]);
+
+    const ledger = ledgerRes.data ?? [];
+    const stmts = stmtRes.data ?? [];
+    const ents = entRes.data ?? [];
+    const rates: Record<string, number> = {};
+    for (const r of rateRes.data ?? []) rates[r.key] = Number(r.value_numeric);
+
+    const uids = Array.from(new Set(ents.map((e) => e.user_id)));
+    const { data: profs } = uids.length
+      ? await supabaseAdmin.from("profiles").select("id, email, full_name").in("id", uids)
+      : { data: [] as any[] };
+    const pm = new Map((profs ?? []).map((p: any) => [p.id, p]));
+
+    const inPeriod = (iso: string) =>
+      iso.slice(0, 10) >= data.period_start && iso.slice(0, 10) <= data.period_end;
+
+    // Dönem içi toplam tahakkuk, para birimine göre.
+    const periodTotals: Record<string, number> = {};
+    for (const l of ledger) {
+      if (!inPeriod(l.created_at as string)) continue;
+      periodTotals[l.currency] = (periodTotals[l.currency] ?? 0) + l.commission_amount_cents;
+    }
+
+    const rows = ents.map((e) => {
+      const meta = (e.metadata ?? {}) as any;
+      const own = ledger.filter((l) => l.practitioner_user_id === e.user_id);
+      const pending: Record<string, number> = {};
+      for (const l of own) {
+        if (l.status !== "tahakkuk") continue;
+        pending[l.currency] = (pending[l.currency] ?? 0) + l.commission_amount_cents;
+      }
+      const lastStmt = stmts.find((s) => s.practitioner_user_id === e.user_id) ?? null;
+      return {
+        entitlement_id: e.id,
+        user_id: e.user_id,
+        full_name: pm.get(e.user_id)?.full_name ?? null,
+        email: pm.get(e.user_id)?.email ?? null,
+        tier: (meta.tier as string) ?? "practitioner",
+        referral_code: (meta.referral_code as string) ?? null,
+        pending_by_currency: pending,
+        ledger_count: own.length,
+        last_statement: lastStmt
+          ? { id: lastStmt.id, status: lastStmt.status, period_end: lastStmt.period_end, currency: lastStmt.currency, total_amount_cents: lastStmt.total_amount_cents }
+          : null,
+      };
+    });
+
+    return { rows, periodTotals, rates };
+  });
+
+export const getPractitionerCommissionDetail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ user_id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [ledgerRes, stmtRes] = await Promise.all([
+      supabaseAdmin
+        .from("commission_ledger")
+        .select("*")
+        .eq("practitioner_user_id", data.user_id)
+        .order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("commission_statements")
+        .select("*")
+        .eq("practitioner_user_id", data.user_id)
+        .order("created_at", { ascending: false }),
+    ]);
+    return { ledger: ledgerRes.data ?? [], statements: stmtRes.data ?? [] };
+  });
+
+export const generateCommissionStatements = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        period_start: z.string().min(10).max(10),
+        period_end: z.string().min(10).max(10),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    // Fonksiyon security definer + admin kontrollü; kullanıcı bağlamıyla çağrılır.
+    const { data: created, error } = await (context.supabase as any).rpc(
+      "generate_commission_statements",
+      { _period_start: data.period_start, _period_end: data.period_end },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true, created: Number(created ?? 0) };
+  });
+
+export const setStatementStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        statement_id: z.string().uuid(),
+        action: z.enum(["fatura_alindi", "odendi"]),
+        odeme_tarihi: z.string().min(10).max(10).optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.action === "fatura_alindi") {
+      const { error } = await supabaseAdmin
+        .from("commission_statements")
+        .update({ fatura_alindi_at: new Date().toISOString(), status: "odemeye_hazir" })
+        .eq("id", data.statement_id);
+      if (error) throw new Error(error.message);
+      return { ok: true };
+    }
+    const paidDate = data.odeme_tarihi ?? new Date().toISOString().slice(0, 10);
+    const { error } = await supabaseAdmin
+      .from("commission_statements")
+      .update({ odeme_tarihi: paidDate, status: "odendi" })
+      .eq("id", data.statement_id);
+    if (error) throw new Error(error.message);
+    await supabaseAdmin
+      .from("commission_ledger")
+      .update({ status: "odendi" })
+      .eq("statement_id", data.statement_id);
+    return { ok: true };
   });
