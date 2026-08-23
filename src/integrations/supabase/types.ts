@@ -1342,6 +1342,7 @@ export type Database = {
           client_name: string
           created_at: string
           id: string
+          mode: string
           pro_user_id: string
           status: Database["public"]["Enums"]["invite_status"]
           token: string
@@ -1351,6 +1352,7 @@ export type Database = {
           client_name: string
           created_at?: string
           id?: string
+          mode?: string
           pro_user_id: string
           status?: Database["public"]["Enums"]["invite_status"]
           token: string
@@ -1360,6 +1362,7 @@ export type Database = {
           client_name?: string
           created_at?: string
           id?: string
+          mode?: string
           pro_user_id?: string
           status?: Database["public"]["Enums"]["invite_status"]
           token?: string
@@ -2449,6 +2452,7 @@ export type Database = {
           client_name: string
           created_at: string
           id: string
+          mode: string
           pro_user_id: string
           status: Database["public"]["Enums"]["invite_status"]
           token: string
@@ -2465,6 +2469,7 @@ export type Database = {
         Args: { _instrument: string }
         Returns: number
       }
+      gen_referral_code: { Args: never; Returns: string }
       generate_commission_statements: {
         Args: { _period_end: string; _period_start: string }
         Returns: number
