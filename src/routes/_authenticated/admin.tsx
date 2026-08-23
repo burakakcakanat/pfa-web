@@ -2818,7 +2818,7 @@ function ProAccountsTab() {
                     onChange={async (e) => {
                       const tier = e.target.value as "practitioner" | "fellow";
                       await doSetTier({ data: { entitlement_id: r.entitlement_id, tier } });
-                      await load();
+                      await reload();
                     }}
                     className="rounded-md border border-border bg-background px-2 py-1 text-xs"
                   >
