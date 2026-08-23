@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -159,6 +159,9 @@ import {
 } from "@/lib/social-drafts";
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: typeof search.tab === "string" && search.tab ? search.tab : undefined,
+  }),
   beforeLoad: async () => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) throw redirect({ to: "/auth" });
@@ -206,6 +209,9 @@ function RateCentreLink() {
 }
 
 function AdminPage() {
+  const { tab } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const activeTab = tab ?? "overview";
   const countNew = useServerFn(countNewPractitionerApplications);
   const [newApps, setNewApps] = useState(0);
   useEffect(() => {
@@ -217,7 +223,13 @@ function AdminPage() {
     <div className="min-h-screen bg-background px-4 py-10 md:px-8">
       <div className="mx-auto max-w-7xl">
         <h1 className="mb-6 font-serif text-3xl text-primary">Admin Paneli</h1>
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) =>
+            navigate({ search: { tab: v === "overview" ? undefined : v }, replace: true })
+          }
+          className="w-full"
+        >
           <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-transparent">
             <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
             <TabsTrigger value="products">Ürünler ve Paketler</TabsTrigger>
