@@ -237,7 +237,7 @@ function AdminPage() {
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
           <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
             <TabsTrigger value="pro-accounts">Pro Hesaplar</TabsTrigger>
-            <TabsTrigger value="questions">PFA Ölçeği</TabsTrigger>
+            <TabsTrigger value="questions">PFA BSÖ</TabsTrigger>
             <TabsTrigger value="scale-data">Ölçek Verileri</TabsTrigger>
             <TabsTrigger value="webinars">Webinarlar</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
@@ -1419,7 +1419,7 @@ function InstrumentVersionExplorer() {
           <Select value={instrument} onValueChange={(v) => { setInstrument(v as "pfa" | "sevenq"); setDiff(null); setFrom(""); setTo(""); }}>
             <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="pfa">PFA Ölçeği</SelectItem>
+              <SelectItem value="pfa">PFA BSÖ</SelectItem>
               <SelectItem value="sevenq">7Q Profili</SelectItem>
             </SelectContent>
           </Select>

@@ -31,7 +31,7 @@ export const PURCHASE_KIND_LABEL: Record<PurchaseInquiryKind, string> = {
   webinar: "Webinar",
   pro_license: "Uygulayıcı Lisansı",
   corporate: "Kurumsal / Toplu",
-  assessment: "Tam PFA Ölçeği",
+  assessment: "Tam PFA Bilinç Seviyeleri Ölçeği",
   ebook: "İmzalı E-Kitap",
 };
 

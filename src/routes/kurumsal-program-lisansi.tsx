@@ -59,11 +59,11 @@ const COPY: LicensePageCopy = {
     },
     {
       title: "Ölçme araçlarının kurum içi kullanımı",
-      body: "PFA Ölçeği ve 7Q Profili'nin katılımcılarınızla kullanılması; katılımcı raporlarının program akışına bağlanması.",
+      body: "PFA Bilinç Seviyeleri Ölçeği ve 7Q Profili'nin katılımcılarınızla kullanılması; katılımcı raporlarının program akışına bağlanması.",
     },
     {
       title: "Kendi kitlenize satış",
-      body: "PFA içeren programın kurumunuzun kendi katılımcı kitlesine, kendi fiyatlandırmanızla sunulması. Kapsam ve koşullar sözleşmeye bağlıdır. Programınızın fiyatını siz belirlersiniz. PFA Ölçeği ve 7Q Profili ise katılımcıya PFA'nın ilan ettiği fiyattan ulaşır; ölçme araçlarının fiyatlandırması lisans kapsamında değildir.",
+      body: "PFA içeren programın kurumunuzun kendi katılımcı kitlesine, kendi fiyatlandırmanızla sunulması. Kapsam ve koşullar sözleşmeye bağlıdır. Programınızın fiyatını siz belirlersiniz. PFA Bilinç Seviyeleri Ölçeği ve 7Q Profili ise katılımcıya PFA'nın ilan ettiği fiyattan ulaşır; ölçme araçlarının fiyatlandırması lisans kapsamında değildir.",
     },
     {
       title: "Akademik kullanım",
@@ -139,7 +139,7 @@ const COPY: LicensePageCopy = {
     },
     {
       title: "Ölçek kullanımı",
-      body: "PFA Ölçeği ve 7Q Profili'nin puanlama mantığı ve rapor yapısı değiştirilmez; sonuçlar katılımcıya kurumsal karar aracı olarak değil, gelişim aracı olarak sunulur.",
+      body: "PFA Bilinç Seviyeleri Ölçeği ve 7Q Profili'nin puanlama mantığı ve rapor yapısı değiştirilmez; sonuçlar katılımcıya kurumsal karar aracı olarak değil, gelişim aracı olarak sunulur.",
     },
     {
       title: "Etik çerçeve",
@@ -178,7 +178,7 @@ const COPY: LicensePageCopy = {
       a: "Evet. Modülü yürütecek her eğitmen PFA hazırlık sürecini tamamlar; yetkilendirme kuruma değil, kişiye bağlıdır.",
     },
     {
-      q: "PFA Ölçeği'ni kendi platformumuza gömebilir miyiz?",
+      q: "PFA Bilinç Seviyeleri Ölçeği'ni kendi platformumuza gömebilir miyiz?",
       a: "Teknik entegrasyon talebinizi formda belirtin. Mümkün olup olmadığı ve hangi koşullarla mümkün olduğu görüşmede ele alınır; otomatik olarak lisans kapsamında değildir.",
     },
     {
