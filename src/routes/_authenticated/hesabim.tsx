@@ -10,6 +10,7 @@ import { PractitionerAccountTab } from "@/components/practitioner-account";
 import { ResearchPreferences } from "@/components/research-preferences";
 import { NewsletterTabAction } from "@/components/newsletter-row";
 import { MySessionsTab } from "@/components/my-sessions";
+import { PractitionerWebinarsTab } from "@/components/practitioner-webinars";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
   validateSearch: (s: Record<string, unknown>): { tab?: string } =>
@@ -108,7 +109,7 @@ function AccountPage() {
   const tabs = [
     ...TABS,
     { id: "practitioner", label: "Uygulayıcı" },
-    ...(isPro ? [{ id: "clients", label: "Danışanlarım" }] : []),
+    ...(isPro ? [{ id: "clients", label: "Danışanlarım" }, { id: "pro-webinars", label: "Uygulayıcı Webinarları" }] : []),
   ];
 
   async function saveProfile() {
@@ -240,6 +241,7 @@ function AccountPage() {
         )}
 
         {tab === "clients" && <ClientsTab />}
+        {tab === "pro-webinars" && <PractitionerWebinarsTab />}
         {tab === "sessions" && <MySessionsTab />}
         {tab === "research" && <ResearchPreferences />}
         {tab === "practitioner" && (
