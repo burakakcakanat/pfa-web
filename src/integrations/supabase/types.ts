@@ -1160,6 +1160,51 @@ export type Database = {
         }
         Relationships: []
       }
+      practitioner_accounts: {
+        Row: {
+          certificate_status: string
+          client_quota: number
+          client_used: number
+          created_at: string
+          license_granted_at: string | null
+          license_valid_until: string | null
+          referral_code: string
+          subscription_renews_at: string | null
+          subscription_status: string | null
+          tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          certificate_status?: string
+          client_quota?: number
+          client_used?: number
+          created_at?: string
+          license_granted_at?: string | null
+          license_valid_until?: string | null
+          referral_code: string
+          subscription_renews_at?: string | null
+          subscription_status?: string | null
+          tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          certificate_status?: string
+          client_quota?: number
+          client_used?: number
+          created_at?: string
+          license_granted_at?: string | null
+          license_valid_until?: string | null
+          referral_code?: string
+          subscription_renews_at?: string | null
+          subscription_status?: string | null
+          tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       practitioner_applications: {
         Row: {
           admin_note: string | null
@@ -2283,6 +2328,7 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           id: string | null
+          is_fellow: boolean | null
           languages: string[] | null
           long_bio: string | null
           mode: Database["public"]["Enums"]["practitioner_mode"] | null
@@ -2292,40 +2338,6 @@ export type Database = {
           specializations: string[] | null
           title: string | null
           website: string | null
-        }
-        Insert: {
-          category?: Database["public"]["Enums"]["practitioner_category"] | null
-          city?: string | null
-          country?: string | null
-          created_at?: string | null
-          full_name?: string | null
-          id?: string | null
-          languages?: string[] | null
-          long_bio?: string | null
-          mode?: Database["public"]["Enums"]["practitioner_mode"] | null
-          photo_url?: string | null
-          short_bio?: string | null
-          sort_order?: number | null
-          specializations?: string[] | null
-          title?: string | null
-          website?: string | null
-        }
-        Update: {
-          category?: Database["public"]["Enums"]["practitioner_category"] | null
-          city?: string | null
-          country?: string | null
-          created_at?: string | null
-          full_name?: string | null
-          id?: string | null
-          languages?: string[] | null
-          long_bio?: string | null
-          mode?: Database["public"]["Enums"]["practitioner_mode"] | null
-          photo_url?: string | null
-          short_bio?: string | null
-          sort_order?: number | null
-          specializations?: string[] | null
-          title?: string | null
-          website?: string | null
         }
         Relationships: []
       }
@@ -2430,7 +2442,7 @@ export type Database = {
     }
     Functions: {
       admin_set_client_quota: {
-        Args: { _entitlement_id: string; _quota: number; _used: number }
+        Args: { _quota: number; _used: number; _user_id: string }
         Returns: undefined
       }
       bump_instrument_version: {
@@ -2505,7 +2517,7 @@ export type Database = {
       withdraw_research_consent: { Args: never; Returns: number }
     }
     Enums: {
-      app_role: "user" | "pro" | "admin"
+      app_role: "user" | "pro" | "admin" | "fellow"
       application_status:
         | "yeni"
         | "incelemede"
@@ -2657,7 +2669,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["user", "pro", "admin"],
+      app_role: ["user", "pro", "admin", "fellow"],
       application_status: [
         "yeni",
         "incelemede",

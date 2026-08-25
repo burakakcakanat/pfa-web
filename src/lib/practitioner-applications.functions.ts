@@ -400,7 +400,7 @@ export const getMyPractitionerState = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<MyPractitionerState> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const uid = context.userId;
-    const [appRes, practRes, rolesRes, profRes, entRes] = await Promise.all([
+    const [appRes, practRes, rolesRes, profRes, accRes] = await Promise.all([
       supabaseAdmin
         .from("practitioner_applications")
         .select("id, status, category, admin_note, created_at")
@@ -410,17 +410,16 @@ export const getMyPractitionerState = createServerFn({ method: "GET" })
       supabaseAdmin.from("practitioners").select("id, published").eq("user_id", uid).maybeSingle(),
       supabaseAdmin.from("user_roles").select("role").eq("user_id", uid),
       supabaseAdmin.from("profiles").select("full_name, email").eq("id", uid).maybeSingle(),
+      // Tek gerçek kaynak: practitioner_accounts.
       supabaseAdmin
-        .from("user_entitlements")
-        .select("id, metadata, created_at")
+        .from("practitioner_accounts")
+        .select("certificate_status")
         .eq("user_id", uid)
-        .eq("type", "pfa_pro")
-        .order("created_at", { ascending: false }),
+        .maybeSingle(),
     ]);
     const roles = ((rolesRes.data ?? []) as Array<{ role: string }>).map((r) => r.role);
-    const ents = (entRes.data ?? []) as Array<{ metadata: Record<string, unknown> | null }>;
-    const hasProEntitlement = ents.length > 0;
-    const rawCert = String((ents[0]?.metadata as any)?.certificate_status ?? "");
+    const hasProEntitlement = !!accRes.data;
+    const rawCert = String(accRes.data?.certificate_status ?? "");
     const certificateStatus =
       rawCert === "pending" || rawCert === "issued" || rawCert === "revoked" ? rawCert : null;
 
@@ -478,13 +477,12 @@ export const requestProLicense = createServerFn({ method: "POST" })
       .toLowerCase();
     if (!email) throw new Error("Hesabınızda kayıtlı e-posta bulunamadı.");
 
-    const { data: ent } = await supabaseAdmin
-      .from("user_entitlements")
-      .select("id")
+    const { data: acc } = await supabaseAdmin
+      .from("practitioner_accounts")
+      .select("user_id")
       .eq("user_id", uid)
-      .eq("type", "pfa_pro")
-      .limit(1);
-    if (ent && ent.length > 0) throw new Error("Lisansınız zaten tanımlı.");
+      .maybeSingle();
+    if (acc) throw new Error("Lisansınız zaten tanımlı.");
 
     const { data: open } = await supabaseAdmin
       .from("purchase_inquiries")

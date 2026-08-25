@@ -49,12 +49,17 @@ export const listPublicPractitioners = createServerFn({ method: "GET" }).handler
     const { data, error } = await supabase
       .from("practitioners_public")
       .select(
-        "id, full_name, category, title, photo_url, short_bio, long_bio, specializations, languages, city, country, mode, website, sort_order, created_at",
+        "id, full_name, category, title, photo_url, short_bio, long_bio, specializations, languages, city, country, mode, website, sort_order, created_at, is_fellow",
       )
+      // Fellow'lar rehberde önce listelenir; rozet/etiket GÖSTERİLMEZ.
+      .order("is_fellow", { ascending: false })
       .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: false });
+      .order("full_name", { ascending: true });
     if (error) throw new Error(error.message);
-    return (data ?? []) as PractitionerPublic[];
+    // is_fellow yalnızca sıralama içindir; dışarıya sızdırılmaz.
+    return ((data ?? []) as Array<Record<string, unknown>>).map(
+      ({ is_fellow: _f, ...rest }) => rest as unknown as PractitionerPublic,
+    );
   },
 );
 

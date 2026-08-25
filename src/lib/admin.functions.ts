@@ -18,7 +18,7 @@ export const getAdminOverview = createServerFn({ method: "GET" })
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const [ordersRes, productsRes, profilesRes, sessionsRes, entRes, recentRes] =
+    const [ordersRes, productsRes, profilesRes, sessionsRes, , recentRes] =
       await Promise.all([
         supabaseAdmin
           .from("orders")
@@ -69,10 +69,14 @@ export const getAdminOverview = createServerFn({ method: "GET" })
       webinarRegs.push({ slug: p.slug, name: p.name_tr, count: c });
     }
 
-    const activePro = (entRes.data ?? []).filter((e) => e.type === "pfa_pro").length;
-    const proEnts = (entRes.data ?? []).filter((e) => e.type === "pfa_pro");
-    const totalClientQuota = proEnts.reduce((s, e) => s + (((e.metadata as any)?.client_quota) ?? 0), 0);
-    const totalClientUsed = proEnts.reduce((s, e) => s + (((e.metadata as any)?.client_used) ?? 0), 0);
+    // Lisans sayısı ve kota tek kaynaktan: practitioner_accounts.
+    const { data: accs } = await supabaseAdmin
+      .from("practitioner_accounts")
+      .select("client_quota, client_used");
+    const accountRows = accs ?? [];
+    const activePro = accountRows.length;
+    const totalClientQuota = accountRows.reduce((s, a) => s + (a.client_quota ?? 0), 0);
+    const totalClientUsed = accountRows.reduce((s, a) => s + (a.client_used ?? 0), 0);
 
     const latestOrders = (recentRes.data ?? []).map((o) => ({
       ...o,
@@ -359,28 +363,20 @@ export const listAdminUsers = createServerFn({ method: "POST" })
     const ids = (profiles ?? []).map((p) => p.id);
     if (ids.length === 0) return [];
 
-    const [rolesRes, entsRes] = await Promise.all([
-      supabaseAdmin.from("user_roles").select("user_id, role").in("user_id", ids),
-      supabaseAdmin
-        .from("user_entitlements")
-        .select("id, user_id, type, metadata, created_at")
-        .eq("type", "pfa_pro")
-        .in("user_id", ids),
-    ]);
+    const rolesRes = await supabaseAdmin
+      .from("user_roles")
+      .select("user_id, role")
+      .in("user_id", ids);
     const rolesByUser = new Map<string, string[]>();
     for (const r of rolesRes.data ?? []) {
       const arr = rolesByUser.get(r.user_id) ?? [];
       arr.push(r.role);
       rolesByUser.set(r.user_id, arr);
     }
-    const proByUser = new Map<string, any>();
-    for (const e of entsRes.data ?? []) {
-      if (!proByUser.has(e.user_id)) proByUser.set(e.user_id, e);
-    }
+    // Kota artık yalnızca "Lisanslar" sekmesinden yönetilir.
     return (profiles ?? []).map((p) => ({
       ...p,
       roles: rolesByUser.get(p.id) ?? [],
-      pro_entitlement: proByUser.get(p.id) ?? null,
     }));
   });
 
@@ -419,7 +415,7 @@ export const setProQuota = createServerFn({ method: "POST" })
   .inputValidator((d) =>
     z
       .object({
-        entitlement_id: z.string().uuid(),
+        user_id: z.string().uuid(),
         quota: z.number().int().min(0),
         used: z.number().int().min(0),
       })
@@ -427,7 +423,7 @@ export const setProQuota = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { error } = await (context.supabase as any).rpc("admin_set_client_quota", {
-      _entitlement_id: data.entitlement_id,
+      _user_id: data.user_id,
       _quota: data.quota,
       _used: data.used,
     });
@@ -960,89 +956,24 @@ export const listAdminOrders = createServerFn({ method: "POST" })
       product_slug: dm.get(o.product_id)?.slug ?? null,
     }));
   });
-// -------- PRO LICENSES --------
-export const listProLicenses = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: ents } = await supabaseAdmin
-      .from("user_entitlements")
-      .select("id, user_id, metadata, created_at, source_order_id")
-      .eq("type", "pfa_pro")
-      .order("created_at", { ascending: false });
-    const list = ents ?? [];
-    const ids = Array.from(new Set(list.map((e) => e.user_id)));
-    if (ids.length === 0) return [];
-    const [profRes, invRes, roleRes] = await Promise.all([
-      supabaseAdmin.from("profiles").select("id, email, full_name").in("id", ids),
-      supabaseAdmin
-        .from("pro_client_invites")
-        .select("id, pro_user_id, client_name, status, created_at, token")
-        .in("pro_user_id", ids)
-        .order("created_at", { ascending: false }),
-      supabaseAdmin.from("user_roles").select("user_id, role").in("user_id", ids).eq("role", "pro"),
-    ]);
-    const pm = new Map((profRes.data ?? []).map((p: any) => [p.id, p]));
-    const invByPro = new Map<string, any[]>();
-    for (const i of invRes.data ?? []) {
-      const arr = invByPro.get(i.pro_user_id) ?? [];
-      arr.push(i);
-      invByPro.set(i.pro_user_id, arr);
-    }
-    const roleSet = new Set((roleRes.data ?? []).map((r: any) => r.user_id));
-    return list.map((e) => {
-      const meta = (e.metadata ?? {}) as any;
-      const quota = meta.client_quota ?? 0;
-      const used = meta.client_used ?? 0;
-      return {
-        entitlement_id: e.id,
-        user_id: e.user_id,
-        email: pm.get(e.user_id)?.email ?? null,
-        full_name: pm.get(e.user_id)?.full_name ?? null,
-        purchased_at: e.created_at,
-        quota,
-        used,
-        remaining: Math.max(quota - used, 0),
-        has_pro_role: roleSet.has(e.user_id),
-        certificate_status: meta.certificate_status ?? "pending",
-        invites: invByPro.get(e.user_id) ?? [],
-      };
-    });
-  });
-
-export const revokeProLicense = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ user_id: z.string().uuid(), entitlement_id: z.string().uuid() }).parse(d))
-  .handler(async ({ context, data }) => {
-    await assertAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("user_entitlements").delete().eq("id", data.entitlement_id);
-    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id).eq("role", "pro");
-    return { ok: true };
-  });
+// -------- LİSANSLAR --------
+// Not: Eski "Pro Lisanslar" listesi kaldırıldı; tek liste listProAccounts.
 
 export const setCertificateStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z.object({
-      entitlement_id: z.string().uuid(),
+      user_id: z.string().uuid(),
       status: z.enum(["pending", "issued", "revoked"]),
     }).parse(d),
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: cur } = await supabaseAdmin
-      .from("user_entitlements")
-      .select("metadata")
-      .eq("id", data.entitlement_id)
-      .maybeSingle();
-    const meta = { ...(((cur?.metadata as Record<string, unknown>) ?? {}) as any), certificate_status: data.status };
     const { error } = await supabaseAdmin
-      .from("user_entitlements")
-      .update({ metadata: meta as never })
-      .eq("id", data.entitlement_id);
+      .from("practitioner_accounts")
+      .update({ certificate_status: data.status })
+      .eq("user_id", data.user_id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -1057,6 +988,7 @@ export const listProAccounts = createServerFn({ method: "POST" })
     z
       .object({
         q: z.string().max(200).optional(),
+        tier: z.enum(["all", "practitioner", "fellow"]).default("all"),
         page: z.number().int().min(0).default(0),
         pageSize: z.number().int().min(1).max(200).default(50),
       })
@@ -1081,35 +1013,45 @@ export const listProAccounts = createServerFn({ method: "POST" })
     }
 
     let countQ = supabaseAdmin
-      .from("user_entitlements")
-      .select("id", { count: "exact", head: true })
-      .eq("type", "pfa_pro");
+      .from("practitioner_accounts")
+      .select("user_id", { count: "exact", head: true });
     if (matchedIds) countQ = countQ.in("user_id", matchedIds);
+    if (data.tier !== "all") countQ = countQ.eq("tier", data.tier);
     const { count: total } = await countQ;
 
     let listQ = supabaseAdmin
-      .from("user_entitlements")
-      .select("id, user_id, metadata, created_at, source_order_id")
-      .eq("type", "pfa_pro")
+      .from("practitioner_accounts")
+      .select(
+        "user_id, tier, referral_code, client_quota, client_used, license_granted_at, certificate_status, created_at",
+      )
       .order("created_at", { ascending: false })
       .range(data.page * data.pageSize, data.page * data.pageSize + data.pageSize - 1);
     if (matchedIds) listQ = listQ.in("user_id", matchedIds);
-    const { data: ents, error } = await listQ;
+    if (data.tier !== "all") listQ = listQ.eq("tier", data.tier);
+    const { data: accs, error } = await listQ;
     if (error) throw new Error(error.message);
 
-    const list = ents ?? [];
-    const uids = Array.from(new Set(list.map((e) => e.user_id)));
+    const list = accs ?? [];
+    const uids = list.map((a) => a.user_id);
     if (uids.length === 0) return { rows: [], total: total ?? 0 };
 
     // PRIVACY: pro_client_invites'tan yalnızca sayım / durum alanları.
-    const [profRes, invRes] = await Promise.all([
+    const [profRes, invRes, entRes] = await Promise.all([
       supabaseAdmin.from("profiles").select("id, email, full_name").in("id", uids),
       supabaseAdmin
         .from("pro_client_invites")
         .select("pro_user_id, status")
         .in("pro_user_id", uids),
+      supabaseAdmin
+        .from("user_entitlements")
+        .select("user_id, source_order_id")
+        .eq("type", "pfa_pro")
+        .in("user_id", uids),
     ]);
     const pm = new Map((profRes.data ?? []).map((p: any) => [p.id, p]));
+    const purchasedSet = new Set(
+      (entRes.data ?? []).filter((e: any) => !!e.source_order_id).map((e: any) => e.user_id),
+    );
     const inviteStats = new Map<string, { pending: number; completed: number; total: number }>();
     for (const i of invRes.data ?? []) {
       const s = inviteStats.get(i.pro_user_id) ?? { pending: 0, completed: 0, total: 0 };
@@ -1119,23 +1061,22 @@ export const listProAccounts = createServerFn({ method: "POST" })
       inviteStats.set(i.pro_user_id, s);
     }
 
-    const rows = list.map((e) => {
-      const meta = (e.metadata ?? {}) as any;
-      const quota = Number(meta.client_quota ?? 0);
-      const used = Number(meta.client_used ?? 0);
-      const stats = inviteStats.get(e.user_id) ?? { pending: 0, completed: 0, total: 0 };
+    const rows = list.map((a) => {
+      const quota = Number(a.client_quota ?? 0);
+      const used = Number(a.client_used ?? 0);
+      const stats = inviteStats.get(a.user_id) ?? { pending: 0, completed: 0, total: 0 };
       return {
-        entitlement_id: e.id,
-        user_id: e.user_id,
-        email: pm.get(e.user_id)?.email ?? null,
-        full_name: pm.get(e.user_id)?.full_name ?? null,
-        granted_at: e.created_at,
-        source: e.source_order_id ? "purchase" : (meta.granted_by === "admin" ? "manual" : "manual"),
+        user_id: a.user_id,
+        email: pm.get(a.user_id)?.email ?? null,
+        full_name: pm.get(a.user_id)?.full_name ?? null,
+        granted_at: a.license_granted_at ?? a.created_at,
+        source: purchasedSet.has(a.user_id) ? "purchase" : "manual",
         quota,
         used,
         remaining: Math.max(quota - used, 0),
-        tier: (meta.tier as string) ?? "practitioner",
-        referral_code: (meta.referral_code as string) ?? null,
+        tier: (a.tier as string) ?? "practitioner",
+        referral_code: (a.referral_code as string) ?? null,
+        certificate_status: (a.certificate_status as string) ?? "pending",
         invites_total: stats.total,
         invites_pending: stats.pending,
         invites_completed: stats.completed,
@@ -1177,12 +1118,11 @@ export const searchProfilesForPro = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     const ids = (profs ?? []).map((p: any) => p.id);
     if (ids.length === 0) return [];
-    const { data: ents } = await supabaseAdmin
-      .from("user_entitlements")
+    const { data: accs } = await supabaseAdmin
+      .from("practitioner_accounts")
       .select("user_id")
-      .eq("type", "pfa_pro")
       .in("user_id", ids);
-    const proSet = new Set((ents ?? []).map((e: any) => e.user_id));
+    const proSet = new Set((accs ?? []).map((e: any) => e.user_id));
     return (profs ?? []).map((p: any) => ({ ...p, is_pro: proSet.has(p.id) }));
   });
 
@@ -1202,14 +1142,11 @@ export const grantProAccount = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: existing } = await supabaseAdmin
-      .from("user_entitlements")
-      .select("id")
+      .from("practitioner_accounts")
+      .select("user_id")
       .eq("user_id", data.user_id)
-      .eq("type", "pfa_pro")
-      .limit(1);
-    if ((existing ?? []).length > 0) {
-      throw new Error("ALREADY_PRO");
-    }
+      .maybeSingle();
+    if (existing) throw new Error("ALREADY_PRO");
 
     // Ücretsiz kota Fiyat & Oran Merkezi'nden okunur (sabit değer yok).
     const quotaKey = data.tier === "fellow" ? "kota.ucretsiz_fellow" : "kota.ucretsiz_pfap";
@@ -1224,16 +1161,21 @@ export const grantProAccount = createServerFn({ method: "POST" })
     const { data: refCode, error: refErr } = await (supabaseAdmin as any).rpc("gen_referral_code");
     if (refErr) throw new Error(refErr.message);
 
+    const { error: e0 } = await supabaseAdmin.from("practitioner_accounts").insert({
+      user_id: data.user_id,
+      tier: data.tier,
+      referral_code: refCode as string,
+      client_quota: quota,
+      client_used: 0,
+      license_granted_at: new Date().toISOString(),
+    } as never);
+    if (e0) throw new Error(e0.message);
+
+    // Geçmiş kaydı: hak satırı korunur (kota/tier artık buradan okunmaz).
     const { error: e1 } = await supabaseAdmin.from("user_entitlements").insert({
       user_id: data.user_id,
       type: "pfa_pro",
-      metadata: {
-        granted_by: "admin",
-        client_quota: quota,
-        client_used: 0,
-        tier: data.tier,
-        referral_code: refCode,
-      },
+      metadata: { granted_by: "admin" },
     });
     if (e1) throw new Error(e1.message);
 
@@ -1241,6 +1183,12 @@ export const grantProAccount = createServerFn({ method: "POST" })
       .from("user_roles")
       .insert({ user_id: data.user_id, role: "pro" });
     if (e2 && !e2.message.includes("duplicate")) throw new Error(e2.message);
+    if (data.tier === "fellow") {
+      await supabaseAdmin
+        .from("user_roles")
+        .insert({ user_id: data.user_id, role: "fellow" as never })
+        .select();
+    }
 
     return { ok: true };
   });
@@ -1252,6 +1200,7 @@ export const revokeProAccount = createServerFn({ method: "POST" })
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Davet / danışan kayıtlarını KORU; yalnızca Pro hakkını kapat.
+    await supabaseAdmin.from("practitioner_accounts").delete().eq("user_id", data.user_id);
     await supabaseAdmin
       .from("user_entitlements")
       .delete()
@@ -1261,7 +1210,7 @@ export const revokeProAccount = createServerFn({ method: "POST" })
       .from("user_roles")
       .delete()
       .eq("user_id", data.user_id)
-      .eq("role", "pro");
+      .in("role", ["pro", "fellow"] as never);
     return { ok: true };
   });
 
@@ -1278,26 +1227,21 @@ export const addProCredits = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: ent, error } = await supabaseAdmin
-      .from("user_entitlements")
-      .select("id, metadata")
+    const { data: acc, error } = await supabaseAdmin
+      .from("practitioner_accounts")
+      .select("client_quota, client_used")
       .eq("user_id", data.user_id)
-      .eq("type", "pfa_pro")
-      .order("created_at", { ascending: false })
-      .limit(1)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!ent) throw new Error("NO_PRO_ENTITLEMENT");
-    const meta = (ent.metadata ?? {}) as any;
-    const currentQuota = Number(meta.client_quota ?? 0);
-    const currentUsed = Number(meta.client_used ?? 0);
+    if (!acc) throw new Error("NO_PRO_ENTITLEMENT");
+    const newQuota = Number(acc.client_quota ?? 0) + data.amount;
     const { error: e2 } = await (context.supabase as any).rpc("admin_set_client_quota", {
-      _entitlement_id: ent.id,
-      _quota: currentQuota + data.amount,
-      _used: currentUsed,
+      _user_id: data.user_id,
+      _quota: newQuota,
+      _used: Number(acc.client_used ?? 0),
     });
     if (e2) throw new Error(e2.message);
-    return { ok: true, new_quota: currentQuota + data.amount };
+    return { ok: true, new_quota: newQuota };
   });
 
 // Iterate all ebook entitlements that don't have a personalized PDF yet and try to
@@ -1819,7 +1763,7 @@ export const setProTier = createServerFn({ method: "POST" })
   .inputValidator((d) =>
     z
       .object({
-        entitlement_id: z.string().uuid(),
+        user_id: z.string().uuid(),
         tier: z.enum(["practitioner", "fellow"]),
       })
       .parse(d),
@@ -1827,18 +1771,30 @@ export const setProTier = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: cur } = await supabaseAdmin
-      .from("user_entitlements")
-      .select("metadata")
-      .eq("id", data.entitlement_id)
-      .maybeSingle();
-    const meta = { ...(((cur?.metadata as Record<string, unknown>) ?? {}) as any), tier: data.tier };
     // Kota otomatik değişmez — admin gerekirse "Kredi Ekle" ile farkı ekler.
     const { error } = await supabaseAdmin
-      .from("user_entitlements")
-      .update({ metadata: meta as never })
-      .eq("id", data.entitlement_id);
+      .from("practitioner_accounts")
+      .update({ tier: data.tier })
+      .eq("user_id", data.user_id);
     if (error) throw new Error(error.message);
+
+    // Fellow, 'pro' rolünün ÜSTÜNE eklenir; 'pro' her durumda kalır.
+    await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: data.user_id, role: "pro" as never })
+      .select();
+    if (data.tier === "fellow") {
+      await supabaseAdmin
+        .from("user_roles")
+        .insert({ user_id: data.user_id, role: "fellow" as never })
+        .select();
+    } else {
+      await supabaseAdmin
+        .from("user_roles")
+        .delete()
+        .eq("user_id", data.user_id)
+        .eq("role", "fellow" as never);
+    }
     return { ok: true, tier: data.tier };
   });
 
@@ -1865,9 +1821,8 @@ export const getCommissionOverview = createServerFn({ method: "POST" })
         .select("id, practitioner_user_id, period_start, period_end, currency, total_amount_cents, status, created_at")
         .order("created_at", { ascending: false }),
       supabaseAdmin
-        .from("user_entitlements")
-        .select("id, user_id, metadata")
-        .eq("type", "pfa_pro"),
+        .from("practitioner_accounts")
+        .select("user_id, tier, referral_code"),
       supabaseAdmin
         .from("system_rates")
         .select("key, value_numeric")
@@ -1904,7 +1859,6 @@ export const getCommissionOverview = createServerFn({ method: "POST" })
     }
 
     const rows = ents.map((e) => {
-      const meta = (e.metadata ?? {}) as any;
       const own = ledger.filter((l) => l.practitioner_user_id === e.user_id);
       const pending: Record<string, number> = {};
       for (const l of own) {
@@ -1913,12 +1867,11 @@ export const getCommissionOverview = createServerFn({ method: "POST" })
       }
       const lastStmt = stmts.find((s) => s.practitioner_user_id === e.user_id) ?? null;
       return {
-        entitlement_id: e.id,
         user_id: e.user_id,
         full_name: pm.get(e.user_id)?.full_name ?? null,
         email: pm.get(e.user_id)?.email ?? null,
-        tier: (meta.tier as string) ?? "practitioner",
-        referral_code: (meta.referral_code as string) ?? null,
+        tier: e.tier ?? "practitioner",
+        referral_code: e.referral_code ?? null,
         pending_by_currency: pending,
         ledger_count: own.length,
         last_statement: lastStmt
