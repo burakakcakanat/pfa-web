@@ -268,8 +268,7 @@ function AdminPage() {
             <TabsContent value="rates"><AdminRateCenter /></TabsContent>
             <TabsContent value="editions"><EditionsTab /></TabsContent>
             <TabsContent value="users"><UsersTab /></TabsContent>
-            <TabsContent value="pro"><ProLicensesTab /></TabsContent>
-            <TabsContent value="pro-accounts"><ProAccountsTab /></TabsContent>
+            <TabsContent value="pro"><LicensesTab /></TabsContent>
             <TabsContent value="questions"><QuestionsTab /></TabsContent>
             <TabsContent value="scale-data"><AdminScaleData /></TabsContent>
             <TabsContent value="webinars"><WebinarsTab /></TabsContent>
