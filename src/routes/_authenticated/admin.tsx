@@ -2893,7 +2893,7 @@ function LicensesTab() {
                 </TableCell>
               </TableRow>
               {expanded === r.user_id && (
-                <TableRow key={r.entitlement_id + "-exp"}>
+                <TableRow key={r.user_id + "-exp"}>
                   <TableCell colSpan={10} className="bg-muted/30">
                     <div className="p-3">
                       <div className="mb-2 text-xs font-medium">
