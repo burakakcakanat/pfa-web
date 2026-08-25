@@ -131,6 +131,8 @@ export const updateAdminProduct = createServerFn({ method: "POST" })
         category: z
           .enum(["kitap", "olcme", "seans", "paket", "program", "diger"])
           .optional(),
+        webinar_audience: z.enum(["general", "practitioner"]).optional(),
+        included_in_program: z.boolean().optional(),
       })
       .parse(d),
   )
@@ -562,8 +564,9 @@ export const listWebinarSessions = createServerFn({ method: "GET" })
         .order("starts_at", { ascending: false }),
       supabaseAdmin
         .from("products")
-        .select("id, slug, name_tr, price_cents")
-        .in("slug", ["bilinc-seviyeleri-calismalari", "pfa-pro-lisans-paketi"]),
+        .select("id, slug, name_tr, price_cents, webinar_audience, included_in_program")
+        // Genel webinar ürünleri + tüm webinar tipindeki ürünler (uygulayıcı kitlesi dahil).
+        .or("type.eq.webinar,slug.in.(bilinc-seviyeleri-calismalari,pfa-pro-lisans-paketi)"),
     ]);
     return { sessions: sessions.data ?? [], products: products.data ?? [] };
   });

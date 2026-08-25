@@ -593,7 +593,7 @@ function ProductsTab() {
       for (const id of dirtyIds) {
         const d = drafts[id]; const orig = rows.find((r) => r.id === id);
         const changed: any = { id };
-        for (const k of ["name_tr","name_en","description_tr","description_en","price_cents","active","activate_at","cover_image_url","master_pdf_path","master_epub_path","language","book_key","category"]) {
+        for (const k of ["name_tr","name_en","description_tr","description_en","price_cents","active","activate_at","cover_image_url","master_pdf_path","master_epub_path","language","book_key","category","webinar_audience","included_in_program"]) {
           if ((d[k] ?? null) !== (orig?.[k] ?? null)) changed[k] = d[k];
         }
         await update({ data: changed });
@@ -638,6 +638,7 @@ function ProductsTab() {
 
   const renderForm = (p: any) => {
     const isBook = p.type === "ebook";
+    const isWebinar = p.type === "webinar";
     return (
       <div className="border-t border-border bg-muted/20 px-3 py-4">
         <div className="grid gap-3 md:grid-cols-2">
@@ -652,7 +653,28 @@ function ProductsTab() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="hidden md:block" />
+              {isWebinar ? (
+                <div className="grid gap-3 md:grid-cols-2 md:col-span-1">
+                  <div>
+                    <Label>Kitle</Label>
+                    <Select value={currentValue(p, "webinar_audience") ?? "general"} onValueChange={(v) => patch(p.id, "webinar_audience", v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="general">Genel</SelectItem>
+                        <SelectItem value="practitioner">Uygulayıcı</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {currentValue(p, "webinar_audience") === "practitioner" && (
+                    <div className="flex items-end gap-2">
+                      <Switch checked={!!currentValue(p, "included_in_program")} onCheckedChange={(v) => patch(p.id, "included_in_program", v)} />
+                      <span className="text-sm">Gelişim programına dahil</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="hidden md:block" />
+              )}
               <div>
                 <Label>Ad (TR)</Label>
                 <Input value={currentValue(p, "name_tr") ?? ""} onChange={(e) => patch(p.id, "name_tr", e.target.value)} />

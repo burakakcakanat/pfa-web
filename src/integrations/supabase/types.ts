@@ -1477,6 +1477,7 @@ export type Database = {
           description_en: string | null
           description_tr: string | null
           id: string
+          included_in_program: boolean
           language: string
           master_epub_path: string | null
           master_pdf_path: string | null
@@ -1486,6 +1487,7 @@ export type Database = {
           slug: string
           type: Database["public"]["Enums"]["product_type"]
           updated_at: string
+          webinar_audience: string
         }
         Insert: {
           activate_at?: string | null
@@ -1498,6 +1500,7 @@ export type Database = {
           description_en?: string | null
           description_tr?: string | null
           id?: string
+          included_in_program?: boolean
           language?: string
           master_epub_path?: string | null
           master_pdf_path?: string | null
@@ -1507,6 +1510,7 @@ export type Database = {
           slug: string
           type: Database["public"]["Enums"]["product_type"]
           updated_at?: string
+          webinar_audience?: string
         }
         Update: {
           activate_at?: string | null
@@ -1519,6 +1523,7 @@ export type Database = {
           description_en?: string | null
           description_tr?: string | null
           id?: string
+          included_in_program?: boolean
           language?: string
           master_epub_path?: string | null
           master_pdf_path?: string | null
@@ -1528,6 +1533,7 @@ export type Database = {
           slug?: string
           type?: Database["public"]["Enums"]["product_type"]
           updated_at?: string
+          webinar_audience?: string
         }
         Relationships: []
       }
@@ -2513,6 +2519,10 @@ export type Database = {
       refresh_instrument_snapshot: {
         Args: { _instrument: string }
         Returns: undefined
+      }
+      register_free_program_webinar: {
+        Args: { _product_slug: string }
+        Returns: string
       }
       withdraw_research_consent: { Args: never; Returns: number }
     }
