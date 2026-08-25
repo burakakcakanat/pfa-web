@@ -1165,28 +1165,16 @@ function UsersTab() {
       </div>
       <Table>
         <TableHeader><TableRow>
-          <TableHead>E-posta</TableHead><TableHead>İsim</TableHead><TableHead>Roller</TableHead><TableHead>Pro Kota</TableHead><TableHead>İşlem</TableHead>
+          <TableHead>E-posta</TableHead><TableHead>İsim</TableHead><TableHead>Roller</TableHead><TableHead>İşlem</TableHead>
         </TableRow></TableHeader>
         <TableBody>
           {rows.map((u) => {
             const isPro = u.roles.includes("pro");
-            const ent = u.pro_entitlement;
-            const meta = (ent?.metadata ?? {}) as any;
             return (
               <TableRow key={u.id}>
                 <TableCell className="text-xs">{u.email}</TableCell>
                 <TableCell className="text-xs">{u.full_name ?? "—"}</TableCell>
                 <TableCell className="text-xs">{u.roles.join(", ") || "user"}</TableCell>
-                <TableCell>
-                  {ent ? (
-                    <QuotaEdit
-                      entitlementId={ent.id}
-                      quota={meta.client_quota ?? 0}
-                      used={meta.client_used ?? 0}
-                      onSave={async (quota, used) => { await setQuota({ data: { entitlement_id: ent.id, quota, used } }); reload(); }}
-                    />
-                  ) : "—"}
-                </TableCell>
                 <TableCell>
                   <Button size="sm" variant={isPro ? "outline" : "default"} onClick={async () => {
                     await setRole({ data: { user_id: u.id, role: "pro", grant: !isPro } });
