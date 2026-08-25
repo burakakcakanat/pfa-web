@@ -1202,7 +1202,7 @@ function UsersTab() {
   );
 }
 
-function QuotaEdit({ quota, used, onSave }: { entitlementId: string; quota: number; used: number; onSave: (q: number, u: number) => void }) {
+function QuotaEdit({ quota, used, onSave }: { quota: number; used: number; onSave: (q: number, u: number) => void }) {
   const [q, setQ] = useState(quota);
   const [u, setU] = useState(used);
   return (
