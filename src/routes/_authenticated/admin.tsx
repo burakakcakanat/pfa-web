@@ -237,8 +237,7 @@ function AdminPage() {
             <TabsTrigger value="rates">Fiyat &amp; Oran Merkezi</TabsTrigger>
             <TabsTrigger value="editions">Kitap Baskıları</TabsTrigger>
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
-          <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
-            <TabsTrigger value="pro-accounts">Pro Hesaplar</TabsTrigger>
+            <TabsTrigger value="pro">Lisanslar</TabsTrigger>
             <TabsTrigger value="questions">PFA BSÖ</TabsTrigger>
             <TabsTrigger value="scale-data">Ölçek Verileri</TabsTrigger>
             <TabsTrigger value="webinars">Webinarlar</TabsTrigger>
