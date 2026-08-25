@@ -17,18 +17,15 @@ export const resolveProInvite = createServerFn({ method: "GET" })
       .maybeSingle();
     if (!invite) return null;
 
-    const [{ data: prof }, { data: ent }] = await Promise.all([
+    const [{ data: prof }, { data: acc }] = await Promise.all([
       supabaseAdmin.from("profiles").select("full_name").eq("id", invite.pro_user_id).maybeSingle(),
       supabaseAdmin
-        .from("user_entitlements")
-        .select("metadata")
+        .from("practitioner_accounts")
+        .select("referral_code")
         .eq("user_id", invite.pro_user_id)
-        .eq("type", "pfa_pro")
-        .order("created_at", { ascending: false })
-        .limit(1)
         .maybeSingle(),
     ]);
-    const meta = (ent?.metadata ?? {}) as { referral_code?: string };
+
 
     return {
       status: invite.status as string,
@@ -37,6 +34,6 @@ export const resolveProInvite = createServerFn({ method: "GET" })
       mode: (invite.mode ?? "kota") as "kota" | "paid",
       client_name: invite.client_name,
       practitioner_name: prof?.full_name ?? null,
-      referral_code: invite.mode === "paid" ? meta.referral_code ?? null : null,
+      referral_code: invite.mode === "paid" ? acc?.referral_code ?? null : null,
     };
   });

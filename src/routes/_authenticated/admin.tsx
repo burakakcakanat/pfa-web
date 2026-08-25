@@ -59,8 +59,6 @@ import {
   createSignatureUploadUrl,
   createSharedSignatureUploadUrl,
   regenerateAllPersonalized,
-  listProLicenses,
-  revokeProLicense,
   setCertificateStatus,
   runPendingPersonalizedRetry,
   createTestOrder,
@@ -237,8 +235,7 @@ function AdminPage() {
             <TabsTrigger value="rates">Fiyat &amp; Oran Merkezi</TabsTrigger>
             <TabsTrigger value="editions">Kitap Baskıları</TabsTrigger>
             <TabsTrigger value="users">Kullanıcılar</TabsTrigger>
-          <TabsTrigger value="pro">Pro Lisanslar</TabsTrigger>
-            <TabsTrigger value="pro-accounts">Pro Hesaplar</TabsTrigger>
+            <TabsTrigger value="pro">Lisanslar</TabsTrigger>
             <TabsTrigger value="questions">PFA BSÖ</TabsTrigger>
             <TabsTrigger value="scale-data">Ölçek Verileri</TabsTrigger>
             <TabsTrigger value="webinars">Webinarlar</TabsTrigger>
@@ -268,8 +265,7 @@ function AdminPage() {
             <TabsContent value="rates"><AdminRateCenter /></TabsContent>
             <TabsContent value="editions"><EditionsTab /></TabsContent>
             <TabsContent value="users"><UsersTab /></TabsContent>
-            <TabsContent value="pro"><ProLicensesTab /></TabsContent>
-            <TabsContent value="pro-accounts"><ProAccountsTab /></TabsContent>
+            <TabsContent value="pro"><LicensesTab /></TabsContent>
             <TabsContent value="questions"><QuestionsTab /></TabsContent>
             <TabsContent value="scale-data"><AdminScaleData /></TabsContent>
             <TabsContent value="webinars"><WebinarsTab /></TabsContent>
@@ -1165,28 +1161,16 @@ function UsersTab() {
       </div>
       <Table>
         <TableHeader><TableRow>
-          <TableHead>E-posta</TableHead><TableHead>İsim</TableHead><TableHead>Roller</TableHead><TableHead>Pro Kota</TableHead><TableHead>İşlem</TableHead>
+          <TableHead>E-posta</TableHead><TableHead>İsim</TableHead><TableHead>Roller</TableHead><TableHead>İşlem</TableHead>
         </TableRow></TableHeader>
         <TableBody>
           {rows.map((u) => {
             const isPro = u.roles.includes("pro");
-            const ent = u.pro_entitlement;
-            const meta = (ent?.metadata ?? {}) as any;
             return (
               <TableRow key={u.id}>
                 <TableCell className="text-xs">{u.email}</TableCell>
                 <TableCell className="text-xs">{u.full_name ?? "—"}</TableCell>
                 <TableCell className="text-xs">{u.roles.join(", ") || "user"}</TableCell>
-                <TableCell>
-                  {ent ? (
-                    <QuotaEdit
-                      entitlementId={ent.id}
-                      quota={meta.client_quota ?? 0}
-                      used={meta.client_used ?? 0}
-                      onSave={async (quota, used) => { await setQuota({ data: { entitlement_id: ent.id, quota, used } }); reload(); }}
-                    />
-                  ) : "—"}
-                </TableCell>
                 <TableCell>
                   <Button size="sm" variant={isPro ? "outline" : "default"} onClick={async () => {
                     await setRole({ data: { user_id: u.id, role: "pro", grant: !isPro } });
@@ -1202,7 +1186,7 @@ function UsersTab() {
   );
 }
 
-function QuotaEdit({ quota, used, onSave }: { entitlementId: string; quota: number; used: number; onSave: (q: number, u: number) => void }) {
+function QuotaEdit({ quota, used, onSave }: { quota: number; used: number; onSave: (q: number, u: number) => void }) {
   const [q, setQ] = useState(quota);
   const [u, setU] = useState(used);
   return (
@@ -2562,123 +2546,13 @@ function OrdersTab() {
     </div>
   );
 }
-// ============== PRO LICENSES ==============
-function ProLicensesTab() {
-  const fetchList = useServerFn(listProLicenses);
-  const setQuota = useServerFn(setProQuota);
-  const revoke = useServerFn(revokeProLicense);
-  const setCert = useServerFn(setCertificateStatus);
-  const [rows, setRows] = useState<any[]>([]);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const reload = useCallback(() => { fetchList().then(setRows); }, [fetchList]);
-  useEffect(() => { reload(); }, [reload]);
-  return (
-    <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">
-        Toplam {rows.length} aktif lisans · {rows.reduce((s, r) => s + r.used, 0)} /{" "}
-        {rows.reduce((s, r) => s + r.quota, 0)} danışan değerlendirmesi kullanıldı.
-      </p>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead></TableHead>
-            <TableHead>E-posta</TableHead>
-            <TableHead>Ad</TableHead>
-            <TableHead>Satın alma</TableHead>
-            <TableHead>Kota (kullanılan / toplam)</TableHead>
-            <TableHead>Kalan</TableHead>
-            <TableHead>Sertifika</TableHead>
-            <TableHead>İşlem</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((r) => (
-            <>
-              <TableRow key={r.entitlement_id}>
-                <TableCell>
-                  <Button size="sm" variant="ghost" onClick={() => setExpanded((s) => ({ ...s, [r.entitlement_id]: !s[r.entitlement_id] }))}>
-                    {expanded[r.entitlement_id] ? "▾" : "▸"}
-                  </Button>
-                </TableCell>
-                <TableCell className="text-xs">{r.email ?? "—"}</TableCell>
-                <TableCell className="text-xs">{r.full_name ?? "—"}</TableCell>
-                <TableCell className="text-xs">{fmtDate(r.purchased_at)}</TableCell>
-                <TableCell>
-                  <QuotaEdit
-                    entitlementId={r.entitlement_id}
-                    quota={r.quota}
-                    used={r.used}
-                    onSave={async (q, u) => { await setQuota({ data: { entitlement_id: r.entitlement_id, quota: q, used: u } }); reload(); }}
-                  />
-                </TableCell>
-                <TableCell className="text-xs">{r.remaining}</TableCell>
-                <TableCell>
-                  <Select value={r.certificate_status} onValueChange={async (v: any) => { await setCert({ data: { entitlement_id: r.entitlement_id, status: v } }); reload(); }}>
-                    <SelectTrigger className="h-8 w-28"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Beklemede</SelectItem>
-                      <SelectItem value="issued">Verildi</SelectItem>
-                      <SelectItem value="revoked">İptal</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <Button size="sm" variant="destructive" onClick={async () => {
-                    if (!confirm(`${r.email ?? "Kullanıcı"} için Pro lisansını iptal etmek istediğinizden emin misiniz?`)) return;
-                    await revoke({ data: { user_id: r.user_id, entitlement_id: r.entitlement_id } });
-                    reload();
-                  }}>Lisansı İptal Et</Button>
-                </TableCell>
-              </TableRow>
-              {expanded[r.entitlement_id] && (
-                <TableRow key={r.entitlement_id + "-inv"}>
-                  <TableCell colSpan={10} className="bg-muted/30">
-                    <div className="p-3">
-                      <div className="mb-2 text-xs font-medium">Danışan Davetleri ({r.invites.length})</div>
-                      {r.invites.length === 0 ? (
-                        <p className="text-xs text-muted-foreground">Bu Pro henüz danışan daveti oluşturmadı.</p>
-                      ) : (
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Danışan</TableHead>
-                              <TableHead>Durum</TableHead>
-                              <TableHead>Oluşturulma</TableHead>
-                              <TableHead>Rapor</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {r.invites.map((inv: any) => (
-                              <TableRow key={inv.id}>
-                                <TableCell className="text-xs">{inv.client_name}</TableCell>
-                                <TableCell className="text-xs">{inv.status}</TableCell>
-                                <TableCell className="text-xs">{fmtDate(inv.created_at)}</TableCell>
-                                <TableCell className="text-xs">
-                                  {inv.status === "completed" ? (
-                                    <a className="text-accent underline" href={`/rapor/${inv.token}`} target="_blank" rel="noreferrer">Rapora git</a>
-                                  ) : "—"}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
 
-// -------- PRO HESAPLAR --------
+
+
+// -------- LİSANSLAR (tek ekran: rozet, kota, sertifika) --------
 // MAHREMİYET: Ölçek cevap/sonuç içeriği bu ekranda ASLA gösterilmez;
 // yalnızca sayısal alanlar (davet sayıları, kredi kotası) gösterilir.
-function ProAccountsTab() {
+function LicensesTab() {
   const fetchList = useServerFn(listProAccounts);
   const fetchInvites = useServerFn(listProInvitesForAdmin);
   const searchProfiles = useServerFn(searchProfilesForPro);
@@ -2686,9 +2560,12 @@ function ProAccountsTab() {
   const doRevoke = useServerFn(revokeProAccount);
   const doAddCredits = useServerFn(addProCredits);
   const doSetTier = useServerFn(setProTier);
+  const setQuota = useServerFn(setProQuota);
+  const setCert = useServerFn(setCertificateStatus);
 
   const [q, setQ] = useState("");
   const [term, setTerm] = useState("");
+  const [tierFilter, setTierFilter] = useState<"all" | "practitioner" | "fellow">("all");
   const [page, setPage] = useState(0);
   const pageSize = 50;
   const [rows, setRows] = useState<any[]>([]);
@@ -2711,7 +2588,7 @@ function ProAccountsTab() {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetchList({ data: { q: term || undefined, page, pageSize } });
+      const res = await fetchList({ data: { q: term || undefined, tier: tierFilter, page, pageSize } });
       setRows(res.rows);
       setTotal(res.total);
     } catch (e: any) {
@@ -2719,7 +2596,7 @@ function ProAccountsTab() {
     } finally {
       setLoading(false);
     }
-  }, [fetchList, term, page]);
+  }, [fetchList, term, tierFilter, page]);
 
   useEffect(() => { reload(); }, [reload]);
 
@@ -2767,6 +2644,14 @@ function ProAccountsTab() {
             Temizle
           </Button>
         )}
+        <Select value={tierFilter} onValueChange={(v: any) => { setPage(0); setTierFilter(v); }}>
+          <SelectTrigger className="h-9 w-40"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tüm rozetler</SelectItem>
+            <SelectItem value="practitioner">Practitioner</SelectItem>
+            <SelectItem value="fellow">Fellow</SelectItem>
+          </SelectContent>
+        </Select>
         <div className="ml-auto flex items-center gap-2">
           <Button onClick={() => { setGrantOpen(true); setGrantQ(""); setGrantResults([]); setGrantSelected(null); }}>
             Pro Yetkisi Ver
@@ -2775,7 +2660,7 @@ function ProAccountsTab() {
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Toplam {total} Pro hesap · Bu sayfada {totalUsed}/{totalCredits} kredi kullanıldı.
+        Toplam {total} lisans · Bu sayfada {totalUsed}/{totalCredits} kredi kullanıldı.
       </p>
 
       <Table>
@@ -2784,12 +2669,12 @@ function ProAccountsTab() {
             <TableHead></TableHead>
             <TableHead>Ad Soyad</TableHead>
             <TableHead>E-posta</TableHead>
-            <TableHead>Verilme</TableHead>
-            <TableHead>Kaynak</TableHead>
-            <TableHead>Tier</TableHead>
+            <TableHead>Rozet</TableHead>
             <TableHead>Referans Kodu</TableHead>
+            <TableHead>Lisans</TableHead>
+            <TableHead>Kota (toplam / kullanılan)</TableHead>
             <TableHead>Davet (Beklyn/Tmml)</TableHead>
-            <TableHead>Kalan Kredi</TableHead>
+            <TableHead>Sertifika</TableHead>
             <TableHead className="text-right">İşlem</TableHead>
           </TableRow>
         </TableHeader>
@@ -2800,7 +2685,7 @@ function ProAccountsTab() {
             <TableRow><TableCell colSpan={10} className="text-center text-xs text-muted-foreground">Kayıt yok.</TableCell></TableRow>
           ) : rows.map((r) => (
             <>
-              <TableRow key={r.entitlement_id}>
+              <TableRow key={r.user_id}>
                 <TableCell>
                   <Button size="sm" variant="ghost" onClick={() => toggleExpand(r.user_id)}>
                     {expanded === r.user_id ? "▾" : "▸"}
@@ -2808,16 +2693,12 @@ function ProAccountsTab() {
                 </TableCell>
                 <TableCell className="text-xs">{r.full_name ?? "—"}</TableCell>
                 <TableCell className="text-xs">{r.email ?? "—"}</TableCell>
-                <TableCell className="text-xs">{fmtDate(r.granted_at)}</TableCell>
-                <TableCell className="text-xs">
-                  {r.source === "purchase" ? "Satın alma" : "Manuel"}
-                </TableCell>
                 <TableCell className="text-xs">
                   <select
                     value={r.tier ?? "practitioner"}
                     onChange={async (e) => {
                       const tier = e.target.value as "practitioner" | "fellow";
-                      await doSetTier({ data: { entitlement_id: r.entitlement_id, tier } });
+                      await doSetTier({ data: { user_id: r.user_id, tier } });
                       await reload();
                     }}
                     className="rounded-md border border-border bg-background px-2 py-1 text-xs"
@@ -2840,9 +2721,39 @@ function ProAccountsTab() {
                     "—"
                   )}
                 </TableCell>
-                <TableCell className="text-xs">{r.invites_pending} / {r.invites_completed}</TableCell>
                 <TableCell className="text-xs">
-                  {r.remaining} <span className="text-muted-foreground">/ {r.quota}</span>
+                  {fmtDate(r.granted_at)}
+                  <div className="text-muted-foreground">
+                    {r.source === "purchase" ? "Satın alma" : "Manuel"}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <QuotaEdit
+                    quota={r.quota}
+                    used={r.used}
+                    onSave={async (qq, uu) => {
+                      await setQuota({ data: { user_id: r.user_id, quota: qq, used: uu } });
+                      reload();
+                    }}
+                  />
+                  <div className="mt-1 text-xs text-muted-foreground">Kalan: {r.remaining}</div>
+                </TableCell>
+                <TableCell className="text-xs">{r.invites_pending} / {r.invites_completed}</TableCell>
+                <TableCell>
+                  <Select
+                    value={r.certificate_status ?? "pending"}
+                    onValueChange={async (v: any) => {
+                      await setCert({ data: { user_id: r.user_id, status: v } });
+                      reload();
+                    }}
+                  >
+                    <SelectTrigger className="h-8 w-28"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Beklemede</SelectItem>
+                      <SelectItem value="issued">Verildi</SelectItem>
+                      <SelectItem value="revoked">İptal</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
@@ -2850,13 +2761,13 @@ function ProAccountsTab() {
                       Kredi Ekle
                     </Button>
                     <Button size="sm" variant="destructive" onClick={() => setRevokeTarget(r)}>
-                      Kaldır
+                      Lisansı İptal Et
                     </Button>
                   </div>
                 </TableCell>
               </TableRow>
               {expanded === r.user_id && (
-                <TableRow key={r.entitlement_id + "-exp"}>
+                <TableRow key={r.user_id + "-exp"}>
                   <TableCell colSpan={10} className="bg-muted/30">
                     <div className="p-3">
                       <div className="mb-2 text-xs font-medium">

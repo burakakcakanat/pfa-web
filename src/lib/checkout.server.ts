@@ -148,13 +148,11 @@ export async function startCheckoutOnServer(
   let referralPct = 0;
   if (refCode && isScaleProduct && addonSlugs.length === 0) {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Referans kodu tek kaynaktan doğrulanır: practitioner_accounts.
     const { data: refEnt } = await supabaseAdmin
-      .from("user_entitlements")
-      .select("user_id, metadata")
-      .eq("type", "pfa_pro")
-      .filter("metadata->>referral_code", "eq", refCode)
-      .order("created_at", { ascending: false })
-      .limit(1)
+      .from("practitioner_accounts")
+      .select("user_id")
+      .eq("referral_code", refCode)
       .maybeSingle();
     if (refEnt && refEnt.user_id !== userId) {
       const { data: rate } = await supabaseAdmin

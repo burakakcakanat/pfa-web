@@ -7,23 +7,16 @@ export const getProDashboard = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
 
-    const { data: ent } = await supabase
-      .from("user_entitlements")
-      .select("id, metadata, created_at")
+    // Tek gerçek kaynak: practitioner_accounts (kullanıcı başına tek satır).
+    const { data: acc } = await supabase
+      .from("practitioner_accounts")
+      .select("tier, referral_code, client_quota, client_used, license_granted_at")
       .eq("user_id", userId)
-      .eq("type", "pfa_pro")
-      .order("created_at", { ascending: false })
-      .limit(1)
       .maybeSingle();
 
-    const meta = (ent?.metadata ?? {}) as {
-      client_quota?: number;
-      client_used?: number;
-      tier?: "practitioner" | "fellow";
-      referral_code?: string;
-    };
-    const quota = meta.client_quota ?? 0;
-    const used = meta.client_used ?? 0;
+    const quota = acc?.client_quota ?? 0;
+    const used = acc?.client_used ?? 0;
+
 
     // Ek paket fiyatı katalogdan okunur (hardcoded fiyat yok).
     let clientPackPriceCents: number | null = null;
@@ -84,9 +77,9 @@ export const getProDashboard = createServerFn({ method: "GET" })
     }
 
     return {
-      hasPro: !!ent,
-      tier: meta.tier ?? "practitioner",
-      referralCode: meta.referral_code ?? null,
+      hasPro: !!acc,
+      tier: (acc?.tier ?? "practitioner") as "practitioner" | "fellow",
+      referralCode: acc?.referral_code ?? null,
       quota,
       used,
       remaining: Math.max(0, quota - used),
