@@ -266,6 +266,7 @@ function AdminPage() {
             <TabsTrigger value="newsletter">Bülten</TabsTrigger>
             <TabsTrigger value="messages">Mesajlar</TabsTrigger>
             <TabsTrigger value="licenses">Kurumsal Başvurular</TabsTrigger>
+            <TabsTrigger value="panels">Paneller</TabsTrigger>
           </TabsList>
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
