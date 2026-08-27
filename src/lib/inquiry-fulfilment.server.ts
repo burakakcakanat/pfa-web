@@ -23,7 +23,7 @@ export type FulfilSelection = {
 const TYPE_LABEL_TR: Record<string, string> = {
   ebook: "Adınıza imzalı dijital kitap (PDF + EPUB)",
   assessment_full: "Tam PFA Bilinç Seviyeleri Ölçeği + bilinç seviyesi raporu",
-  session: "Birebir danışmanlık oturumu (1 seans kredisi)",
+  session: "Birebir danışmanlık oturumu (1 seans hakkı)",
   webinar_bsc: "Bilinç Seviyeleri Çalışmaları",
   pfa_pro: "PFA-Pro lisansı",
 };
@@ -274,7 +274,7 @@ async function sendDeliveryEmail(
       }
       ${
         hasSession
-          ? `<p>Seans krediniz hazır: hesabınızdaki “Seanslarım” bölümünden tercih ettiğiniz zamanı seçebilirsiniz. Randevu e-posta ile teyit edilir; otomatik onay verilmez.</p>`
+          ? `<p>Seans hakkınız hazır: hesabınızdaki “Seanslarım” bölümünden tercih ettiğiniz zamanı seçebilirsiniz. Randevu e-posta ile teyit edilir; otomatik onay verilmez.</p>`
           : ""
       }
       <p>Sevgiyle,<br/>PFA Ekibi</p>`;

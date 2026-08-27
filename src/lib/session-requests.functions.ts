@@ -68,7 +68,7 @@ export const requestSessionTime = createServerFn({ method: "POST" })
     );
     const free = (ents ?? []).find((e) => !usedIds.has(e.id as string));
     if (!free || active.length >= (ents ?? []).length) {
-      throw new Error("Kullanılabilir seans krediniz yok.");
+      throw new Error("Kullanılabilir seans hakkınız yok.");
     }
     const { error } = await supabase.from("session_requests").insert({
       user_id: userId,

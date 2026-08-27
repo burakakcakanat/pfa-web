@@ -55,6 +55,8 @@ import {
   deleteEbookFile,
   listAdminOrders,
   listEbookConfig,
+  createEbookDedication,
+
   updateEbookDedication,
   createSignatureUploadUrl,
   createSharedSignatureUploadUrl,
@@ -262,7 +264,7 @@ function AdminPage() {
             </TabsTrigger>
             <TabsTrigger value="newsletter">Bülten</TabsTrigger>
             <TabsTrigger value="messages">Mesajlar</TabsTrigger>
-            <TabsTrigger value="licenses">Lisans Başvuruları</TabsTrigger>
+            <TabsTrigger value="licenses">Kurumsal Başvurular</TabsTrigger>
           </TabsList>
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
@@ -297,6 +299,24 @@ function AdminPage() {
     </div>
   );
 }
+const ROLE_FILTER_LABEL: Record<"all" | "admin" | "fellow" | "pfap" | "user" | "guest", string> = {
+  all: "Tümü",
+  admin: "Admin",
+  fellow: "Fellow",
+  pfap: "PFAP",
+  user: "Kullanıcı",
+  guest: "Ziyaretçi",
+};
+
+function SenderRoleBadge({ role }: { role?: string }) {
+  const key = (role ?? "guest") as keyof typeof ROLE_FILTER_LABEL;
+  return (
+    <span className="rounded-full border border-border px-2 py-0.5 text-[0.6rem] tracking-[0.08em] text-muted-foreground">
+      {ROLE_FILTER_LABEL[key] ?? ROLE_FILTER_LABEL.guest}
+    </span>
+  );
+}
+
 
 function MessagesTab() {
   const listFn = useServerFn(listContactMessages);
@@ -307,6 +327,10 @@ function MessagesTab() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [localeFilter, setLocaleFilter] = useState<"all" | "tr" | "en">("all");
+  const [roleFilter, setRoleFilter] = useState<
+    "all" | "fellow" | "pfap" | "user" | "guest"
+  >("all");
+
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -360,6 +384,18 @@ function MessagesTab() {
             </Button>
           ))}
         </div>
+        <div className="flex items-center gap-1">
+          {(["all", "fellow", "pfap", "user", "guest"] as const).map((v) => (
+            <Button
+              key={v}
+              variant={roleFilter === v ? "default" : "outline"}
+              size="sm"
+              onClick={() => setRoleFilter(v)}
+            >
+              {ROLE_FILTER_LABEL[v]}
+            </Button>
+          ))}
+        </div>
       </div>
       {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">Henüz mesaj yok.</p>
@@ -367,7 +403,9 @@ function MessagesTab() {
         <div className="space-y-2">
           {rows
             .filter((m) => localeFilter === "all" || (m.locale ?? "tr") === localeFilter)
+            .filter((m) => roleFilter === "all" || (m.sender_role ?? "guest") === roleFilter)
             .map((m) => {
+
             const isOpen = openId === m.id;
             return (
               <div
@@ -385,6 +423,8 @@ function MessagesTab() {
                       )}
                       <span className="font-medium">{m.full_name}</span>
                       <LocaleBadge locale={m.locale} />
+                      <SenderRoleBadge role={m.sender_role} />
+
                       <span className="text-xs text-muted-foreground">&lt;{m.email}&gt;</span>
                     </div>
                     <div className="mt-0.5 text-sm text-foreground/80">
@@ -1642,13 +1682,36 @@ function WebinarsTab() {
             onCancel={() => setEditing(null)}
             onSave={async (d) => {
               setErr(null);
+              // KÖK NEDEN: kart refetch'ten önce kapatılınca doküman kısalıyor ve
+              // tarayıcı scroll'u footer'a kelepçeliyordu. Artık form açık kalır,
+              // liste yenilenir ve scroll konumu korunur.
+              const y = typeof window !== "undefined" ? window.scrollY : 0;
               await save({ data: d });
-              setEditing(null);
-              reload();
+              const fresh = await fetchList();
+              setData(fresh);
+              setEditing((prev: any) => {
+                if (!prev) return prev;
+                const match = d.id
+                  ? fresh.sessions.find((s: any) => s.id === d.id)
+                  : fresh.sessions.find(
+                      (s: any) => s.title === d.title && s.product_id === d.product_id,
+                    );
+                if (!match) return prev;
+                const p = fresh.products.find((x: any) => x.id === match.product_id);
+                return {
+                  ...match,
+                  starts_at: new Date(match.starts_at).toISOString().slice(0, 16),
+                  price_cents: p?.price_cents ?? 0,
+                };
+              });
+              if (typeof window !== "undefined") {
+                requestAnimationFrame(() => window.scrollTo({ top: y }));
+              }
             }}
           />
         </Card>
       )}
+
       <Table>
         <TableHeader><TableRow><TableHead>Başlık</TableHead><TableHead>Ürün</TableHead><TableHead>Tarih</TableHead><TableHead>Ücret</TableHead><TableHead>Kapasite</TableHead><TableHead></TableHead></TableRow></TableHeader>
         <TableBody>
@@ -1676,11 +1739,13 @@ function WebinarForm({ initial, products, onSave, onCancel }: { initial: any; pr
   const [d, setD] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const upd = (k: string, v: any) => setD({ ...d, [k]: v });
+  const [saved, setSaved] = useState(false);
+  const upd = (k: string, v: any) => { setSaved(false); setD({ ...d, [k]: v }); };
   const priceInput = d.price_cents == null ? "" : String(d.price_cents / 100);
 
   const submit = async () => {
     setError(null);
+    setSaved(false);
     if (!d.product_id) { setError("Ürün seçilmedi."); return; }
     if (!d.title?.trim()) { setError("Başlık boş bırakılamaz."); return; }
     if (!d.starts_at || Number.isNaN(new Date(d.starts_at).getTime())) {
@@ -1699,12 +1764,14 @@ function WebinarForm({ initial, products, onSave, onCancel }: { initial: any; pr
         banner_url: d.banner_url?.trim() || null,
         price_cents: d.price_cents == null ? 0 : d.price_cents,
       });
+      setSaved(true);
     } catch (e: any) {
       setError(e?.message ?? "Bilinmeyen hata.");
     } finally {
       setBusy(false);
     }
   };
+
 
   return (
     <div className="grid gap-3 md:grid-cols-2">
@@ -1756,10 +1823,12 @@ function WebinarForm({ initial, products, onSave, onCancel }: { initial: any; pr
           {error}
         </div>
       )}
-      <div className="flex gap-2 md:col-span-2">
-        <Button onClick={submit} disabled={busy}>{busy ? "Kaydediliyor…" : "Kaydet"}</Button>
-        <Button variant="outline" onClick={onCancel} disabled={busy}>İptal</Button>
+      <div className="flex items-center gap-2 md:col-span-2">
+        <Button type="button" onClick={submit} disabled={busy}>{busy ? "Kaydediliyor…" : "Kaydet"}</Button>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>Kapat</Button>
+        {saved && <span className="text-xs text-accent">Kaydedildi — form açık kaldı.</span>}
       </div>
+
       {d.title && d.starts_at && !Number.isNaN(new Date(d.starts_at).getTime()) && (
         <div className="md:col-span-2">
           <WebinarShareDrafts session={d} products={products} />
@@ -1908,7 +1977,7 @@ function SiteSettingsTab() {
   const [msg, setMsg] = useState<string | null>(null);
   useEffect(() => {
     fetchList().then((data) => {
-      const out: Record<string, string> = { social_instagram: "", social_linkedin: "", social_x: "", social_youtube: "", podcast_program_url: "", admin_notification_email: "", payments_enabled: "false", payment_mode: PAYMENT_MODE_DEFAULT };
+      const out: Record<string, string> = { social_instagram: "", social_linkedin: "", social_linkedin_intl: "", social_facebook: "", social_x: "", social_youtube: "", podcast_program_url: "", admin_notification_email: "", payments_enabled: "false", payment_mode: PAYMENT_MODE_DEFAULT };
       for (const r of data as any[]) out[r.key] = r.value ?? "";
       setRows(out);
     });
@@ -1975,7 +2044,10 @@ function SiteSettingsTab() {
     <Card title="Sosyal Medya Bağlantıları">
       <div className="grid gap-3 md:grid-cols-2">
         <div><Label>Instagram URL</Label><Input placeholder="https://instagram.com/…" value={rows.social_instagram ?? ""} onChange={(e) => upd("social_instagram", e.target.value)} /></div>
-        <div><Label>LinkedIn URL</Label><Input placeholder="https://linkedin.com/in/…" value={rows.social_linkedin ?? ""} onChange={(e) => upd("social_linkedin", e.target.value)} /></div>
+        <div><Label>LinkedIn (TR)</Label><Input placeholder="https://linkedin.com/in/…" value={rows.social_linkedin ?? ""} onChange={(e) => upd("social_linkedin", e.target.value)} /></div>
+        <div><Label>LinkedIn (International)</Label><Input placeholder="https://linkedin.com/company/…" value={rows.social_linkedin_intl ?? ""} onChange={(e) => upd("social_linkedin_intl", e.target.value)} /></div>
+        <div><Label>Facebook</Label><Input placeholder="https://facebook.com/…" value={rows.social_facebook ?? ""} onChange={(e) => upd("social_facebook", e.target.value)} /></div>
+
         <div><Label>X (Twitter) URL</Label><Input placeholder="https://x.com/…" value={rows.social_x ?? ""} onChange={(e) => upd("social_x", e.target.value)} /></div>
         <div><Label>YouTube URL</Label><Input placeholder="https://youtube.com/@…" value={rows.social_youtube ?? ""} onChange={(e) => upd("social_youtube", e.target.value)} /></div>
         <div className="md:col-span-2"><Label>Spotify Podcast Program URL</Label><Input placeholder="https://open.spotify.com/show/…" value={rows.podcast_program_url ?? ""} onChange={(e) => upd("podcast_program_url", e.target.value)} /></div>
@@ -2276,6 +2348,8 @@ function EbooksTab() {
   const del = useServerFn(deleteEbookFile);
   const fetchCfg = useServerFn(listEbookConfig);
   const saveDed = useServerFn(updateEbookDedication);
+  const createDed = useServerFn(createEbookDedication);
+
   const createSigUpload = useServerFn(createSignatureUploadUrl);
   const createSharedSig = useServerFn(createSharedSignatureUploadUrl);
   const regen = useServerFn(regenerateAllPersonalized);
@@ -2333,6 +2407,17 @@ function EbooksTab() {
               onSave={async (patch) => { await saveDed({ data: { id: c.id, ...patch } }); reloadCfg(); }}
             />
           ))}
+          {!cfg.some((c) => c.book_key === "hcd" && c.locale === "en") && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={async () => { await createDed({ data: { book_key: "hcd", locale: "en" } }); reloadCfg(); }}
+            >
+              HCD · EN şablonu oluştur
+            </Button>
+          )}
+
         </div>
         <div className="mt-4 rounded-md border border-border/60 bg-muted/30 p-4">
           <div className="mb-2 flex items-center justify-between">
@@ -2416,7 +2501,10 @@ function DedicationEditor({ cfg, onSave }: {
   return (
     <div className="rounded-md border border-border/60 p-4">
       <div className="mb-3 flex items-center justify-between">
-        <div className="text-sm font-medium">{cfg.locale.toUpperCase()} · Dedication Şablonu</div>
+        <div className="text-sm font-medium">
+          {(cfg.book_key === "hcd" ? "HCD" : "PFA")} · {cfg.locale.toUpperCase()} — Dedication Şablonu
+        </div>
+
       </div>
       <div className="space-y-3">
         <div><Label>Yazar adı</Label><Input value={author} onChange={(e) => setAuthor(e.target.value)} /></div>
@@ -2606,7 +2694,7 @@ function OrdersTab() {
 
 // -------- LİSANSLAR (tek ekran: rozet, kota, sertifika) --------
 // MAHREMİYET: Ölçek cevap/sonuç içeriği bu ekranda ASLA gösterilmez;
-// yalnızca sayısal alanlar (davet sayıları, kredi kotası) gösterilir.
+// yalnızca sayısal alanlar (davet sayıları, danışan ölçeği kotası) gösterilir.
 function LicensesTab() {
   const fetchList = useServerFn(listProAccounts);
   const fetchInvites = useServerFn(listProInvitesForAdmin);
@@ -2715,7 +2803,7 @@ function LicensesTab() {
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Toplam {total} lisans · Bu sayfada {totalUsed}/{totalCredits} kredi kullanıldı.
+        Toplam {total} lisans · Bu sayfada {totalUsed}/{totalCredits} danışan ölçeği kotası kullanıldı.
       </p>
 
       <Table>
@@ -2813,7 +2901,7 @@ function LicensesTab() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button size="sm" variant="secondary" onClick={() => { setCreditsTarget(r); setCreditsAmount("10"); }}>
-                      Kredi Ekle
+                      Kota Ekle
                     </Button>
                     <Button size="sm" variant="destructive" onClick={() => setRevokeTarget(r)}>
                       Lisansı İptal Et
@@ -2924,7 +3012,7 @@ function LicensesTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Pro yetkisi verilsin mi?</AlertDialogTitle>
             <AlertDialogDescription>
-              {grantSelected?.email} kullanıcısına PFA-Pro lisansı ve 20 danışan kredisi verilecek.
+              {grantSelected?.email} kullanıcısına PFA-Pro lisansı ve 20 danışan ölçeği kotası verilecek.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -2985,9 +3073,9 @@ function LicensesTab() {
       <AlertDialog open={!!creditsTarget} onOpenChange={(o) => !o && setCreditsTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Kredi Ekle</AlertDialogTitle>
+            <AlertDialogTitle>Danışan Ölçeği Kotası Ekle</AlertDialogTitle>
             <AlertDialogDescription>
-              {creditsTarget?.email} kullanıcısının danışan kredisine eklenecek adet.
+              {creditsTarget?.email} kullanıcısının danışan ölçeği kotasına eklenecek adet.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div>
@@ -3008,7 +3096,7 @@ function LicensesTab() {
                 if (!Number.isFinite(n) || n < 1) { toast.error("Geçersiz adet"); return; }
                 try {
                   const r = await doAddCredits({ data: { user_id: creditsTarget.user_id, amount: n } });
-                  toast.success(`${n} kredi eklendi. Yeni kota: ${(r as any).new_quota}`);
+                  toast.success(`${n} kota eklendi. Yeni kota: ${(r as any).new_quota}`);
                   setCreditsTarget(null);
                   reload();
                 } catch (e: any) {

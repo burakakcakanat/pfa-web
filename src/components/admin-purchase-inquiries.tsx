@@ -293,8 +293,16 @@ export function AdminPurchaseInquiries() {
                   {r.full_name}
                   <LocaleBadge locale={r.locale} />
                 </TableCell>
-                <TableCell className="text-sm">{r.product_label ?? r.product_slug}</TableCell>
+                <TableCell className="text-sm">
+                  {r.product_label ?? r.product_slug}
+                  {r.metadata?.badge_intent ? (
+                    <span className="ml-2 rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[0.6rem] tracking-[0.08em] text-accent">
+                      {r.metadata.badge_intent === "fellow" ? "PFA Fellow" : "PFA Practitioner"}
+                    </span>
+                  ) : null}
+                </TableCell>
                 <TableCell className="text-xs">{PURCHASE_KIND_LABEL[r.kind]}</TableCell>
+
                 <TableCell className="text-xs">{PURCHASE_STATUS_LABEL[r.status]}</TableCell>
                 <TableCell className="text-right">
                   <Button size="sm" variant="outline">
@@ -399,7 +407,7 @@ export function AdminPurchaseInquiries() {
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Seçimin bütün bileşenleri (ölçek erişimi, seans kredisi, imzalı e-kitap) tek seferde
+              Seçimin bütün bileşenleri (ölçek erişimi, seans hakkı, imzalı e-kitap) tek seferde
               tanımlanır; tekrar basmak ikinci kez tanımlamaz. Katalog fiyatı:{" "}
               {selectionPriceCents != null ? `$${(selectionPriceCents / 100).toFixed(2)}` : "—"}
             </p>

@@ -127,9 +127,60 @@ export const listContactMessages = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(500);
     if (error) throw new Error(error.message);
-    const unread = (data ?? []).filter((m) => !m.is_read).length;
-    return { messages: data ?? [], unread };
+    const rows = data ?? [];
+
+    // Rol çözümlemesi sunucuda: e-posta profiles'ta eşleşiyorsa rol rozeti,
+    // eşleşmiyorsa "Ziyaretçi".
+    const emails = Array.from(
+      new Set(rows.map((m) => (m.email ?? "").trim().toLowerCase()).filter(Boolean)),
+    );
+    const byEmail = new Map<string, "admin" | "fellow" | "pfap" | "user">();
+    if (emails.length > 0) {
+      const { data: profs } = await supabaseAdmin
+        .from("profiles")
+        .select("id, email")
+        .in("email", emails);
+      const ids = (profs ?? []).map((p) => p.id);
+      const roleByUser = new Map<string, Set<string>>();
+      const tierByUser = new Map<string, string>();
+      if (ids.length > 0) {
+        const { data: roles } = await supabaseAdmin
+          .from("user_roles")
+          .select("user_id, role")
+          .in("user_id", ids);
+        for (const r of roles ?? []) {
+          const s = roleByUser.get(r.user_id) ?? new Set<string>();
+          s.add(r.role as string);
+          roleByUser.set(r.user_id, s);
+        }
+        const { data: accs } = await supabaseAdmin
+          .from("practitioner_accounts")
+          .select("user_id, tier")
+          .in("user_id", ids);
+        for (const a of accs ?? []) tierByUser.set(a.user_id, a.tier);
+      }
+      for (const p of profs ?? []) {
+        const set = roleByUser.get(p.id) ?? new Set<string>();
+        const tier = tierByUser.get(p.id);
+        const role = set.has("admin")
+          ? "admin"
+          : set.has("fellow") || tier === "fellow" || tier === "resident_fellow"
+            ? "fellow"
+            : set.has("pro")
+              ? "pfap"
+              : "user";
+        if (p.email) byEmail.set(p.email.trim().toLowerCase(), role as any);
+      }
+    }
+
+    const messages = rows.map((m) => ({
+      ...m,
+      sender_role: byEmail.get((m.email ?? "").trim().toLowerCase()) ?? ("guest" as const),
+    }));
+    const unread = messages.filter((m) => !m.is_read).length;
+    return { messages, unread };
   });
+
 
 export const markContactMessageRead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

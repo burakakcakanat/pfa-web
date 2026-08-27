@@ -63,7 +63,7 @@ export function MySessionsTab() {
   return (
     <div className="space-y-6">
       <div className="rounded-lg border border-border bg-card p-6">
-        <div className="font-serif text-xl">Seans kredisi</div>
+        <div className="font-serif text-xl">Seans Hakkı</div>
         <p className="mt-1 text-sm text-muted-foreground">
           Kalan: <strong className="text-foreground">{view.credits_remaining}</strong> · Toplam{" "}
           {view.credits_total} · Kullanılan {view.credits_used}
@@ -89,7 +89,7 @@ export function MySessionsTab() {
           </div>
         ) : (
           <p className="mt-4 text-sm text-muted-foreground">
-            Kullanılabilir krediniz yok.{" "}
+            Kullanılabilir seans hakkınız yok.{" "}
             <Link to="/seanslar" className="text-accent">
               Seans talebi oluştur →
             </Link>

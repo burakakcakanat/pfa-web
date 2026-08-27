@@ -173,7 +173,7 @@ export function AdminCommissions() {
             <TableHead>Uygulayıcı</TableHead>
             <TableHead>Tier</TableHead>
             <TableHead>Referans</TableHead>
-            <TableHead>Bekleyen tahakkuk</TableHead>
+            <TableHead>Komisyon Alacağı (bekleyen)</TableHead>
             <TableHead>Son ekstre</TableHead>
           </TableRow>
         </TableHeader>

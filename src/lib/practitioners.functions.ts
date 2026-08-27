@@ -25,16 +25,18 @@ export interface PractitionerPublic {
   website: string | null;
   sort_order: number;
   created_at: string;
-  badge_tier: BadgeTier;
 }
 
-/** Rehberde bölüm başlığı ve sırası — yeni kademeler buraya eklenir. */
-export const BADGE_TIER_ORDER: BadgeTier[] = ["resident_fellow", "fellow", "practitioner"];
-export const BADGE_TIER_LABEL: Record<BadgeTier, string> = {
-  resident_fellow: "Resident Fellow",
-  fellow: "PFA Fellow",
-  practitioner: "PFA Practitioner",
+/**
+ * Rehberde rozet GÖSTERİLMEZ; kademe yalnızca sıralama için sunucu tarafında
+ * kullanılır ve istemciye sızdırılmaz.
+ */
+const TIER_RANK: Record<BadgeTier, number> = {
+  resident_fellow: 0,
+  fellow: 1,
+  practitioner: 2,
 };
+
 
 function serverPublicClient() {
   const url = process.env.SUPABASE_URL!;
@@ -65,7 +67,19 @@ export const listPublicPractitioners = createServerFn({ method: "GET" }).handler
       .order("sort_order", { ascending: true })
       .order("full_name", { ascending: true });
     if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as PractitionerPublic[];
+    const rows = (data ?? []) as unknown as (PractitionerPublic & { badge_tier?: string })[];
+    // Sıralama: Fellow'lar önce, sonra Practitioner'lar; kademe etiketi
+    // istemciye gönderilmez (rehber rozetsizdir).
+    return rows
+      .slice()
+      .sort((a, b) => {
+        const ra = TIER_RANK[(a.badge_tier as BadgeTier) ?? "practitioner"] ?? 2;
+        const rb = TIER_RANK[(b.badge_tier as BadgeTier) ?? "practitioner"] ?? 2;
+        if (ra !== rb) return ra - rb;
+        if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+        return a.full_name.localeCompare(b.full_name, "tr");
+      })
+      .map(({ badge_tier: _bt, ...rest }) => rest as PractitionerPublic);
   },
 );
 
@@ -76,13 +90,14 @@ export const getPublicPractitioner = createServerFn({ method: "GET" })
     const { data: row, error } = await supabase
       .from("practitioners_public")
       .select(
-        "id, full_name, category, title, photo_url, short_bio, long_bio, specializations, languages, city, country, mode, website, sort_order, created_at, badge_tier",
+        "id, full_name, category, title, photo_url, short_bio, long_bio, specializations, languages, city, country, mode, website, sort_order, created_at",
       )
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw new Error(error.message);
     return (row as PractitionerPublic | null) ?? null;
   });
+
 
 // Public inquiry submission. Honeypot field `website_hp` must be empty.
 // Uses supabaseAdmin server-side so the practitioner's email is read
@@ -169,15 +184,7 @@ export const getMyPractitionerRow = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     if (!p) return null;
 
-    const { data: acc } = await supabase
-      .from("practitioner_accounts")
-      .select("tier")
-      .eq("user_id", userId)
-      .maybeSingle();
-    const tier = (acc as { tier?: string } | null)?.tier ?? null;
-    const badge_tier: BadgeTier =
-      tier === "resident_fellow" ? "resident_fellow" : tier === "fellow" ? "fellow" : "practitioner";
-
     const { user_id: _uid, ...rest } = p as unknown as Record<string, unknown> & { user_id: string };
-    return { ...(rest as unknown as PractitionerPublic), badge_tier, published: Boolean(p.published) };
+    return { ...(rest as unknown as PractitionerPublic), published: Boolean(p.published) };
   });
+

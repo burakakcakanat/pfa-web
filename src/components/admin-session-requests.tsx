@@ -75,7 +75,7 @@ export function AdminSessionRequests() {
       <div>
         <h3 className="font-serif text-xl">Seans Talepleri</h3>
         <p className="text-sm text-muted-foreground">
-          Kredi kullanılarak istenen zamanlar. Onay verilmedikçe randevu kesinleşmez —{" "}
+          Seans hakkı kullanılarak istenen zamanlar. Onay verilmedikçe randevu kesinleşmez —{" "}
           {pending} talep teyit bekliyor.
         </p>
       </div>
