@@ -56,10 +56,6 @@ export function AdminPanels() {
   return (
     <div className="space-y-6">
       <div className="space-y-3">
-        <p className="text-sm text-muted-foreground">
-          Kullanıcı panellerini test pasaportlarıyla, oturumunuzdan çıkmadan yeni sekmede
-          gezin.
-        </p>
         <div className="flex items-center gap-3">
           {ready ? (
             <Badge variant="secondary">Hazır ✓</Badge>
