@@ -299,6 +299,24 @@ function AdminPage() {
     </div>
   );
 }
+const ROLE_FILTER_LABEL: Record<"all" | "admin" | "fellow" | "pfap" | "user" | "guest", string> = {
+  all: "Tümü",
+  admin: "Admin",
+  fellow: "Fellow",
+  pfap: "PFAP",
+  user: "Kullanıcı",
+  guest: "Ziyaretçi",
+};
+
+function SenderRoleBadge({ role }: { role?: string }) {
+  const key = (role ?? "guest") as keyof typeof ROLE_FILTER_LABEL;
+  return (
+    <span className="rounded-full border border-border px-2 py-0.5 text-[0.6rem] tracking-[0.08em] text-muted-foreground">
+      {ROLE_FILTER_LABEL[key] ?? ROLE_FILTER_LABEL.guest}
+    </span>
+  );
+}
+
 
 function MessagesTab() {
   const listFn = useServerFn(listContactMessages);
