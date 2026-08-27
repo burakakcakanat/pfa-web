@@ -8,6 +8,8 @@ import type { Database } from "@/integrations/supabase/types";
 const PUBLIC_SETTING_KEYS = [
   "social_instagram",
   "social_linkedin",
+  "social_linkedin_intl",
+  "social_facebook",
   "social_x",
   "social_youtube",
   "podcast_program_url",
