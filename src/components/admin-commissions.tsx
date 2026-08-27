@@ -226,6 +226,25 @@ export function AdminCommissions() {
                         <div className="space-y-5 py-2">
                           <div>
                             <div className="mb-2 text-xs uppercase tracking-[0.2em] text-accent">
+                              Fatura bilgileri
+                            </div>
+                            {!detail.billing ? (
+                              <div className="text-xs text-muted-foreground">
+                                Uygulayıcı fatura bilgisi girmemiş.
+                              </div>
+                            ) : (
+                              <div className="grid gap-1 rounded-md border border-border bg-background px-3 py-2 text-xs md:grid-cols-2">
+                                <div>Ünvan: {detail.billing.fatura_unvani || "—"}</div>
+                                <div>IBAN: {detail.billing.iban || "—"}</div>
+                                <div>Vergi no: {detail.billing.vergi_no || "—"}</div>
+                                <div>Vergi dairesi: {detail.billing.vergi_dairesi || "—"}</div>
+                                <div className="md:col-span-2">Adres: {detail.billing.adres || "—"}</div>
+                              </div>
+                            )}
+                          </div>
+                          <div>
+
+                            <div className="mb-2 text-xs uppercase tracking-[0.2em] text-accent">
                               Ekstreler
                             </div>
                             {detail.statements.length === 0 ? (
