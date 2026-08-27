@@ -2003,7 +2003,7 @@ export const getPractitionerCommissionDetail = createServerFn({ method: "POST" }
   .handler(async ({ context, data }) => {
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [ledgerRes, stmtRes] = await Promise.all([
+    const [ledgerRes, stmtRes, billingRes] = await Promise.all([
       supabaseAdmin
         .from("commission_ledger")
         .select("*")
@@ -2014,8 +2014,18 @@ export const getPractitionerCommissionDetail = createServerFn({ method: "POST" }
         .select("*")
         .eq("practitioner_user_id", data.user_id)
         .order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("practitioner_billing")
+        .select("iban, fatura_unvani, vergi_no, vergi_dairesi, adres, updated_at")
+        .eq("user_id", data.user_id)
+        .maybeSingle(),
     ]);
-    return { ledger: ledgerRes.data ?? [], statements: stmtRes.data ?? [] };
+    return {
+      ledger: ledgerRes.data ?? [],
+      statements: stmtRes.data ?? [],
+      billing: billingRes.data ?? null,
+    };
+
   });
 
 export const generateCommissionStatements = createServerFn({ method: "POST" })

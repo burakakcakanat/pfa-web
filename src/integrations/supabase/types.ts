@@ -1271,6 +1271,39 @@ export type Database = {
         }
         Relationships: []
       }
+      practitioner_billing: {
+        Row: {
+          adres: string | null
+          created_at: string
+          fatura_unvani: string | null
+          iban: string | null
+          updated_at: string
+          user_id: string
+          vergi_dairesi: string | null
+          vergi_no: string | null
+        }
+        Insert: {
+          adres?: string | null
+          created_at?: string
+          fatura_unvani?: string | null
+          iban?: string | null
+          updated_at?: string
+          user_id: string
+          vergi_dairesi?: string | null
+          vergi_no?: string | null
+        }
+        Update: {
+          adres?: string | null
+          created_at?: string
+          fatura_unvani?: string | null
+          iban?: string | null
+          updated_at?: string
+          user_id?: string
+          vergi_dairesi?: string | null
+          vergi_no?: string | null
+        }
+        Relationships: []
+      }
       practitioner_inquiries: {
         Row: {
           created_at: string
