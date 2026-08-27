@@ -19,6 +19,14 @@ export async function sendEmail(input: SendEmailInput): Promise<{ ok: boolean; e
     console.warn("[email] skipped — RESEND_API_KEY_DIRECT missing");
     return { ok: false, error: "email_not_configured" };
   }
+  // Test pasaportları (@pfa.internal) bildirim gönderiminden muaftır.
+  const recipients = (Array.isArray(input.to) ? input.to : [input.to]).filter(
+    (addr) => !addr.trim().toLowerCase().endsWith("@pfa.internal"),
+  );
+  if (recipients.length === 0) {
+    return { ok: true };
+  }
+  input = { ...input, to: recipients };
   try {
     const res = await fetch(RESEND_URL, {
       method: "POST",

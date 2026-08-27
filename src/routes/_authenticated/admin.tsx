@@ -131,6 +131,7 @@ import {
   type ApplicationStatus,
 } from "@/lib/practitioner-applications.functions";
 import { AdminLicenseInquiries } from "@/components/admin-license-inquiries";
+import { AdminPanels } from "@/components/admin-panels";
 import { AdminRateCenter } from "@/components/admin-rate-center";
 import { type Currency } from "@/lib/pricing";
 import { AdminScaleData } from "@/components/admin-scale-data";
@@ -265,6 +266,7 @@ function AdminPage() {
             <TabsTrigger value="newsletter">Bülten</TabsTrigger>
             <TabsTrigger value="messages">Mesajlar</TabsTrigger>
             <TabsTrigger value="licenses">Kurumsal Başvurular</TabsTrigger>
+            <TabsTrigger value="panels">Paneller</TabsTrigger>
           </TabsList>
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
@@ -293,6 +295,7 @@ function AdminPage() {
             <TabsContent value="newsletter"><NewsletterTab /></TabsContent>
             <TabsContent value="messages"><MessagesTab /></TabsContent>
             <TabsContent value="licenses"><AdminLicenseInquiries /></TabsContent>
+            <TabsContent value="panels"><AdminPanels /></TabsContent>
           </div>
         </Tabs>
       </div>
