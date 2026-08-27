@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import type {
-  BadgeTier,
   PractitionerCategory,
   PractitionerMode,
   PractitionerPublic,
@@ -19,11 +18,6 @@ export const MODE_LABEL: Record<PractitionerMode, string> = {
   her_ikisi: "Online / Yüz Yüze",
 };
 
-export const BADGE_LABEL: Record<BadgeTier, string> = {
-  resident_fellow: "Resident Fellow",
-  fellow: "PFA Fellow",
-  practitioner: "PFA Practitioner",
-};
 
 /**
  * Uygulayıcı rehberi kartı — hem `/uygulayicilar` listesinde hem de
@@ -54,10 +48,8 @@ export function PractitionerCard({
             <span className="text-[0.65rem] tracking-[0.2em] text-accent">
               {CATEGORY_LABEL[p.category].toLocaleUpperCase("tr-TR")}
             </span>
-            <span className="rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[0.6rem] tracking-[0.1em] text-accent">
-              {BADGE_LABEL[p.badge_tier]}
-            </span>
           </div>
+
           <h2 className="mt-1 font-serif text-xl text-primary">{p.full_name}</h2>
           {p.title && <p className="mt-1 text-xs text-muted-foreground">{p.title}</p>}
         </div>

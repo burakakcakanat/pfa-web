@@ -262,7 +262,7 @@ function AdminPage() {
             </TabsTrigger>
             <TabsTrigger value="newsletter">Bülten</TabsTrigger>
             <TabsTrigger value="messages">Mesajlar</TabsTrigger>
-            <TabsTrigger value="licenses">Lisans Başvuruları</TabsTrigger>
+            <TabsTrigger value="licenses">Kurumsal Başvurular</TabsTrigger>
           </TabsList>
           <div className="mt-6">
             <TabsContent value="overview"><OverviewTab /></TabsContent>
@@ -1642,13 +1642,36 @@ function WebinarsTab() {
             onCancel={() => setEditing(null)}
             onSave={async (d) => {
               setErr(null);
+              // KÖK NEDEN: kart refetch'ten önce kapatılınca doküman kısalıyor ve
+              // tarayıcı scroll'u footer'a kelepçeliyordu. Artık form açık kalır,
+              // liste yenilenir ve scroll konumu korunur.
+              const y = typeof window !== "undefined" ? window.scrollY : 0;
               await save({ data: d });
-              setEditing(null);
-              reload();
+              const fresh = await fetchList();
+              setData(fresh);
+              setEditing((prev: any) => {
+                if (!prev) return prev;
+                const match = d.id
+                  ? fresh.sessions.find((s: any) => s.id === d.id)
+                  : fresh.sessions.find(
+                      (s: any) => s.title === d.title && s.product_id === d.product_id,
+                    );
+                if (!match) return prev;
+                const p = fresh.products.find((x: any) => x.id === match.product_id);
+                return {
+                  ...match,
+                  starts_at: new Date(match.starts_at).toISOString().slice(0, 16),
+                  price_cents: p?.price_cents ?? 0,
+                };
+              });
+              if (typeof window !== "undefined") {
+                requestAnimationFrame(() => window.scrollTo({ top: y }));
+              }
             }}
           />
         </Card>
       )}
+
       <Table>
         <TableHeader><TableRow><TableHead>Başlık</TableHead><TableHead>Ürün</TableHead><TableHead>Tarih</TableHead><TableHead>Ücret</TableHead><TableHead>Kapasite</TableHead><TableHead></TableHead></TableRow></TableHeader>
         <TableBody>
@@ -1676,11 +1699,13 @@ function WebinarForm({ initial, products, onSave, onCancel }: { initial: any; pr
   const [d, setD] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const upd = (k: string, v: any) => setD({ ...d, [k]: v });
+  const [saved, setSaved] = useState(false);
+  const upd = (k: string, v: any) => { setSaved(false); setD({ ...d, [k]: v }); };
   const priceInput = d.price_cents == null ? "" : String(d.price_cents / 100);
 
   const submit = async () => {
     setError(null);
+    setSaved(false);
     if (!d.product_id) { setError("Ürün seçilmedi."); return; }
     if (!d.title?.trim()) { setError("Başlık boş bırakılamaz."); return; }
     if (!d.starts_at || Number.isNaN(new Date(d.starts_at).getTime())) {
@@ -1699,12 +1724,14 @@ function WebinarForm({ initial, products, onSave, onCancel }: { initial: any; pr
         banner_url: d.banner_url?.trim() || null,
         price_cents: d.price_cents == null ? 0 : d.price_cents,
       });
+      setSaved(true);
     } catch (e: any) {
       setError(e?.message ?? "Bilinmeyen hata.");
     } finally {
       setBusy(false);
     }
   };
+
 
   return (
     <div className="grid gap-3 md:grid-cols-2">
@@ -1756,10 +1783,12 @@ function WebinarForm({ initial, products, onSave, onCancel }: { initial: any; pr
           {error}
         </div>
       )}
-      <div className="flex gap-2 md:col-span-2">
-        <Button onClick={submit} disabled={busy}>{busy ? "Kaydediliyor…" : "Kaydet"}</Button>
-        <Button variant="outline" onClick={onCancel} disabled={busy}>İptal</Button>
+      <div className="flex items-center gap-2 md:col-span-2">
+        <Button type="button" onClick={submit} disabled={busy}>{busy ? "Kaydediliyor…" : "Kaydet"}</Button>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>Kapat</Button>
+        {saved && <span className="text-xs text-accent">Kaydedildi — form açık kaldı.</span>}
       </div>
+
       {d.title && d.starts_at && !Number.isNaN(new Date(d.starts_at).getTime()) && (
         <div className="md:col-span-2">
           <WebinarShareDrafts session={d} products={products} />
@@ -1908,7 +1937,7 @@ function SiteSettingsTab() {
   const [msg, setMsg] = useState<string | null>(null);
   useEffect(() => {
     fetchList().then((data) => {
-      const out: Record<string, string> = { social_instagram: "", social_linkedin: "", social_x: "", social_youtube: "", podcast_program_url: "", admin_notification_email: "", payments_enabled: "false", payment_mode: PAYMENT_MODE_DEFAULT };
+      const out: Record<string, string> = { social_instagram: "", social_linkedin: "", social_linkedin_intl: "", social_facebook: "", social_x: "", social_youtube: "", podcast_program_url: "", admin_notification_email: "", payments_enabled: "false", payment_mode: PAYMENT_MODE_DEFAULT };
       for (const r of data as any[]) out[r.key] = r.value ?? "";
       setRows(out);
     });
@@ -1975,7 +2004,10 @@ function SiteSettingsTab() {
     <Card title="Sosyal Medya Bağlantıları">
       <div className="grid gap-3 md:grid-cols-2">
         <div><Label>Instagram URL</Label><Input placeholder="https://instagram.com/…" value={rows.social_instagram ?? ""} onChange={(e) => upd("social_instagram", e.target.value)} /></div>
-        <div><Label>LinkedIn URL</Label><Input placeholder="https://linkedin.com/in/…" value={rows.social_linkedin ?? ""} onChange={(e) => upd("social_linkedin", e.target.value)} /></div>
+        <div><Label>LinkedIn (TR)</Label><Input placeholder="https://linkedin.com/in/…" value={rows.social_linkedin ?? ""} onChange={(e) => upd("social_linkedin", e.target.value)} /></div>
+        <div><Label>LinkedIn (International)</Label><Input placeholder="https://linkedin.com/company/…" value={rows.social_linkedin_intl ?? ""} onChange={(e) => upd("social_linkedin_intl", e.target.value)} /></div>
+        <div><Label>Facebook</Label><Input placeholder="https://facebook.com/…" value={rows.social_facebook ?? ""} onChange={(e) => upd("social_facebook", e.target.value)} /></div>
+
         <div><Label>X (Twitter) URL</Label><Input placeholder="https://x.com/…" value={rows.social_x ?? ""} onChange={(e) => upd("social_x", e.target.value)} /></div>
         <div><Label>YouTube URL</Label><Input placeholder="https://youtube.com/@…" value={rows.social_youtube ?? ""} onChange={(e) => upd("social_youtube", e.target.value)} /></div>
         <div className="md:col-span-2"><Label>Spotify Podcast Program URL</Label><Input placeholder="https://open.spotify.com/show/…" value={rows.podcast_program_url ?? ""} onChange={(e) => upd("podcast_program_url", e.target.value)} /></div>
@@ -2333,6 +2365,17 @@ function EbooksTab() {
               onSave={async (patch) => { await saveDed({ data: { id: c.id, ...patch } }); reloadCfg(); }}
             />
           ))}
+          {!cfg.some((c) => c.book_key === "hcd" && c.locale === "en") && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={async () => { await createDed({ data: { book_key: "hcd", locale: "en" } }); reloadCfg(); }}
+            >
+              HCD · EN şablonu oluştur
+            </Button>
+          )}
+
         </div>
         <div className="mt-4 rounded-md border border-border/60 bg-muted/30 p-4">
           <div className="mb-2 flex items-center justify-between">

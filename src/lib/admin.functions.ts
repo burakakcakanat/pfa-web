@@ -798,10 +798,58 @@ export const listEbookConfig = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin
       .from("ebook_dedication_templates")
-      .select("id, locale, body_template, footer_template, signature_path, author_name, updated_at")
+      .select(
+        "id, locale, book_key, body_template, footer_template, signature_path, author_name, updated_at",
+      )
+      .order("book_key", { ascending: true })
       .order("locale", { ascending: true });
     return data ?? [];
   });
+
+/** Eksik kitap/dil kombinasyonu için yeni dedication şablonu satırı oluşturur. */
+export const createEbookDedication = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({ book_key: z.enum(["pfa", "hcd"]), locale: z.enum(["tr", "en"]) })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing } = await supabaseAdmin
+      .from("ebook_dedication_templates")
+      .select("id")
+      .eq("book_key", data.book_key)
+      .eq("locale", data.locale)
+      .maybeSingle();
+    if (existing) return { ok: true, id: existing.id };
+    // İmzayı mevcut şablonlardan devral (tek yazar imzası ortaktır).
+    const { data: any0 } = await supabaseAdmin
+      .from("ebook_dedication_templates")
+      .select("signature_path, author_name")
+      .not("signature_path", "is", null)
+      .limit(1)
+      .maybeSingle();
+    const { data: ins, error } = await supabaseAdmin
+      .from("ebook_dedication_templates")
+      .insert({
+        book_key: data.book_key,
+        locale: data.locale,
+        body_template:
+          data.locale === "en"
+            ? "This copy was personally prepared for {{FULL_NAME}}."
+            : "Bu nüsha {{FULL_NAME}} için özel olarak hazırlanmıştır.",
+        footer_template: "{{EMAIL}}",
+        author_name: any0?.author_name ?? "Burak Akçakanat",
+        signature_path: any0?.signature_path ?? null,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { ok: true, id: ins.id };
+  });
+
 
 export const updateEbookDedication = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -919,7 +967,10 @@ export const listEbookProducts = createServerFn({ method: "GET" })
     const { data: products } = await supabaseAdmin
       .from("products")
       .select("id, slug, name_tr, active, master_pdf_path, master_epub_path")
-      .eq("type", "ebook");
+      .eq("type", "ebook")
+      // Basılı ürünlerin master dosyası olmaz — listede görünmesinler.
+      .not("slug", "like", "%-print-%");
+
     const out = [] as Array<{
       slug: string;
       name: string;

@@ -3,11 +3,10 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
   listPublicPractitioners,
-  BADGE_TIER_ORDER,
-  BADGE_TIER_LABEL,
   type PractitionerCategory,
   type PractitionerMode,
 } from "@/lib/practitioners.functions";
+
 import { PractitionerCard } from "@/components/practitioner-card";
 
 // TODO: En az 5-6 uygulayıcı yayına alındıktan sonra bu sayfayı ana menüye
@@ -188,22 +187,12 @@ function PractitionersPage() {
               Bu filtrelerle eşleşen uygulayıcı bulunamadı.
             </p>
           ) : (
-            <div className="mt-8 space-y-12">
-              {BADGE_TIER_ORDER.map((tier) => {
-                const group = filtered.filter((p) => p.badge_tier === tier);
-                if (group.length === 0) return null;
-                return (
-                  <section key={tier}>
-                    <h2 className="font-serif text-2xl text-primary">{BADGE_TIER_LABEL[tier]}</h2>
-                    <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                      {group.map((p) => (
-                        <PractitionerCard key={p.id} p={p} />
-                      ))}
-                    </div>
-                  </section>
-                );
-              })}
+            <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((p) => (
+                <PractitionerCard key={p.id} p={p} />
+              ))}
             </div>
+
           )}
         </>
       )}
