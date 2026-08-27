@@ -132,6 +132,8 @@ import {
 } from "@/lib/practitioner-applications.functions";
 import { AdminLicenseInquiries } from "@/components/admin-license-inquiries";
 import { AdminPanels } from "@/components/admin-panels";
+import { TabIntro } from "@/components/tab-intro";
+import { InfoHint } from "@/components/info-hint";
 import { AdminRateCenter } from "@/components/admin-rate-center";
 import { type Currency } from "@/lib/pricing";
 import { AdminScaleData } from "@/components/admin-scale-data";
@@ -269,33 +271,61 @@ function AdminPage() {
             <TabsTrigger value="panels">Paneller</TabsTrigger>
           </TabsList>
           <div className="mt-6">
-            <TabsContent value="overview"><OverviewTab /></TabsContent>
-            <TabsContent value="products"><ProductsTab /></TabsContent>
-            <TabsContent value="rates"><AdminRateCenter /></TabsContent>
-            <TabsContent value="editions"><EditionsTab /></TabsContent>
-            <TabsContent value="users"><UsersTab /></TabsContent>
-            <TabsContent value="pro"><LicensesTab /></TabsContent>
-            <TabsContent value="questions"><QuestionsTab /></TabsContent>
-            <TabsContent value="scale-data"><AdminScaleData /></TabsContent>
-            <TabsContent value="webinars"><WebinarsTab /></TabsContent>
-            <TabsContent value="blog"><BlogTab /></TabsContent>
-            <TabsContent value="media"><MediaLibraryManager /></TabsContent>
-            <TabsContent value="podcasts"><PodcastsTab /></TabsContent>
-            <TabsContent value="ebooks"><EbooksTab /></TabsContent>
-            <TabsContent value="orders"><OrdersTab /></TabsContent>
-            <TabsContent value="commissions"><AdminCommissions /></TabsContent>
+            <TabsContent value="overview"><TabIntro text="Sitenin özet göstergeleri. Ayrıntılar ilgili sekmelerde." /><OverviewTab /></TabsContent>
+            <TabsContent value="products">
+              <TabIntro
+                text="Satılabilir her şeyin kataloğu. Fiyatlar burada değil, Fiyat & Oran Merkezi'nde yönetilir."
+                steps={["Ürün", "Fiyat (Fiyat Merkezi)", "Satış", "Hak"]}
+              />
+              <ProductsTab />
+            </TabsContent>
+            <TabsContent value="rates">
+              <TabIntro
+                text="Tüm fiyat, kur, oran ve eşiklerin tek doğruluk kaynağı. Kod bu tabloyu okur."
+                steps={["Kur çek", "Türet", "Kontrol", "Değişiklikler 24s geçişle uygulanır"]}
+              />
+              <AdminRateCenter />
+            </TabsContent>
+            <TabsContent value="editions"><TabIntro text="Basılı kitap baskı kayıtları ve stok notları." /><EditionsTab /></TabsContent>
+            <TabsContent value="users"><TabIntro text="Kayıtlı kullanıcılar ve rolleri. Kota yönetimi Lisanslar sekmesindedir." /><UsersTab /></TabsContent>
+            <TabsContent value="pro">
+              <TabIntro
+                text="Uygulayıcı lisansları: rozet, kota, referans kodu, sertifika."
+                steps={["Başvuru", "Görüşme", "Kayıt ($1.490)", "Sınav", "Sertifikasyon", "Rozet"]}
+              />
+              <LicensesTab />
+            </TabsContent>
+            <TabsContent value="questions"><TabIntro text="Ölçek maddeleri ve sürüm yönetimi. Gerçek yanıt toplanmış sürüm kilitlenir." /><QuestionsTab /></TabsContent>
+            <TabsContent value="scale-data"><TabIntro text="Doğrudan katılımcılar tam kimlikle; uygulayıcı danışanları yalnızca araştırma rızası verdiyse ve anonim görünür." /><AdminScaleData /></TabsContent>
+            <TabsContent value="webinars"><TabIntro text="Oturumlar ve kayıtları. Kitle: Genel (herkes) veya Uygulayıcı (lisanslılar); programa dahil oturumlara Fellow ücretsiz katılır." /><WebinarsTab /></TabsContent>
+            <TabsContent value="blog"><TabIntro text="Blog yazıları: içerik, SEO açıklaması ve yayın durumu." /><BlogTab /></TabsContent>
+            <TabsContent value="media"><TabIntro text="Sitede ve bültenlerde kullanılan görsel kütüphanesi." /><MediaLibraryManager /></TabsContent>
+            <TabsContent value="podcasts"><TabIntro text="Podcast bölümleri ve yayın bağlantıları." /><PodcastsTab /></TabsContent>
+            <TabsContent value="ebooks"><TabIntro text="E-kitap dosyaları, ithaf şablonları ve kişisel PDF üretimi." /><EbooksTab /></TabsContent>
+            <TabsContent value="orders"><TabIntro text="Tüm siparişler. is_test işaretli satırlar gerçek ciroya sayılmaz." /><OrdersTab /></TabsContent>
+            <TabsContent value="commissions">
+              <TabIntro
+                text="Uygulayıcı komisyon alacakları ve ödeme döngüsü."
+                steps={["Tahakkuk", "Ekstre (8'i)", "Fatura (15'e kadar)", "Havale (22'si)"]}
+              />
+              <AdminCommissions />
+            </TabsContent>
             <TabsContent value="purchase-inquiries">
+              <TabIntro
+                text="Havale/EFT satış talepleri. 'Ödeme alındı' demek hakları tanımlar; hesap yoksa beklemeye alınır, kayıt olunca otomatik tanımlanır."
+                steps={["Talep", "Ödeme alındı", "Hak tanımlandı", "Teslim"]}
+              />
               <div className="space-y-10">
                 <AdminPurchaseInquiries />
                 <AdminSessionRequests />
               </div>
             </TabsContent>
-            <TabsContent value="settings"><SiteSettingsTab /></TabsContent>
-            <TabsContent value="practitioners"><PractitionersTab /></TabsContent>
-            <TabsContent value="newsletter"><NewsletterTab /></TabsContent>
-            <TabsContent value="messages"><MessagesTab /></TabsContent>
-            <TabsContent value="licenses"><AdminLicenseInquiries /></TabsContent>
-            <TabsContent value="panels"><AdminPanels /></TabsContent>
+            <TabsContent value="settings"><TabIntro text="Site geneli anahtarlar: sosyal linkler, bildirim e-postası, ödeme modu." /><SiteSettingsTab /></TabsContent>
+            <TabsContent value="practitioners"><TabIntro text="Rehber kartları. 'Yayında' = Uygulayıcı Rehberi'nde görünür." /><PractitionersTab /></TabsContent>
+            <TabsContent value="newsletter"><TabIntro text="Aboneler, sayılar ve gönderim. Şablon görseli her giden bültenin çerçevesidir." /><NewsletterTab /></TabsContent>
+            <TabsContent value="messages"><TabIntro text="İletişim formu mesajları; gönderen rolüne göre filtrelenebilir." /><MessagesTab /></TabsContent>
+            <TabsContent value="licenses"><TabIntro text="Kurumsal Program Lisansı ve Ülke Lisansı B2B başvuruları." /><AdminLicenseInquiries /></TabsContent>
+            <TabsContent value="panels"><TabIntro text="Kullanıcı panellerini test pasaportlarıyla, oturumunuzdan çıkmadan yeni sekmede gezin." /><AdminPanels /></TabsContent>
           </div>
         </Tabs>
       </div>
@@ -704,7 +734,10 @@ function ProductsTab() {
               {isWebinar ? (
                 <div className="grid gap-3 md:grid-cols-2 md:col-span-1">
                   <div>
-                    <Label>Kitle</Label>
+                    <Label className="inline-flex items-center gap-1">
+                      Kitle
+                      <InfoHint text="Uygulayıcı kitlesi yalnızca lisanslılara (PFAP+Fellow) görünür." />
+                    </Label>
                     <Select value={currentValue(p, "webinar_audience") ?? "general"} onValueChange={(v) => patch(p.id, "webinar_audience", v)}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -716,7 +749,10 @@ function ProductsTab() {
                   {currentValue(p, "webinar_audience") === "practitioner" && (
                     <div className="flex items-end gap-2">
                       <Switch checked={!!currentValue(p, "included_in_program")} onCheckedChange={(v) => patch(p.id, "included_in_program", v)} />
-                      <span className="text-sm">Gelişim programına dahil</span>
+                      <span className="inline-flex items-center gap-1 text-sm">
+                        Gelişim programına dahil
+                        <InfoHint text="Açıkken Fellow ücretsiz katılır, PFAP ürün fiyatını öder." />
+                      </span>
                     </div>
                   )}
                 </div>
@@ -1425,9 +1461,12 @@ function InstrumentVersionPanel({
               <Label>Not</Label>
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Neyin değiştiğini yazın" />
             </div>
-            <Button size="sm" onClick={createVersion} disabled={busy}>
-              {busy ? "Oluşturuluyor…" : "Sürümü oluştur ve havuzu dondur"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button size="sm" onClick={createVersion} disabled={busy}>
+                {busy ? "Oluşturuluyor…" : "Sürümü oluştur ve havuzu dondur"}
+              </Button>
+              <InfoHint text="Geri alınamaz: yeni sürüm açılır ve geçerli sürüm sayılır. Yalnızca madde değişikliği gerçekten gerektiğinde kullanın." />
+            </div>
           </div>
         )}
         <div className="text-xs text-muted-foreground">
@@ -2451,12 +2490,14 @@ function EbooksTab() {
               `Retry: ${r.generated} üretildi, ${r.skipped} atlandı, ${r.deliveries ?? 0} teslim e-postası gönderildi.`,
             );
           }}>Bekleyen Kişisel PDF'leri Üret</Button>
+          <InfoHint text="Kişisel PDF'i olmayan alıcılar için üretir; mevcut olanlar atlanır." />
           <Button variant="outline" size="sm" onClick={async () => {
             if (!confirm("Tüm kişisel PDF'ler silinsin ve yeniden üretilsin mi?")) return;
             const r = await regen({ data: undefined as unknown as never });
             setRegenMsg(`${r.cleared} dosya temizlendi.`);
             reloadCfg();
           }}>Kişisel PDF'leri Yeniden Üret</Button>
+          <InfoHint text="Şablon veya imza değiştiyse mevcutları da baştan üretir." />
           {regenMsg && <span className="text-xs text-muted-foreground">{regenMsg}</span>}
         </div>
       </Card>
@@ -2672,6 +2713,7 @@ function OrdersTab() {
         <label className="flex items-center gap-2 text-xs text-muted-foreground">
           <input type="checkbox" checked={includeTest} onChange={(e) => setIncludeTest(e.target.checked)} />
           Test siparişlerini göster
+          <InfoHint text="Test siparişi — gerçek ciroya sayılmaz; silme işlemi ilişkili rolleri de temizler." />
         </label>
       </div>
       <Table>
@@ -2815,10 +2857,25 @@ function LicensesTab() {
             <TableHead></TableHead>
             <TableHead>Ad Soyad</TableHead>
             <TableHead>E-posta</TableHead>
-            <TableHead>Rozet</TableHead>
-            <TableHead>Referans Kodu</TableHead>
+            <TableHead>
+              <span className="inline-flex items-center gap-1">
+                Rozet
+                <InfoHint text="Fellow'a çevirmek fellow rolünü ekler ve komisyonu %50 yapar. Kota otomatik artmaz — gerekirse Kota Ekle." />
+              </span>
+            </TableHead>
+            <TableHead>
+              <span className="inline-flex items-center gap-1">
+                Referans Kodu
+                <InfoHint text="Uygulayıcının kalıcı kodu. Bu kodla gelen ölçek satışında danışan %5 indirim alır, uygulayıcıya komisyon işler." />
+              </span>
+            </TableHead>
             <TableHead>Lisans</TableHead>
-            <TableHead>Kota (toplam / kullanılan)</TableHead>
+            <TableHead>
+              <span className="inline-flex items-center gap-1">
+                Kota (toplam / kullanılan)
+                <InfoHint text="Lisansla verilen ücretsiz danışan daveti hakkı (PFAP 3 / Fellow 7). Bitince davetler otomatik 'danışan öder + komisyon' moduna geçer." />
+              </span>
+            </TableHead>
             <TableHead>Davet (Beklyn/Tmml)</TableHead>
             <TableHead>Sertifika</TableHead>
             <TableHead className="text-right">İşlem</TableHead>

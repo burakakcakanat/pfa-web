@@ -4,6 +4,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { InfoHint } from "@/components/info-hint";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -150,6 +151,7 @@ export function AdminCommissions() {
           Yenile
         </Button>
         <Button onClick={() => void generate()}>Ekstre Oluştur</Button>
+        <InfoHint text="Seçili dönemin tahakkuklarını uygulayıcı + para birimi bazında ekstreye bağlar. Aynı dönem için tekrar çalıştırmak mükerrer kayıt üretmez." />
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -274,6 +276,7 @@ export function AdminCommissions() {
                                       >
                                         Fatura Alındı
                                       </Button>
+                                      <InfoHint text="Uygulayıcının kestiği faturayı aldığınızda işaretleyin; ekstre ödemeye hazır duruma geçer." />
                                       <Button
                                         size="sm"
                                         disabled={st.status === "odendi"}

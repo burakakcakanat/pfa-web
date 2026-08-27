@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { InfoHint } from "@/components/info-hint";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -56,9 +57,13 @@ const UNIT_LABEL: Record<string, string> = {
   numeric: "çarpan",
 };
 
-const CATEGORY_TITLES: Array<{ keys: string[]; title: string; note?: string }> = [
+const CATEGORY_TITLES: Array<{ keys: string[]; title: string; note?: string; hint?: string }> = [
   { keys: ["lisans"], title: "Lisans & Abonelik" },
-  { keys: ["komisyon"], title: "Komisyon Oranları" },
+  {
+    keys: ["komisyon"],
+    title: "Komisyon Oranları",
+    hint: "Referanslı ölçek satışında uygulanır: Practitioner %25, Fellow %50. Danışandan tahsilat sonrası deftere işler.",
+  },
   { keys: ["indirim"], title: "Etkinlik & Teşvik" },
   { keys: ["kur"], title: "Kur & Türetme" },
   { keys: ["takvim", "esik"], title: "Takvim & Eşikler" },
@@ -102,7 +107,7 @@ export function AdminRateCenter() {
       <BundleDiscounts data={data} reload={reload} />
       <CorporateTiers data={data} reload={reload} />
       {CATEGORY_TITLES.map((g) => (
-        <RateGroup key={g.title} title={g.title} kategoriler={g.keys} rows={data.rates as RateRow[]} actors={data.actors} reload={reload}>
+        <RateGroup key={g.title} title={g.title} hint={g.hint} kategoriler={g.keys} rows={data.rates as RateRow[]} actors={data.actors} reload={reload}>
           {g.title === "Kur & Türetme" ? <FxPanel data={data} reload={reload} /> : null}
         </RateGroup>
       ))}
@@ -111,11 +116,14 @@ export function AdminRateCenter() {
   );
 }
 
-function Section({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
+function Section({ title, desc, hint, children }: { title: string; desc?: string; hint?: string; children: React.ReactNode }) {
   return (
     <section className="rounded-md border border-border bg-card">
       <div className="border-b border-border px-5 py-3">
-        <h3 className="font-serif text-lg">{title}</h3>
+        <h3 className="flex items-center gap-2 font-serif text-lg">
+          {title}
+          {hint ? <InfoHint text={hint} /> : null}
+        </h3>
         {desc ? <p className="text-xs text-muted-foreground">{desc}</p> : null}
       </div>
       <div className="p-5">{children}</div>
@@ -195,6 +203,7 @@ function ProductPrices({
         >
           Tüm fiyatları türet
         </Button>
+        <InfoHint text="USD çapa fiyattan TRY/EUR türetir. Artışlar 24 saat geçişle uygulanır; düşüşler asla otomatik uygulanmaz, öneri olarak listelenir." />
       </div>
 
       <div className="space-y-2">
@@ -478,6 +487,7 @@ function CorporateTiers({ data, reload }: { data: Payload; reload: () => void })
 
 function RateGroup({
   title,
+  hint,
   kategoriler,
   rows,
   actors,
@@ -485,6 +495,7 @@ function RateGroup({
   children,
 }: {
   title: string;
+  hint?: string;
   kategoriler: string[];
   rows: RateRow[];
   actors: Record<string, string>;
@@ -494,7 +505,7 @@ function RateGroup({
   const save = useServerFn(setSystemRate);
   const list = rows.filter((r) => kategoriler.includes(r.kategori));
   return (
-    <Section title={title}>
+    <Section title={title} hint={hint}>
       {children}
       <div className="mt-4 space-y-2">
         {list.map((r) => (
@@ -505,6 +516,11 @@ function RateGroup({
                 <span className="ml-2 text-[11px] text-muted-foreground">{r.key}</span>
                 {r.kaynak_karar ? (
                   <Badge variant="outline" className="ml-2 text-[10px]">{r.kaynak_karar}</Badge>
+                ) : null}
+                {r.key.includes("yuvarlama_basamagi") ? (
+                  <span className="ml-2 inline-flex align-middle">
+                    <InfoHint text="TRY 1000 kuruş = 10 TL'ye, EUR/USD 100 sent = 1 birime yukarı yuvarlar." />
+                  </span>
                 ) : null}
               </span>
               <Badge variant="secondary" className="text-[10px]">
@@ -599,6 +615,7 @@ function FxPanel({ data, reload }: { data: Payload; reload: () => void }) {
         >
           Kuru şimdi çek
         </Button>
+        <InfoHint text="TCMB satış kurunu çeker; fiyatları DEĞİŞTİRMEZ. Fiyat değişimi için ayrıca Türet gerekir." />
       </div>
       {fx.length > 0 ? (
         <div className="mt-3 max-h-40 overflow-auto text-[11px]">
