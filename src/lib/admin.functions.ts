@@ -551,7 +551,67 @@ export const diffInstrumentVersions = createServerFn({ method: "GET" })
     return diffVersions(data.instrument, data.from, data.to);
   });
 
-// -------- INSTRUMENT VERSIONS --------
+// -------- 7Q QUESTIONS --------
+export const listAdminSevenqQuestions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("sevenq_questions")
+      .select("*")
+      .order("level", { ascending: true })
+      .order("sort_order", { ascending: true });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const upsertSevenqQuestion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        item_code: z.string().min(1).max(50),
+        level: z.number().int().min(1).max(7),
+        capacity: z.string().min(1).max(100),
+        text_tr: z.string().min(1).max(1000),
+        text_en: z.string().max(1000).nullable().optional(),
+        awareness_item: z.boolean().default(false),
+        is_pilot_only: z.boolean().default(false),
+        sort_order: z.number().int().default(0),
+        active: z.boolean().default(true),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    if (data.id) {
+      const { id, ...patch } = data;
+      const { error } = await context.supabase
+        .from("sevenq_questions")
+        .update(patch)
+        .eq("id", id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { id: _ignore, ...ins } = data;
+      const { error } = await context.supabase.from("sevenq_questions").insert(ins);
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
+export const deleteSevenqQuestion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("sevenq_questions").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// -------- WEBINAR SESSIONS --------
 export const listWebinarSessions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
