@@ -309,6 +309,10 @@ function MessagesTab() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [localeFilter, setLocaleFilter] = useState<"all" | "tr" | "en">("all");
+  const [roleFilter, setRoleFilter] = useState<
+    "all" | "fellow" | "pfap" | "user" | "guest"
+  >("all");
+
 
   const load = useCallback(async () => {
     setLoading(true);
