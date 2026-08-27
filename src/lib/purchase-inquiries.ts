@@ -144,6 +144,7 @@ export type AdminPurchaseInquiryRow = {
   fulfil_book_lang: "tr" | "en";
   granted: GrantedLog | null;
   fulfilled_at: string | null;
+  metadata: { badge_intent?: "practitioner" | "fellow" } | null;
   /** Resolved price of the current fulfilment selection, in cents. */
   selection_price_cents?: number | null;
 };
