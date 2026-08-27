@@ -269,33 +269,61 @@ function AdminPage() {
             <TabsTrigger value="panels">Paneller</TabsTrigger>
           </TabsList>
           <div className="mt-6">
-            <TabsContent value="overview"><OverviewTab /></TabsContent>
-            <TabsContent value="products"><ProductsTab /></TabsContent>
-            <TabsContent value="rates"><AdminRateCenter /></TabsContent>
-            <TabsContent value="editions"><EditionsTab /></TabsContent>
-            <TabsContent value="users"><UsersTab /></TabsContent>
-            <TabsContent value="pro"><LicensesTab /></TabsContent>
-            <TabsContent value="questions"><QuestionsTab /></TabsContent>
-            <TabsContent value="scale-data"><AdminScaleData /></TabsContent>
-            <TabsContent value="webinars"><WebinarsTab /></TabsContent>
-            <TabsContent value="blog"><BlogTab /></TabsContent>
-            <TabsContent value="media"><MediaLibraryManager /></TabsContent>
-            <TabsContent value="podcasts"><PodcastsTab /></TabsContent>
-            <TabsContent value="ebooks"><EbooksTab /></TabsContent>
-            <TabsContent value="orders"><OrdersTab /></TabsContent>
-            <TabsContent value="commissions"><AdminCommissions /></TabsContent>
+            <TabsContent value="overview"><TabIntro text="Sitenin özet göstergeleri. Ayrıntılar ilgili sekmelerde." /><OverviewTab /></TabsContent>
+            <TabsContent value="products">
+              <TabIntro
+                text="Satılabilir her şeyin kataloğu. Fiyatlar burada değil, Fiyat & Oran Merkezi'nde yönetilir."
+                steps={["Ürün", "Fiyat (Fiyat Merkezi)", "Satış", "Hak"]}
+              />
+              <ProductsTab />
+            </TabsContent>
+            <TabsContent value="rates">
+              <TabIntro
+                text="Tüm fiyat, kur, oran ve eşiklerin tek doğruluk kaynağı. Kod bu tabloyu okur."
+                steps={["Kur çek", "Türet", "Kontrol", "Değişiklikler 24s geçişle uygulanır"]}
+              />
+              <AdminRateCenter />
+            </TabsContent>
+            <TabsContent value="editions"><TabIntro text="Basılı kitap baskı kayıtları ve stok notları." /><EditionsTab /></TabsContent>
+            <TabsContent value="users"><TabIntro text="Kayıtlı kullanıcılar ve rolleri. Kota yönetimi Lisanslar sekmesindedir." /><UsersTab /></TabsContent>
+            <TabsContent value="pro">
+              <TabIntro
+                text="Uygulayıcı lisansları: rozet, kota, referans kodu, sertifika."
+                steps={["Başvuru", "Görüşme", "Kayıt ($1.490)", "Sınav", "Sertifikasyon", "Rozet"]}
+              />
+              <LicensesTab />
+            </TabsContent>
+            <TabsContent value="questions"><TabIntro text="Ölçek maddeleri ve sürüm yönetimi. Gerçek yanıt toplanmış sürüm kilitlenir." /><QuestionsTab /></TabsContent>
+            <TabsContent value="scale-data"><TabIntro text="Doğrudan katılımcılar tam kimlikle; uygulayıcı danışanları yalnızca araştırma rızası verdiyse ve anonim görünür." /><AdminScaleData /></TabsContent>
+            <TabsContent value="webinars"><TabIntro text="Oturumlar ve kayıtları. Kitle: Genel (herkes) veya Uygulayıcı (lisanslılar); programa dahil oturumlara Fellow ücretsiz katılır." /><WebinarsTab /></TabsContent>
+            <TabsContent value="blog"><TabIntro text="Blog yazıları: içerik, SEO açıklaması ve yayın durumu." /><BlogTab /></TabsContent>
+            <TabsContent value="media"><TabIntro text="Sitede ve bültenlerde kullanılan görsel kütüphanesi." /><MediaLibraryManager /></TabsContent>
+            <TabsContent value="podcasts"><TabIntro text="Podcast bölümleri ve yayın bağlantıları." /><PodcastsTab /></TabsContent>
+            <TabsContent value="ebooks"><TabIntro text="E-kitap dosyaları, ithaf şablonları ve kişisel PDF üretimi." /><EbooksTab /></TabsContent>
+            <TabsContent value="orders"><TabIntro text="Tüm siparişler. is_test işaretli satırlar gerçek ciroya sayılmaz." /><OrdersTab /></TabsContent>
+            <TabsContent value="commissions">
+              <TabIntro
+                text="Uygulayıcı komisyon alacakları ve ödeme döngüsü."
+                steps={["Tahakkuk", "Ekstre (8'i)", "Fatura (15'e kadar)", "Havale (22'si)"]}
+              />
+              <AdminCommissions />
+            </TabsContent>
             <TabsContent value="purchase-inquiries">
+              <TabIntro
+                text="Havale/EFT satış talepleri. 'Ödeme alındı' demek hakları tanımlar; hesap yoksa beklemeye alınır, kayıt olunca otomatik tanımlanır."
+                steps={["Talep", "Ödeme alındı", "Hak tanımlandı", "Teslim"]}
+              />
               <div className="space-y-10">
                 <AdminPurchaseInquiries />
                 <AdminSessionRequests />
               </div>
             </TabsContent>
-            <TabsContent value="settings"><SiteSettingsTab /></TabsContent>
-            <TabsContent value="practitioners"><PractitionersTab /></TabsContent>
-            <TabsContent value="newsletter"><NewsletterTab /></TabsContent>
-            <TabsContent value="messages"><MessagesTab /></TabsContent>
-            <TabsContent value="licenses"><AdminLicenseInquiries /></TabsContent>
-            <TabsContent value="panels"><AdminPanels /></TabsContent>
+            <TabsContent value="settings"><TabIntro text="Site geneli anahtarlar: sosyal linkler, bildirim e-postası, ödeme modu." /><SiteSettingsTab /></TabsContent>
+            <TabsContent value="practitioners"><TabIntro text="Rehber kartları. 'Yayında' = Uygulayıcı Rehberi'nde görünür." /><PractitionersTab /></TabsContent>
+            <TabsContent value="newsletter"><TabIntro text="Aboneler, sayılar ve gönderim. Şablon görseli her giden bültenin çerçevesidir." /><NewsletterTab /></TabsContent>
+            <TabsContent value="messages"><TabIntro text="İletişim formu mesajları; gönderen rolüne göre filtrelenebilir." /><MessagesTab /></TabsContent>
+            <TabsContent value="licenses"><TabIntro text="Kurumsal Program Lisansı ve Ülke Lisansı B2B başvuruları." /><AdminLicenseInquiries /></TabsContent>
+            <TabsContent value="panels"><TabIntro text="Kullanıcı panellerini test pasaportlarıyla, oturumunuzdan çıkmadan yeni sekmede gezin." /><AdminPanels /></TabsContent>
           </div>
         </Tabs>
       </div>
