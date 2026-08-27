@@ -41,7 +41,18 @@ export function PractitionerAccountTab({ onGoToClients }: { onGoToClients?: () =
   if (err) return <p className="text-sm text-destructive">{err}</p>;
   if (!state) return <p className="text-sm text-muted-foreground">Yükleniyor…</p>;
 
+  // Lisans tanımlıysa tam Uygulayıcı Paneli (PFAP / Fellow varyantı) gösterilir.
+  if (state.hasProEntitlement) {
+    return (
+      <div className="space-y-6">
+        <PractitionerPanelView onGoToClients={onGoToClients} />
+        <MyGuideCardPreview />
+      </div>
+    );
+  }
+
   const app = state.application;
+
 
   // Red — zaman çizelgesi gösterilmez
   if (app && app.status === "red") {
