@@ -2308,6 +2308,8 @@ function EbooksTab() {
   const del = useServerFn(deleteEbookFile);
   const fetchCfg = useServerFn(listEbookConfig);
   const saveDed = useServerFn(updateEbookDedication);
+  const createDed = useServerFn(createEbookDedication);
+
   const createSigUpload = useServerFn(createSignatureUploadUrl);
   const createSharedSig = useServerFn(createSharedSignatureUploadUrl);
   const regen = useServerFn(regenerateAllPersonalized);
