@@ -5,8 +5,7 @@
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { Info } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { InfoHint } from "@/components/info-hint";
 import {
   getPractitionerPanel,
   savePractitionerBilling,
