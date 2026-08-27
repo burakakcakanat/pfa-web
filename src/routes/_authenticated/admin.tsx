@@ -132,6 +132,8 @@ import {
 } from "@/lib/practitioner-applications.functions";
 import { AdminLicenseInquiries } from "@/components/admin-license-inquiries";
 import { AdminPanels } from "@/components/admin-panels";
+import { TabIntro } from "@/components/tab-intro";
+import { InfoHint } from "@/components/info-hint";
 import { AdminRateCenter } from "@/components/admin-rate-center";
 import { type Currency } from "@/lib/pricing";
 import { AdminScaleData } from "@/components/admin-scale-data";
