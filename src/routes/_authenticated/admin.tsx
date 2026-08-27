@@ -423,6 +423,8 @@ function MessagesTab() {
                       )}
                       <span className="font-medium">{m.full_name}</span>
                       <LocaleBadge locale={m.locale} />
+                      <SenderRoleBadge role={m.sender_role} />
+
                       <span className="text-xs text-muted-foreground">&lt;{m.email}&gt;</span>
                     </div>
                     <div className="mt-0.5 text-sm text-foreground/80">
