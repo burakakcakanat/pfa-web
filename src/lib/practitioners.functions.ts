@@ -6,6 +6,8 @@ import { parseFriendly } from "@/lib/zod-friendly";
 
 export type PractitionerCategory = "terapotik" | "kocluk" | "pedagojik" | "kurumsal";
 export type PractitionerMode = "online" | "yuz_yuze" | "her_ikisi";
+/** Rozet kademesi — genişletilebilir (yeni kademe eklenirse burada büyütülür). */
+export type BadgeTier = "resident_fellow" | "fellow" | "practitioner";
 
 export interface PractitionerPublic {
   id: string;
@@ -23,7 +25,16 @@ export interface PractitionerPublic {
   website: string | null;
   sort_order: number;
   created_at: string;
+  badge_tier: BadgeTier;
 }
+
+/** Rehberde bölüm başlığı ve sırası — yeni kademeler buraya eklenir. */
+export const BADGE_TIER_ORDER: BadgeTier[] = ["resident_fellow", "fellow", "practitioner"];
+export const BADGE_TIER_LABEL: Record<BadgeTier, string> = {
+  resident_fellow: "Resident Fellow",
+  fellow: "PFA Fellow",
+  practitioner: "PFA Practitioner",
+};
 
 function serverPublicClient() {
   const url = process.env.SUPABASE_URL!;
@@ -49,17 +60,12 @@ export const listPublicPractitioners = createServerFn({ method: "GET" }).handler
     const { data, error } = await supabase
       .from("practitioners_public")
       .select(
-        "id, full_name, category, title, photo_url, short_bio, long_bio, specializations, languages, city, country, mode, website, sort_order, created_at, is_fellow",
+        "id, full_name, category, title, photo_url, short_bio, long_bio, specializations, languages, city, country, mode, website, sort_order, created_at, badge_tier",
       )
-      // Fellow'lar rehberde önce listelenir; rozet/etiket GÖSTERİLMEZ.
-      .order("is_fellow", { ascending: false })
       .order("sort_order", { ascending: true })
       .order("full_name", { ascending: true });
     if (error) throw new Error(error.message);
-    // is_fellow yalnızca sıralama içindir; dışarıya sızdırılmaz.
-    return ((data ?? []) as Array<Record<string, unknown>>).map(
-      ({ is_fellow: _f, ...rest }) => rest as unknown as PractitionerPublic,
-    );
+    return (data ?? []) as unknown as PractitionerPublic[];
   },
 );
 
@@ -70,7 +76,7 @@ export const getPublicPractitioner = createServerFn({ method: "GET" })
     const { data: row, error } = await supabase
       .from("practitioners_public")
       .select(
-        "id, full_name, category, title, photo_url, short_bio, long_bio, specializations, languages, city, country, mode, website, sort_order, created_at",
+        "id, full_name, category, title, photo_url, short_bio, long_bio, specializations, languages, city, country, mode, website, sort_order, created_at, badge_tier",
       )
       .eq("id", data.id)
       .maybeSingle();
@@ -140,4 +146,38 @@ export const submitPractitionerInquiry = createServerFn({ method: "POST" })
     }
 
     return { ok: true };
+  });
+
+// -------- KENDİ REHBER KARTIM (yayında olsun/olmasın) --------
+export type MyPractitionerRow = PractitionerPublic & { published: boolean };
+
+/**
+ * Hesabım → Uygulayıcı panelindeki "Rehber kartım" önizlemesi için — RLS ile
+ * yalnızca oturum sahibinin kendi satırını döndürür (yayınlanmamış olsa bile).
+ */
+export const getMyPractitionerRow = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<MyPractitionerRow | null> => {
+    const { supabase, userId } = context;
+    const { data: p, error } = await supabase
+      .from("practitioners")
+      .select(
+        "id, full_name, category, title, photo_url, short_bio, long_bio, specializations, languages, city, country, mode, website, sort_order, created_at, published, user_id",
+      )
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!p) return null;
+
+    const { data: acc } = await supabase
+      .from("practitioner_accounts")
+      .select("tier")
+      .eq("user_id", userId)
+      .maybeSingle();
+    const tier = (acc as { tier?: string } | null)?.tier ?? null;
+    const badge_tier: BadgeTier =
+      tier === "resident_fellow" ? "resident_fellow" : tier === "fellow" ? "fellow" : "practitioner";
+
+    const { user_id: _uid, ...rest } = p as unknown as Record<string, unknown> & { user_id: string };
+    return { ...(rest as unknown as PractitionerPublic), badge_tier, published: Boolean(p.published) };
   });

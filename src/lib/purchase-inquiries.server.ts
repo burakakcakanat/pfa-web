@@ -120,6 +120,7 @@ export async function createPurchaseInquiry(
     fulfil_kind: addonBundleSlug ? "bundle" : "product",
     fulfil_slug: addonBundleSlug ?? data.product_slug,
     fulfil_book_lang: data.book_lang,
+    metadata: data.badge_intent ? { badge_intent: data.badge_intent } : {},
   } as never);
   if (insErr) throw new Error(insErr.message);
 

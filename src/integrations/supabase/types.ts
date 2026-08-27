@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -592,6 +592,7 @@ export type Database = {
         Row: {
           author_name: string
           body_template: string
+          book_key: string
           footer_template: string
           id: string
           locale: string
@@ -601,6 +602,7 @@ export type Database = {
         Insert: {
           author_name?: string
           body_template: string
+          book_key?: string
           footer_template: string
           id?: string
           locale: string
@@ -610,6 +612,7 @@ export type Database = {
         Update: {
           author_name?: string
           body_template?: string
+          book_key?: string
           footer_template?: string
           id?: string
           locale?: string
@@ -1582,6 +1585,7 @@ export type Database = {
           kind: string
           locale: string
           message: string | null
+          metadata: Json
           payment_reference: string | null
           phone: string | null
           preferred_slot: string | null
@@ -1610,6 +1614,7 @@ export type Database = {
           kind?: string
           locale?: string
           message?: string | null
+          metadata?: Json
           payment_reference?: string | null
           phone?: string | null
           preferred_slot?: string | null
@@ -1638,6 +1643,7 @@ export type Database = {
           kind?: string
           locale?: string
           message?: string | null
+          metadata?: Json
           payment_reference?: string | null
           phone?: string | null
           preferred_slot?: string | null
@@ -2328,6 +2334,7 @@ export type Database = {
     Views: {
       practitioners_public: {
         Row: {
+          badge_tier: string | null
           category: Database["public"]["Enums"]["practitioner_category"] | null
           city: string | null
           country: string | null

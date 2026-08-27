@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BRAND_TAGLINE } from "@/lib/brand";
 import { localeFromPathname, switchTarget, type Locale } from "@/lib/i18n";
 import { NewsletterForm } from "@/components/newsletter-form";
-import { Instagram, Linkedin, Youtube, Twitter, ChevronDown, BookOpen, Menu } from "lucide-react";
+import { Instagram, Linkedin, Youtube, Twitter, Facebook, ChevronDown, BookOpen, Menu } from "lucide-react";
 
 function FooterNewsletter() {
   return <NewsletterForm source="footer" />;
@@ -853,7 +853,14 @@ function SiteFooter() {
     supabase
       .from("site_settings")
       .select("key, value")
-      .in("key", ["social_instagram", "social_linkedin", "social_x", "social_youtube"])
+      .in("key", [
+        "social_instagram",
+        "social_linkedin",
+        "social_linkedin_intl",
+        "social_facebook",
+        "social_x",
+        "social_youtube",
+      ])
       .then(({ data }) => {
       if (!alive) return;
       const out: Record<string, string> = {};
@@ -864,7 +871,9 @@ function SiteFooter() {
   }, []);
   const socialItems = [
     { key: "social_instagram", label: "Instagram", Icon: Instagram },
-    { key: "social_linkedin", label: "LinkedIn", Icon: Linkedin },
+    { key: "social_linkedin", label: "LinkedIn (TR)", Icon: Linkedin },
+    { key: "social_linkedin_intl", label: "LinkedIn (International)", Icon: Linkedin },
+    { key: "social_facebook", label: "Facebook", Icon: Facebook },
     { key: "social_x", label: "X", Icon: Twitter },
     { key: "social_youtube", label: "YouTube", Icon: Youtube },
   ]

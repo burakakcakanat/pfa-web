@@ -1,12 +1,14 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
   listPublicPractitioners,
-  type PractitionerPublic,
+  BADGE_TIER_ORDER,
+  BADGE_TIER_LABEL,
   type PractitionerCategory,
   type PractitionerMode,
 } from "@/lib/practitioners.functions";
+import { PractitionerCard } from "@/components/practitioner-card";
 
 // TODO: En az 5-6 uygulayıcı yayına alındıktan sonra bu sayfayı ana menüye
 // ("Uygulayıcılar" bağlantısı) tek satırla ekle — src/routes/__root.tsx NAV_LINKS.
@@ -186,67 +188,25 @@ function PractitionersPage() {
               Bu filtrelerle eşleşen uygulayıcı bulunamadı.
             </p>
           ) : (
-            <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((p) => (
-                <PractitionerCard key={p.id} p={p} />
-              ))}
+            <div className="mt-8 space-y-12">
+              {BADGE_TIER_ORDER.map((tier) => {
+                const group = filtered.filter((p) => p.badge_tier === tier);
+                if (group.length === 0) return null;
+                return (
+                  <section key={tier}>
+                    <h2 className="font-serif text-2xl text-primary">{BADGE_TIER_LABEL[tier]}</h2>
+                    <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                      {group.map((p) => (
+                        <PractitionerCard key={p.id} p={p} />
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
             </div>
           )}
         </>
       )}
     </div>
-  );
-}
-
-function PractitionerCard({ p }: { p: PractitionerPublic }) {
-  return (
-    <article className="flex flex-col rounded-lg border border-border bg-card p-6 shadow-sm">
-      <div className="flex items-start gap-4">
-        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border border-border bg-muted">
-          {p.photo_url ? (
-            <img src={p.photo_url} alt={p.full_name} className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center font-serif text-2xl text-muted-foreground">
-              {p.full_name.slice(0, 1)}
-            </div>
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="text-[0.65rem] tracking-[0.2em] text-accent">
-            {CATEGORY_LABEL[p.category].toLocaleUpperCase("tr-TR")}
-          </div>
-          <h2 className="mt-1 font-serif text-xl text-primary">{p.full_name}</h2>
-          {p.title && <p className="mt-1 text-xs text-muted-foreground">{p.title}</p>}
-        </div>
-      </div>
-      <div className="mt-4 space-y-1.5 text-xs text-muted-foreground">
-        {p.city && (
-          <div>
-            <span className="text-foreground/70">Şehir:</span> {p.city}
-            {p.country && p.country !== "Türkiye" ? `, ${p.country}` : ""}
-          </div>
-        )}
-        {p.languages.length > 0 && (
-          <div>
-            <span className="text-foreground/70">Diller:</span> {p.languages.join(", ")}
-          </div>
-        )}
-        <div>
-          <span className="text-foreground/70">Görüşme:</span> {MODE_LABEL[p.mode]}
-        </div>
-      </div>
-      {p.short_bio && (
-        <p className="mt-4 text-sm leading-relaxed text-foreground/85">{p.short_bio}</p>
-      )}
-      <div className="mt-auto pt-5">
-        <Link
-          to="/uygulayicilar/$id"
-          params={{ id: p.id }}
-          className="btn-outline w-full"
-        >
-          Profili Görüntüle
-        </Link>
-      </div>
-    </article>
   );
 }

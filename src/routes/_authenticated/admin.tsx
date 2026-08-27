@@ -66,6 +66,11 @@ import {
   listTestOrders,
 } from "@/lib/admin.functions";
 import {
+  listAdminSevenqQuestions,
+  upsertSevenqQuestion,
+  deleteSevenqQuestion,
+} from "@/lib/admin.functions";
+import {
   listProAccounts,
   listProInvitesForAdmin,
   searchProfilesForPro,

@@ -8,6 +8,7 @@ import {
   type PractitionerCategory,
   type PractitionerMode,
 } from "@/lib/practitioners.functions";
+import { BADGE_LABEL } from "@/components/practitioner-card";
 
 const CATEGORY_LABEL: Record<PractitionerCategory, string> = {
   terapotik: "Terapötik",
@@ -111,8 +112,13 @@ function PractitionerDetail() {
               )}
             </div>
             <div className="space-y-1.5 p-5 text-xs text-muted-foreground">
-              <div className="text-[0.65rem] tracking-[0.2em] text-accent">
-                {CATEGORY_LABEL[p.category].toLocaleUpperCase("tr-TR")}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[0.65rem] tracking-[0.2em] text-accent">
+                  {CATEGORY_LABEL[p.category].toLocaleUpperCase("tr-TR")}
+                </span>
+                <span className="rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[0.6rem] tracking-[0.1em] text-accent">
+                  {BADGE_LABEL[p.badge_tier]}
+                </span>
               </div>
               {p.city && (
                 <div>
@@ -170,11 +176,11 @@ function PractitionerDetail() {
           )}
 
           {p.long_bio ? (
-            <div className="prose prose-sm mt-8 max-w-none whitespace-pre-line text-foreground/85 leading-relaxed">
+            <div className="prose prose-sm mt-8 max-w-none [overflow-wrap:anywhere] whitespace-pre-line text-foreground/85 leading-relaxed">
               {p.long_bio}
             </div>
           ) : p.short_bio ? (
-            <p className="mt-8 text-sm leading-relaxed text-foreground/85">{p.short_bio}</p>
+            <p className="mt-8 [overflow-wrap:anywhere] text-sm leading-relaxed text-foreground/85">{p.short_bio}</p>
           ) : null}
 
           <div className="mt-12 rounded-lg border border-border bg-card p-6 shadow-sm">

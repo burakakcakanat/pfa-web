@@ -49,6 +49,9 @@ export const purchaseInquirySchema = z.object({
   book_lang: z.enum(["tr", "en"]).optional().default("tr"),
   // Origin locale hint from the page; validated server-side, never trusted raw.
   locale: z.enum(["tr", "en"]).optional().default("tr"),
+  // Optional badge-tier intent for practitioner license requests — persisted
+  // into purchase_inquiries.metadata.badge_intent (admin-rendered only).
+  badge_intent: z.enum(["practitioner", "fellow"]).optional(),
   // honeypot — must stay empty
   website_hp: z.string().max(0).optional().default(""),
 });
