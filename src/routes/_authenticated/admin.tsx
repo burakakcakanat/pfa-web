@@ -2463,7 +2463,10 @@ function DedicationEditor({ cfg, onSave }: {
   return (
     <div className="rounded-md border border-border/60 p-4">
       <div className="mb-3 flex items-center justify-between">
-        <div className="text-sm font-medium">{cfg.locale.toUpperCase()} · Dedication Şablonu</div>
+        <div className="text-sm font-medium">
+          {(cfg.book_key === "hcd" ? "HCD" : "PFA")} · {cfg.locale.toUpperCase()} — Dedication Şablonu
+        </div>
+
       </div>
       <div className="space-y-3">
         <div><Label>Yazar adı</Label><Input value={author} onChange={(e) => setAuthor(e.target.value)} /></div>
