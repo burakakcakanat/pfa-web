@@ -734,7 +734,10 @@ function ProductsTab() {
               {isWebinar ? (
                 <div className="grid gap-3 md:grid-cols-2 md:col-span-1">
                   <div>
-                    <Label>Kitle</Label>
+                    <Label className="inline-flex items-center gap-1">
+                      Kitle
+                      <InfoHint text="Uygulayıcı kitlesi yalnızca lisanslılara (PFAP+Fellow) görünür." />
+                    </Label>
                     <Select value={currentValue(p, "webinar_audience") ?? "general"} onValueChange={(v) => patch(p.id, "webinar_audience", v)}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -746,7 +749,10 @@ function ProductsTab() {
                   {currentValue(p, "webinar_audience") === "practitioner" && (
                     <div className="flex items-end gap-2">
                       <Switch checked={!!currentValue(p, "included_in_program")} onCheckedChange={(v) => patch(p.id, "included_in_program", v)} />
-                      <span className="text-sm">Gelişim programına dahil</span>
+                      <span className="inline-flex items-center gap-1 text-sm">
+                        Gelişim programına dahil
+                        <InfoHint text="Açıkken Fellow ücretsiz katılır, PFAP ürün fiyatını öder." />
+                      </span>
                     </div>
                   )}
                 </div>
@@ -1455,9 +1461,12 @@ function InstrumentVersionPanel({
               <Label>Not</Label>
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Neyin değiştiğini yazın" />
             </div>
-            <Button size="sm" onClick={createVersion} disabled={busy}>
-              {busy ? "Oluşturuluyor…" : "Sürümü oluştur ve havuzu dondur"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button size="sm" onClick={createVersion} disabled={busy}>
+                {busy ? "Oluşturuluyor…" : "Sürümü oluştur ve havuzu dondur"}
+              </Button>
+              <InfoHint text="Geri alınamaz: yeni sürüm açılır ve geçerli sürüm sayılır. Yalnızca madde değişikliği gerçekten gerektiğinde kullanın." />
+            </div>
           </div>
         )}
         <div className="text-xs text-muted-foreground">
@@ -2481,12 +2490,14 @@ function EbooksTab() {
               `Retry: ${r.generated} üretildi, ${r.skipped} atlandı, ${r.deliveries ?? 0} teslim e-postası gönderildi.`,
             );
           }}>Bekleyen Kişisel PDF'leri Üret</Button>
+          <InfoHint text="Kişisel PDF'i olmayan alıcılar için üretir; mevcut olanlar atlanır." />
           <Button variant="outline" size="sm" onClick={async () => {
             if (!confirm("Tüm kişisel PDF'ler silinsin ve yeniden üretilsin mi?")) return;
             const r = await regen({ data: undefined as unknown as never });
             setRegenMsg(`${r.cleared} dosya temizlendi.`);
             reloadCfg();
           }}>Kişisel PDF'leri Yeniden Üret</Button>
+          <InfoHint text="Şablon veya imza değiştiyse mevcutları da baştan üretir." />
           {regenMsg && <span className="text-xs text-muted-foreground">{regenMsg}</span>}
         </div>
       </Card>
@@ -2702,6 +2713,7 @@ function OrdersTab() {
         <label className="flex items-center gap-2 text-xs text-muted-foreground">
           <input type="checkbox" checked={includeTest} onChange={(e) => setIncludeTest(e.target.checked)} />
           Test siparişlerini göster
+          <InfoHint text="Test siparişi — gerçek ciroya sayılmaz; silme işlemi ilişkili rolleri de temizler." />
         </label>
       </div>
       <Table>
@@ -2845,10 +2857,25 @@ function LicensesTab() {
             <TableHead></TableHead>
             <TableHead>Ad Soyad</TableHead>
             <TableHead>E-posta</TableHead>
-            <TableHead>Rozet</TableHead>
-            <TableHead>Referans Kodu</TableHead>
+            <TableHead>
+              <span className="inline-flex items-center gap-1">
+                Rozet
+                <InfoHint text="Fellow'a çevirmek fellow rolünü ekler ve komisyonu %50 yapar. Kota otomatik artmaz — gerekirse Kota Ekle." />
+              </span>
+            </TableHead>
+            <TableHead>
+              <span className="inline-flex items-center gap-1">
+                Referans Kodu
+                <InfoHint text="Uygulayıcının kalıcı kodu. Bu kodla gelen ölçek satışında danışan %5 indirim alır, uygulayıcıya komisyon işler." />
+              </span>
+            </TableHead>
             <TableHead>Lisans</TableHead>
-            <TableHead>Kota (toplam / kullanılan)</TableHead>
+            <TableHead>
+              <span className="inline-flex items-center gap-1">
+                Kota (toplam / kullanılan)
+                <InfoHint text="Lisansla verilen ücretsiz danışan daveti hakkı (PFAP 3 / Fellow 7). Bitince davetler otomatik 'danışan öder + komisyon' moduna geçer." />
+              </span>
+            </TableHead>
             <TableHead>Davet (Beklyn/Tmml)</TableHead>
             <TableHead>Sertifika</TableHead>
             <TableHead className="text-right">İşlem</TableHead>

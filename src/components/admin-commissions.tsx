@@ -150,6 +150,7 @@ export function AdminCommissions() {
           Yenile
         </Button>
         <Button onClick={() => void generate()}>Ekstre Oluştur</Button>
+        <InfoHint text="Seçili dönemin tahakkuklarını uygulayıcı + para birimi bazında ekstreye bağlar. Aynı dönem için tekrar çalıştırmak mükerrer kayıt üretmez." />
       </div>
 
       <div className="flex flex-wrap gap-3">
