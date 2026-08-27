@@ -66,7 +66,7 @@ export function AdminCommissions() {
   const [periodTotals, setPeriodTotals] = useState<Record<string, number>>({});
   const [rates, setRates] = useState<Record<string, number>>({});
   const [openUser, setOpenUser] = useState<string | null>(null);
-  const [detail, setDetail] = useState<{ ledger: any[]; statements: any[] } | null>(null);
+  const [detail, setDetail] = useState<{ ledger: any[]; statements: any[]; billing: any } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
