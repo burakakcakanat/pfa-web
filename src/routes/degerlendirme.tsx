@@ -9,8 +9,10 @@ import { resolveProInvite } from "@/lib/invites.functions";
 type InviteInfo = Awaited<ReturnType<typeof resolveProInvite>>;
 
 export const Route = createFileRoute("/degerlendirme")({
-  validateSearch: (search: Record<string, unknown>): { invite?: string } =>
-    typeof search.invite === "string" ? { invite: search.invite } : {},
+  validateSearch: (search: Record<string, unknown>): { invite?: string; ref?: string } => ({
+    ...(typeof search.invite === "string" ? { invite: search.invite } : {}),
+    ...(typeof search.ref === "string" ? { ref: search.ref.slice(0, 16) } : {}),
+  }),
   head: () => ({
     meta: [
       { title: "PFA Bilinç Seviyeleri Ölçeği | PFA" },
@@ -32,7 +34,7 @@ export const Route = createFileRoute("/degerlendirme")({
 function AssessmentPage() {
   const [sent, setSent] = useState(false);
   const [hasFull, setHasFull] = useState(false);
-  const { invite } = Route.useSearch();
+  const { invite, ref } = Route.useSearch();
   const resolveInvite = useServerFn(resolveProInvite);
   const [inviteInfo, setInviteInfo] = useState<InviteInfo>(null);
 
@@ -134,7 +136,7 @@ function AssessmentPage() {
               <BuyButton
                 productSlug="tam-assessment-rapor"
                 label="Tam Ölçeği Satın Al"
-                refCode={inviteInfo?.referral_code ?? null}
+                refCode={inviteInfo?.referral_code ?? ref ?? null}
               />
             )}
           </div>
