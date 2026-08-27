@@ -295,6 +295,7 @@ function AdminPage() {
             <TabsContent value="newsletter"><NewsletterTab /></TabsContent>
             <TabsContent value="messages"><MessagesTab /></TabsContent>
             <TabsContent value="licenses"><AdminLicenseInquiries /></TabsContent>
+            <TabsContent value="panels"><AdminPanels /></TabsContent>
           </div>
         </Tabs>
       </div>
