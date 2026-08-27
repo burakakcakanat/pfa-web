@@ -362,6 +362,18 @@ function MessagesTab() {
             </Button>
           ))}
         </div>
+        <div className="flex items-center gap-1">
+          {(["all", "fellow", "pfap", "user", "guest"] as const).map((v) => (
+            <Button
+              key={v}
+              variant={roleFilter === v ? "default" : "outline"}
+              size="sm"
+              onClick={() => setRoleFilter(v)}
+            >
+              {ROLE_FILTER_LABEL[v]}
+            </Button>
+          ))}
+        </div>
       </div>
       {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">Henüz mesaj yok.</p>
@@ -369,7 +381,9 @@ function MessagesTab() {
         <div className="space-y-2">
           {rows
             .filter((m) => localeFilter === "all" || (m.locale ?? "tr") === localeFilter)
+            .filter((m) => roleFilter === "all" || (m.sender_role ?? "guest") === roleFilter)
             .map((m) => {
+
             const isOpen = openId === m.id;
             return (
               <div
