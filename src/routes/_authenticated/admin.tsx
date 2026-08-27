@@ -55,6 +55,8 @@ import {
   deleteEbookFile,
   listAdminOrders,
   listEbookConfig,
+  createEbookDedication,
+
   updateEbookDedication,
   createSignatureUploadUrl,
   createSharedSignatureUploadUrl,
