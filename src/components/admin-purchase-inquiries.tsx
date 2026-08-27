@@ -407,7 +407,7 @@ export function AdminPurchaseInquiries() {
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Seçimin bütün bileşenleri (ölçek erişimi, seans kredisi, imzalı e-kitap) tek seferde
+              Seçimin bütün bileşenleri (ölçek erişimi, seans hakkı, imzalı e-kitap) tek seferde
               tanımlanır; tekrar basmak ikinci kez tanımlamaz. Katalog fiyatı:{" "}
               {selectionPriceCents != null ? `$${(selectionPriceCents / 100).toFixed(2)}` : "—"}
             </p>

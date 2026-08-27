@@ -2694,7 +2694,7 @@ function OrdersTab() {
 
 // -------- LİSANSLAR (tek ekran: rozet, kota, sertifika) --------
 // MAHREMİYET: Ölçek cevap/sonuç içeriği bu ekranda ASLA gösterilmez;
-// yalnızca sayısal alanlar (davet sayıları, kredi kotası) gösterilir.
+// yalnızca sayısal alanlar (davet sayıları, danışan ölçeği kotası) gösterilir.
 function LicensesTab() {
   const fetchList = useServerFn(listProAccounts);
   const fetchInvites = useServerFn(listProInvitesForAdmin);
@@ -2803,7 +2803,7 @@ function LicensesTab() {
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Toplam {total} lisans · Bu sayfada {totalUsed}/{totalCredits} kredi kullanıldı.
+        Toplam {total} lisans · Bu sayfada {totalUsed}/{totalCredits} danışan ölçeği kotası kullanıldı.
       </p>
 
       <Table>
@@ -2901,7 +2901,7 @@ function LicensesTab() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button size="sm" variant="secondary" onClick={() => { setCreditsTarget(r); setCreditsAmount("10"); }}>
-                      Kredi Ekle
+                      Kota Ekle
                     </Button>
                     <Button size="sm" variant="destructive" onClick={() => setRevokeTarget(r)}>
                       Lisansı İptal Et
@@ -3012,7 +3012,7 @@ function LicensesTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Pro yetkisi verilsin mi?</AlertDialogTitle>
             <AlertDialogDescription>
-              {grantSelected?.email} kullanıcısına PFA-Pro lisansı ve 20 danışan kredisi verilecek.
+              {grantSelected?.email} kullanıcısına PFA-Pro lisansı ve 20 danışan ölçeği kotası verilecek.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -3073,9 +3073,9 @@ function LicensesTab() {
       <AlertDialog open={!!creditsTarget} onOpenChange={(o) => !o && setCreditsTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Kredi Ekle</AlertDialogTitle>
+            <AlertDialogTitle>Danışan Ölçeği Kotası Ekle</AlertDialogTitle>
             <AlertDialogDescription>
-              {creditsTarget?.email} kullanıcısının danışan kredisine eklenecek adet.
+              {creditsTarget?.email} kullanıcısının danışan ölçeği kotasına eklenecek adet.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div>
@@ -3096,7 +3096,7 @@ function LicensesTab() {
                 if (!Number.isFinite(n) || n < 1) { toast.error("Geçersiz adet"); return; }
                 try {
                   const r = await doAddCredits({ data: { user_id: creditsTarget.user_id, amount: n } });
-                  toast.success(`${n} kredi eklendi. Yeni kota: ${(r as any).new_quota}`);
+                  toast.success(`${n} kota eklendi. Yeni kota: ${(r as any).new_quota}`);
                   setCreditsTarget(null);
                   reload();
                 } catch (e: any) {

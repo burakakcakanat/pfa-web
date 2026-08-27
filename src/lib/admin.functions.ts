@@ -1885,7 +1885,7 @@ export const setProTier = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // Kota otomatik değişmez — admin gerekirse "Kredi Ekle" ile farkı ekler.
+    // Kota otomatik değişmez — admin gerekirse "Kota Ekle" ile farkı ekler.
     const { error } = await supabaseAdmin
       .from("practitioner_accounts")
       .update({ tier: data.tier })
