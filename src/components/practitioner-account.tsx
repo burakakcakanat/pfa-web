@@ -8,6 +8,8 @@ import {
   submitPractitionerApplication,
   type MyPractitionerState,
 } from "@/lib/practitioner-applications.functions";
+import { getMyPractitionerRow, type MyPractitionerRow } from "@/lib/practitioners.functions";
+import { PractitionerCard } from "@/components/practitioner-card";
 
 const CATEGORIES = [
   { key: "terapotik", title: "Terapötik" },
@@ -97,6 +99,7 @@ function PractitionerTimeline({
   const request = useServerFn(requestProLicense);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [badgeIntent, setBadgeIntent] = useState<"practitioner" | "fellow">("practitioner");
 
   const rank: Record<string, number> = {
     yeni: 0,
@@ -116,7 +119,7 @@ function PractitionerTimeline({
     setBusy(true);
     setErr(null);
     try {
-      await request();
+      await request({ data: { badge_intent: badgeIntent } });
       onChanged();
     } catch (e: any) {
       setErr(e?.message ?? "Talep oluşturulamadı.");
@@ -161,7 +164,7 @@ function PractitionerTimeline({
       tone: hasLicense ? "done" : accepted ? "active" : "future",
       body: hasLicense ? (
         <div className="space-y-3">
-          <p className="text-muted-foreground">PFA-Pro lisansınız tanımlı.</p>
+          <p className="text-muted-foreground">Lisansınız tanımlı.</p>
           <div className="flex flex-wrap gap-3">
             {onGoToClients ? (
               <button
@@ -189,16 +192,38 @@ function PractitionerTimeline({
           ) : (
             <>
               <p className="text-muted-foreground">
-                Uygulayıcı paneliniz ve danışan kontenjanınız PFA-Pro lisansı ile açılır. Talebinizi
+                Uygulayıcı paneliniz ve danışan ölçeği kotanız PFA-Pro lisansı ile açılır. Talebinizi
                 ilettiğinizde ödeme yönergelerini e-posta ile paylaşırız.
               </p>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-start gap-2 text-sm text-foreground/85">
+                  <input
+                    type="radio"
+                    name="badge_intent"
+                    checked={badgeIntent === "practitioner"}
+                    onChange={() => setBadgeIntent("practitioner")}
+                    className="mt-1"
+                  />
+                  <span>PFA Practitioner</span>
+                </label>
+                <label className="flex items-start gap-2 text-sm text-foreground/85">
+                  <input
+                    type="radio"
+                    name="badge_intent"
+                    checked={badgeIntent === "fellow"}
+                    onChange={() => setBadgeIntent("fellow")}
+                    className="mt-1"
+                  />
+                  <span>PFA Fellow (gelişim programı aboneliğiyle)</span>
+                </label>
+              </div>
               <button
                 type="button"
                 onClick={startLicense}
                 disabled={busy}
                 className="inline-flex items-center rounded-md bg-accent px-5 py-2.5 text-sm text-accent-foreground disabled:opacity-60"
               >
-                {busy ? "Gönderiliyor…" : "PFA-Pro Lisansını Tamamla"}
+                {busy ? "Gönderiliyor…" : "Lisansı Tamamla"}
               </button>
             </>
           )}
@@ -268,6 +293,39 @@ function PractitionerTimeline({
           {state.directoryPublished ? "Yayında" : "Hazırlanıyor"}
         </span>
       </div>
+
+      <MyGuideCardPreview />
+    </div>
+  );
+}
+
+/** Hesabım → Uygulayıcı: "Rehber kartım" — yayında olsun/olmasın önizleme. */
+function MyGuideCardPreview() {
+  const fetchRow = useServerFn(getMyPractitionerRow);
+  const [row, setRow] = useState<MyPractitionerRow | null | undefined>(undefined);
+
+  useEffect(() => {
+    fetchRow()
+      .then((r) => setRow(r as MyPractitionerRow | null))
+      .catch(() => setRow(null));
+  }, [fetchRow]);
+
+  if (row === undefined) return null;
+  if (!row) return null;
+
+  return (
+    <div className="mt-6">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="text-xs uppercase tracking-[0.3em] text-accent">Rehber kartım</div>
+        <span
+          className={`rounded-full px-2.5 py-0.5 text-xs ${
+            row.published ? "bg-accent/15 text-accent" : "bg-muted text-muted-foreground"
+          }`}
+        >
+          {row.published ? "Yayında" : "Yayında değil"}
+        </span>
+      </div>
+      <PractitionerCard p={row} linkToProfile={false} />
     </div>
   );
 }

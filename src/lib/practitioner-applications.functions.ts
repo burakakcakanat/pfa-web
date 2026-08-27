@@ -462,7 +462,12 @@ export const getMyPractitionerState = createServerFn({ method: "GET" })
  */
 export const requestProLicense = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d: unknown) =>
+    z
+      .object({ badge_intent: z.enum(["practitioner", "fellow"]) })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const uid = context.userId;
     const { data: prof } = await supabaseAdmin
@@ -504,15 +509,16 @@ export const requestProLicense = createServerFn({ method: "POST" })
     await createPurchaseInquiry({
       kind: "pro_license",
       product_slug: PRO_LICENSE_SLUG,
-      product_label: "PFA-Pro Lisans Paketi",
+      product_label: "Lisans",
       full_name: prof?.full_name || app?.[0]?.full_name || email,
       email,
       phone: app?.[0]?.phone ?? "",
       preferred_slot: "",
-      message: "Uygulayıcı programı 5. adım — lisans talebi (Hesabım → Uygulayıcı).",
+      message: "Uygulayıcı programı 5. adım — Lisans talebi (Hesabım → Uygulayıcı).",
       addon_bundle_slug: null,
       book_lang: "tr",
       locale: "tr",
+      badge_intent: data.badge_intent,
       website_hp: "",
     });
     return { ok: true, already: false };

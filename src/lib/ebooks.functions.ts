@@ -13,6 +13,19 @@ function localeFor(slug: string): "tr" | "en" {
   return slug.endsWith("-tr") ? "tr" : "en";
 }
 
+// Hangi kitabın dedication şablonu kullanılacak: products.book_key tek doğru
+// kaynaktır, kayıt yoksa slug'dan güvenli bir tahmin yapılır.
+async function bookKeyFor(slug: string): Promise<string> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin
+    .from("products")
+    .select("book_key")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (data?.book_key) return data.book_key;
+  return slug.startsWith("hcd") ? "hcd" : "pfa";
+}
+
 async function signedStorageUrl(
   path: string,
   mode: "view" | "download",
@@ -87,12 +100,18 @@ export async function ensurePersonalizedPdf(opts: {
   if (!masterBytes) return null;
 
   const locale = localeFor(opts.slug);
+  const bookKey = await bookKeyFor(opts.slug);
   const { data: tpl } = await supabaseAdmin
     .from("ebook_dedication_templates")
     .select("body_template, footer_template, signature_path, author_name")
+    .eq("book_key", bookKey)
     .eq("locale", locale)
     .maybeSingle();
-  if (!tpl) return null;
+  if (!tpl) {
+    // Eşleşen şablon yok → kişiselleştirmeyi atla (sebep loglanır).
+    console.warn("[EBOOK_DEDICATION_TEMPLATE_MISSING]", { slug: opts.slug, bookKey, locale });
+    return null;
+  }
 
   // İmza görseli (varsa).
   let signatureBytes: Uint8Array | null = null;

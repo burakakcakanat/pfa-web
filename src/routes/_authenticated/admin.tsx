@@ -66,6 +66,11 @@ import {
   listTestOrders,
 } from "@/lib/admin.functions";
 import {
+  listAdminSevenqQuestions,
+  upsertSevenqQuestion,
+  deleteSevenqQuestion,
+} from "@/lib/admin.functions";
+import {
   listProAccounts,
   listProInvitesForAdmin,
   searchProfilesForPro,
@@ -1552,6 +1557,34 @@ function QuestionFormInner({ initial, onSave, onCancel }: { initial: any; onSave
       <div className="flex flex-wrap gap-4">
         <label className="flex items-center gap-2"><Switch checked={d.is_mini} onCheckedChange={(v) => upd("is_mini", v)} /> Mini'de</label>
         <label className="flex items-center gap-2"><Switch checked={d.reverse_coded} onCheckedChange={(v) => upd("reverse_coded", v)} /> Ters kodlu</label>
+        <label className="flex items-center gap-2"><Switch checked={d.active} onCheckedChange={(v) => upd("active", v)} /> Aktif</label>
+      </div>
+      <div className="flex gap-2">
+        <Button onClick={() => onSave(d)}>Kaydet</Button>
+        <Button variant="outline" onClick={onCancel}>İptal</Button>
+      </div>
+    </div>
+  );
+}
+
+function SevenqQuestionFormInner({ initial, onSave, onCancel }: { initial: any; onSave: (d: any) => void; onCancel: () => void }) {
+  const [d, setD] = useState(initial);
+  const upd = (k: string, v: any) => setD({ ...d, [k]: v });
+  return (
+    <div className="space-y-3">
+      <div><Label>Madde Kodu</Label><Input value={d.item_code} onChange={(e) => upd("item_code", e.target.value)} /></div>
+      <div><Label>Seviye</Label>
+        <Select value={String(d.level)} onValueChange={(v) => upd("level", parseInt(v))}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>{[1,2,3,4,5,6,7].map((l) => (<SelectItem key={l} value={String(l)}>L{l}</SelectItem>))}</SelectContent>
+        </Select>
+      </div>
+      <div><Label>Kapasite</Label><Input value={d.capacity} onChange={(e) => upd("capacity", e.target.value)} /></div>
+      <div><Label>Metin (TR)</Label><Textarea value={d.text_tr} onChange={(e) => upd("text_tr", e.target.value)} /></div>
+      <div><Label>Metin (EN)</Label><Textarea value={d.text_en ?? ""} onChange={(e) => upd("text_en", e.target.value)} /></div>
+      <div className="flex flex-wrap gap-4">
+        <label className="flex items-center gap-2"><Switch checked={d.awareness_item} onCheckedChange={(v) => upd("awareness_item", v)} /> Awareness maddesi</label>
+        <label className="flex items-center gap-2"><Switch checked={d.is_pilot_only} onCheckedChange={(v) => upd("is_pilot_only", v)} /> Pilot maddesi</label>
         <label className="flex items-center gap-2"><Switch checked={d.active} onCheckedChange={(v) => upd("active", v)} /> Aktif</label>
       </div>
       <div className="flex gap-2">
