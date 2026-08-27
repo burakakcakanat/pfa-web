@@ -10,6 +10,8 @@ import {
 } from "@/lib/practitioner-applications.functions";
 import { getMyPractitionerRow, type MyPractitionerRow } from "@/lib/practitioners.functions";
 import { PractitionerCard } from "@/components/practitioner-card";
+import { PractitionerPanelView } from "@/components/practitioner-panel";
+
 
 const CATEGORIES = [
   { key: "terapotik", title: "Terapötik" },
