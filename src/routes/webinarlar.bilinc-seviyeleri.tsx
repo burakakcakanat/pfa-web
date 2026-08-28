@@ -2,6 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BuyButton } from "@/components/buy-button";
 import { getUpcomingWebinarForProduct } from "@/lib/site-settings.functions";
 import { formatWebinarPrice } from "@/lib/social-drafts";
+import {
+  WebinarBanner,
+  WebinarShowcaseStrip,
+  OtherWebinarsLink,
+} from "@/components/webinar-showcase";
 
 export const Route = createFileRoute("/webinarlar/bilinc-seviyeleri")({
   loader: () => getUpcomingWebinarForProduct({ data: { slug: "bilinc-seviyeleri-calismalari" } }),
@@ -57,7 +62,13 @@ const KAZANIMLAR = [
 
 function Page() {
   const loaded = Route.useLoaderData() as {
-    session: { id: string; title: string; starts_at: string; banner_url: string | null } | null;
+    session: {
+      id: string;
+      title: string;
+      starts_at: string;
+      banner_url: string | null;
+      target_vertical?: string | null;
+    } | null;
     price_cents: number | null;
   };
   const session = loaded?.session ?? null;
@@ -65,13 +76,8 @@ function Page() {
   return (
     <div className="container-page py-20">
       <div className="mx-auto max-w-3xl">
-        {session?.banner_url && (
-          <img
-            src={session.banner_url}
-            alt={session.title}
-            className="mb-10 w-full rounded-lg border border-border shadow-sm"
-          />
-        )}
+        <WebinarBanner session={session} />
+        <WebinarShowcaseStrip session={session} />
         <div className="text-xs tracking-[0.3em] text-accent">
           KENDİ YOLCULUĞUNUZ İÇİN
         </div>
@@ -131,6 +137,7 @@ function Page() {
           Not: Bu çalışma klinik bir terapi programı değildir; işlevsel farkındalık için bir
           gelişim programıdır.
         </p>
+        <div><OtherWebinarsLink /></div>
       </div>
     </div>
   );

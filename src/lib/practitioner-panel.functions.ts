@@ -56,7 +56,10 @@ export type PractitionerPanel = {
   performance: { invitesSent: number; invitesCompleted: number };
   billing: PractitionerBilling | null;
   fellowRequestOpen: boolean;
+  /** Fiyat & Oran Merkezi'nden okunur (abonelik.fellow_bedel) — hardcode edilmez. */
+  fellowSubscriptionUsd: number | null;
 };
+
 
 const FELLOW_REQUEST_SLUG = "pfa-fellow-abonelik";
 
@@ -135,8 +138,23 @@ export const getPractitionerPanel = createServerFn({ method: "GET" })
     const quotaTotal = acc?.client_quota ?? 0;
     const quotaUsed = acc?.client_used ?? 0;
 
+    // Fellow abonelik bedeli tek doğruluk kaynağından (system_rates) okunur.
+    let fellowSubscriptionUsd: number | null = null;
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: rate } = await supabaseAdmin
+        .from("system_rates")
+        .select("value_numeric")
+        .eq("key", "abonelik.fellow_bedel")
+        .maybeSingle();
+      if (rate?.value_numeric != null) fellowSubscriptionUsd = Number(rate.value_numeric);
+    } catch {
+      fellowSubscriptionUsd = null;
+    }
+
     return {
       hasLicense: !!acc,
+
       tier: ((acc?.tier as PractitionerTier) ?? "practitioner") as PractitionerTier,
       referralCode: acc?.referral_code ?? null,
       licenseGrantedAt: acc?.license_granted_at ?? null,
@@ -156,7 +174,9 @@ export const getPractitionerPanel = createServerFn({ method: "GET" })
       },
       billing: (billingRes.data ?? null) as PractitionerBilling | null,
       fellowRequestOpen,
+      fellowSubscriptionUsd,
     };
+
   });
 
 const billingSchema = z.object({

@@ -76,21 +76,23 @@ export function PractitionerAccountTab({ onGoToClients }: { onGoToClients?: () =
     return <PractitionerTimeline state={state} app={app} onGoToClients={onGoToClients} onChanged={load} />;
   }
 
-  // STATE A — başvuru yok
+  // STATE A — başvuru yok: "Uygulayıcı Ol" daveti (boş panel yerine CTA)
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-border bg-card p-6">
+      <div className="rounded-lg border-2 border-accent/50 bg-accent/5 p-8 text-center">
         <div className="text-xs uppercase tracking-[0.3em] text-accent">PFA Uygulayıcı Programı</div>
-        <h2 className="mt-3 font-serif text-2xl">Uygulayıcı Programı Başvurusu</h2>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Program; hazırlık, uygulayıcı sınavı, değerlendirme görüşmesi ve sertifikasyon webinarı
-          olmak üzere dört aşamadan oluşur. Başvuru için özgeçmiş (PDF) ve kısa bir niyet metni
-          gereklidir.
+        <h2 className="mt-3 font-serif text-2xl">Uygulayıcı Ol</h2>
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-foreground/80">
+          PFA Uygulayıcı Programı; PFA Bilinç Seviyeleri Ölçeği'ni danışanlarınızla
+          kullanmanızı, kendi rehber kartınızla Uygulayıcı Rehberi'nde yer almanızı ve
+          uygulayıcıya özel gelişim webinarlarına katılmanızı sağlar. Program hazırlık,
+          uygulayıcı sınavı, değerlendirme görüşmesi ve sertifikasyon aşamalarından oluşur.
         </p>
-        <Link to="/uygulayici-olun" className="mt-4 inline-block text-sm text-accent underline underline-offset-4">
-          Programın tüm detayları →
+        <Link to="/uygulayici-olun" className="btn-primary mt-6 inline-block">
+          Uygulayıcı Ol
         </Link>
       </div>
+
       <ApplicationForm profile={state.profile} onSubmitted={load} />
     </div>
   );

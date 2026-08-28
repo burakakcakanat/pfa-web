@@ -2326,6 +2326,7 @@ export type Database = {
           notes: string | null
           product_id: string
           starts_at: string
+          target_vertical: string | null
           title: string
           updated_at: string
         }
@@ -2338,6 +2339,7 @@ export type Database = {
           notes?: string | null
           product_id: string
           starts_at: string
+          target_vertical?: string | null
           title: string
           updated_at?: string
         }
@@ -2350,6 +2352,7 @@ export type Database = {
           notes?: string | null
           product_id?: string
           starts_at?: string
+          target_vertical?: string | null
           title?: string
           updated_at?: string
         }
@@ -2455,6 +2458,7 @@ export type Database = {
           id: string | null
           product_id: string | null
           starts_at: string | null
+          target_vertical: string | null
           title: string | null
         }
         Insert: {
@@ -2464,6 +2468,7 @@ export type Database = {
           id?: string | null
           product_id?: string | null
           starts_at?: string | null
+          target_vertical?: string | null
           title?: string | null
         }
         Update: {
@@ -2473,6 +2478,7 @@ export type Database = {
           id?: string | null
           product_id?: string | null
           starts_at?: string | null
+          target_vertical?: string | null
           title?: string | null
         }
         Relationships: [

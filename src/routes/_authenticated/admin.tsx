@@ -132,6 +132,7 @@ import {
 } from "@/lib/practitioner-applications.functions";
 import { AdminLicenseInquiries } from "@/components/admin-license-inquiries";
 import { AdminPanels } from "@/components/admin-panels";
+import { WEBINAR_VERTICALS } from "@/lib/webinar-verticals";
 import { TabIntro } from "@/components/tab-intro";
 import { InfoHint } from "@/components/info-hint";
 import { AdminRateCenter } from "@/components/admin-rate-center";
@@ -325,7 +326,7 @@ function AdminPage() {
             <TabsContent value="newsletter"><TabIntro text="Aboneler, sayılar ve gönderim. Şablon görseli her giden bültenin çerçevesidir." /><NewsletterTab /></TabsContent>
             <TabsContent value="messages"><TabIntro text="İletişim formu mesajları; gönderen rolüne göre filtrelenebilir." /><MessagesTab /></TabsContent>
             <TabsContent value="licenses"><TabIntro text="Kurumsal Program Lisansı ve Ülke Lisansı B2B başvuruları." /><AdminLicenseInquiries /></TabsContent>
-            <TabsContent value="panels"><TabIntro text="Kullanıcı panellerini test pasaportlarıyla, oturumunuzdan çıkmadan yeni sekmede gezin." /><AdminPanels /></TabsContent>
+            <TabsContent value="panels"><TabIntro text="Kullanıcı panellerini test pasaportlarıyla gezin. Üretilen giriş linkini GİZLİ pencerede açın; normal pencerede admin oturumunuz test kullanıcısına geçer." /><AdminPanels /></TabsContent>
           </div>
         </Tabs>
       </div>
@@ -1700,7 +1701,7 @@ function WebinarsTab() {
             <Button key={p.id} size="sm" variant="outline" onClick={() => openRegs(p)}>{p.name_tr} kayıtları</Button>
           ))}
         </div>
-        <Button onClick={() => { setErr(null); setEditing({ product_id: data.products[0]?.id ?? "", title: "", starts_at: new Date().toISOString().slice(0,16), capacity: null, join_url: "", notes: "", banner_url: "", price_cents: data.products[0]?.price_cents ?? 0 }); }}>Yeni Oturum</Button>
+        <Button onClick={() => { setErr(null); setEditing({ product_id: data.products[0]?.id ?? "", title: "", starts_at: new Date().toISOString().slice(0,16), capacity: null, join_url: "", notes: "", banner_url: "", target_vertical: "genel", price_cents: data.products[0]?.price_cents ?? 0 }); }}>Yeni Oturum</Button>
       </div>
       {err && (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
@@ -1804,6 +1805,7 @@ function WebinarForm({ initial, products, onSave, onCancel }: { initial: any; pr
         join_url: d.join_url?.trim() || null,
         notes: d.notes?.trim() || null,
         banner_url: d.banner_url?.trim() || null,
+        target_vertical: d.target_vertical || null,
         price_cents: d.price_cents == null ? 0 : d.price_cents,
       });
       setSaved(true);
@@ -1842,6 +1844,18 @@ function WebinarForm({ initial, products, onSave, onCancel }: { initial: any; pr
         <p className="mt-1 text-xs text-muted-foreground">
           Ürün fiyatına yazılır (tek kaynak). {formatWebinarPrice(d.price_cents) === FREE_LABEL_TR ? `0 veya boş → sitede "${FREE_LABEL_TR}" görünür.` : `Sitede ${formatWebinarPrice(d.price_cents)} görünür.`}
         </p>
+      </div>
+      <div>
+        <div className="flex items-center gap-1.5">
+          <Label>Hedef Dikey</Label>
+          <InfoHint text="Sitedeki webinar vitrin şeridinde gösterilir. Erişim kısıtı değildir — erişim 'Kitle' alanıyla yönetilir." />
+        </div>
+        <Select value={d.target_vertical ?? "genel"} onValueChange={(v) => upd("target_vertical", v)}>
+          <SelectTrigger><SelectValue placeholder="Seçin" /></SelectTrigger>
+          <SelectContent>
+            {WEBINAR_VERTICALS.map((v) => (<SelectItem key={v.value} value={v.value}>{v.label}</SelectItem>))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="md:col-span-2"><Label>Katılım linki</Label><Input placeholder="https://…" value={d.join_url ?? ""} onChange={(e) => upd("join_url", e.target.value)} /></div>
       <div className="md:col-span-2"><Label>Notlar</Label><Textarea rows={4} value={d.notes ?? ""} onChange={(e) => upd("notes", e.target.value)} /></div>

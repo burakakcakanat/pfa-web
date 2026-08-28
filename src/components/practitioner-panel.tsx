@@ -6,6 +6,8 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { InfoHint } from "@/components/info-hint";
+import { fellowHintText } from "@/lib/fellow-hint";
+
 import {
   getPractitionerPanel,
   savePractitionerBilling,
@@ -105,8 +107,26 @@ export function PractitionerPanelView({ onGoToClients }: { onGoToClients?: () =>
   if (err) return <p className="text-sm text-destructive">{err}</p>;
   if (!data) return <p className="text-sm text-muted-foreground">Yükleniyor…</p>;
 
+  // Rolü olan ama uygulayıcı hesap satırı henüz açılmamış kullanıcı: sessizce
+  // son-kullanıcı görünümüne düşmez, açık bir bilgi kartı görür.
+  if (!data.hasLicense) {
+    return (
+      <section className="rounded-lg border border-accent bg-accent/5 p-6">
+        <h3 className="font-serif text-xl">Uygulayıcı hesabınız hazırlanıyor</h3>
+        <p className="mt-3 text-sm text-foreground/80">
+          Uygulayıcı yetkiniz tanımlı ancak lisans kaydınız (rozet, kota, referans kodu) henüz
+          oluşturulmamış. Lütfen yöneticiyle iletişime geçin.
+        </p>
+        <Link to="/iletisim" className="btn-primary mt-5 inline-block">
+          İletişime geç
+        </Link>
+      </section>
+    );
+  }
+
   const isFellow = data.tier === "fellow";
   const badge = isFellow ? "PFA Fellow" : "PFA Practitioner";
+
   const validUntil = data.licenseValidUntil
     ? fmtDate(data.licenseValidUntil)
     : isFellow
@@ -124,7 +144,14 @@ export function PractitionerPanelView({ onGoToClients }: { onGoToClients?: () =>
         highlight
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <Row label="Rozet" value={badge} />
+          <div>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              Rozet
+              {isFellow ? <InfoHint text={fellowHintText(data.fellowSubscriptionUsd)} /> : null}
+            </div>
+            <div className="mt-0.5">{badge}</div>
+          </div>
+
           <Row label="Veriliş" value={fmtDate(data.licenseGrantedAt)} />
           <Row label="Geçerlilik" value={validUntil} />
           <Row

@@ -214,7 +214,7 @@ function BookBlock({
       : "";
 
   const cover = product?.cover_image_url || meta.covers[lang] || meta.covers.en || "";
-  const langLabel = lang === "tr" ? "Türkçe" : "English";
+  const langLabel = lang === "tr" ? "Türkçe" : "İngilizce";
 
   return (
     <section className="grid gap-12 md:grid-cols-[minmax(240px,320px)_1fr] md:items-start">
@@ -624,7 +624,7 @@ function BundleRow({
             <div className="mt-5 flex items-center gap-2 text-xs">
               <span className="text-muted-foreground">Kitap dili:</span>
               <LangPill active={lang === "tr"} onClick={() => setLang("tr")}>Türkçe</LangPill>
-              <LangPill active={lang === "en"} onClick={() => setLang("en")}>English</LangPill>
+              <LangPill active={lang === "en"} onClick={() => setLang("en")}>İngilizce</LangPill>
             </div>
           )}
 
