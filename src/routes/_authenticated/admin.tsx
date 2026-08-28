@@ -132,6 +132,7 @@ import {
 } from "@/lib/practitioner-applications.functions";
 import { AdminLicenseInquiries } from "@/components/admin-license-inquiries";
 import { AdminPanels } from "@/components/admin-panels";
+import { WEBINAR_VERTICALS } from "@/lib/webinar-verticals";
 import { TabIntro } from "@/components/tab-intro";
 import { InfoHint } from "@/components/info-hint";
 import { AdminRateCenter } from "@/components/admin-rate-center";
@@ -325,7 +326,7 @@ function AdminPage() {
             <TabsContent value="newsletter"><TabIntro text="Aboneler, sayılar ve gönderim. Şablon görseli her giden bültenin çerçevesidir." /><NewsletterTab /></TabsContent>
             <TabsContent value="messages"><TabIntro text="İletişim formu mesajları; gönderen rolüne göre filtrelenebilir." /><MessagesTab /></TabsContent>
             <TabsContent value="licenses"><TabIntro text="Kurumsal Program Lisansı ve Ülke Lisansı B2B başvuruları." /><AdminLicenseInquiries /></TabsContent>
-            <TabsContent value="panels"><TabIntro text="Kullanıcı panellerini test pasaportlarıyla, oturumunuzdan çıkmadan yeni sekmede gezin." /><AdminPanels /></TabsContent>
+            <TabsContent value="panels"><TabIntro text="Kullanıcı panellerini test pasaportlarıyla gezin. Üretilen giriş linkini GİZLİ pencerede açın; normal pencerede admin oturumunuz test kullanıcısına geçer." /><AdminPanels /></TabsContent>
           </div>
         </Tabs>
       </div>
@@ -1700,7 +1701,7 @@ function WebinarsTab() {
             <Button key={p.id} size="sm" variant="outline" onClick={() => openRegs(p)}>{p.name_tr} kayıtları</Button>
           ))}
         </div>
-        <Button onClick={() => { setErr(null); setEditing({ product_id: data.products[0]?.id ?? "", title: "", starts_at: new Date().toISOString().slice(0,16), capacity: null, join_url: "", notes: "", banner_url: "", price_cents: data.products[0]?.price_cents ?? 0 }); }}>Yeni Oturum</Button>
+        <Button onClick={() => { setErr(null); setEditing({ product_id: data.products[0]?.id ?? "", title: "", starts_at: new Date().toISOString().slice(0,16), capacity: null, join_url: "", notes: "", banner_url: "", target_vertical: "genel", price_cents: data.products[0]?.price_cents ?? 0 }); }}>Yeni Oturum</Button>
       </div>
       {err && (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
@@ -1804,6 +1805,7 @@ function WebinarForm({ initial, products, onSave, onCancel }: { initial: any; pr
         join_url: d.join_url?.trim() || null,
         notes: d.notes?.trim() || null,
         banner_url: d.banner_url?.trim() || null,
+        target_vertical: d.target_vertical || null,
         price_cents: d.price_cents == null ? 0 : d.price_cents,
       });
       setSaved(true);
@@ -1842,6 +1844,18 @@ function WebinarForm({ initial, products, onSave, onCancel }: { initial: any; pr
         <p className="mt-1 text-xs text-muted-foreground">
           Ürün fiyatına yazılır (tek kaynak). {formatWebinarPrice(d.price_cents) === FREE_LABEL_TR ? `0 veya boş → sitede "${FREE_LABEL_TR}" görünür.` : `Sitede ${formatWebinarPrice(d.price_cents)} görünür.`}
         </p>
+      </div>
+      <div>
+        <div className="flex items-center gap-1.5">
+          <Label>Hedef Dikey</Label>
+          <InfoHint text="Sitedeki webinar vitrin şeridinde gösterilir. Erişim kısıtı değildir — erişim 'Kitle' alanıyla yönetilir." />
+        </div>
+        <Select value={d.target_vertical ?? "genel"} onValueChange={(v) => upd("target_vertical", v)}>
+          <SelectTrigger><SelectValue placeholder="Seçin" /></SelectTrigger>
+          <SelectContent>
+            {WEBINAR_VERTICALS.map((v) => (<SelectItem key={v.value} value={v.value}>{v.label}</SelectItem>))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="md:col-span-2"><Label>Katılım linki</Label><Input placeholder="https://…" value={d.join_url ?? ""} onChange={(e) => upd("join_url", e.target.value)} /></div>
       <div className="md:col-span-2"><Label>Notlar</Label><Textarea rows={4} value={d.notes ?? ""} onChange={(e) => upd("notes", e.target.value)} /></div>
@@ -4126,15 +4140,10 @@ function NewsletterTab() {
           onClick={() => setSub("sayilar")}
           className={`-mb-px border-b-2 px-4 py-2 text-sm ${sub === "sayilar" ? "border-accent text-accent" : "border-transparent text-muted-foreground"}`}
         >Bülten Sayıları</button>
-        <button
-          onClick={() => setSub("sablon")}
-          className={`-mb-px border-b-2 px-4 py-2 text-sm ${sub === "sablon" ? "border-accent text-accent" : "border-transparent text-muted-foreground"}`}
-        >Şablon</button>
       </div>
       {sub === "aboneler" && <NewsletterSubscribers />}
       {sub === "ayrilanlar" && <NewsletterUnsubscribed />}
       {sub === "sayilar" && <NewsletterIssues />}
-      {sub === "sablon" && <NewsletterTemplateSettings />}
     </div>
   );
 }
@@ -4198,7 +4207,11 @@ function NewsletterUnsubscribed() {
   );
 }
 
-function NewsletterTemplateSettings() {
+export type NewsletterTemplateState = {
+  url: string; side: string; width: number; opacity: number; alt: string;
+};
+
+function NewsletterTemplateSettings({ onState }: { onState?: (s: NewsletterTemplateState) => void }) {
   const fetchList = useServerFn(listSiteSettings);
   const save = useServerFn(upsertSiteSetting);
   const [url, setUrl] = useState("");
@@ -4252,9 +4265,13 @@ function NewsletterTemplateSettings() {
     } finally { setBusy(false); }
   };
 
+  useEffect(() => {
+    onState?.({ url, side, width, opacity, alt });
+  }, [url, side, width, opacity, alt, onState]);
+
   const sideArt = side === "left" || side === "right";
   return (
-    <Card title="Bülten Şablonu — Kenar Görseli">
+    <Card title="Bülten Şablonu — Kenar Görseli (global)">
       <div className="grid gap-3 md:grid-cols-2">
         <div className="md:col-span-2 space-y-2">
           <Label>Görsel (boş bırakılırsa şablon bugünkü haliyle gönderilir)</Label>
@@ -4549,6 +4566,9 @@ function IssueEditor({ initial, emailConfigured, error, onCancel, onSave, onSend
   const [title, setTitle] = useState(initial.title ?? "");
   const [segment, setSegment] = useState(initial.segment ?? "tumu");
   const [content, setContent] = useState(initial.content_md ?? "");
+  const [tplOpen, setTplOpen] = useState(false);
+  const [tpl, setTpl] = useState<NewsletterTemplateState | null>(null);
+  const onTplState = useCallback((v: NewsletterTemplateState) => setTpl(v), []);
   const id = initial.id as string | null;
   const sent = initial.status === "gonderildi";
   return (
@@ -4578,15 +4598,53 @@ function IssueEditor({ initial, emailConfigured, error, onCancel, onSave, onSend
           </Select>
           <Label>İçerik (Markdown, {"{{unsubscribe_url}}"} otomatik değiştirilir)</Label>
           <Textarea rows={18} value={content} onChange={(e) => setContent(e.target.value)} className="font-mono text-xs" />
+
+          <div className="rounded-md border border-border">
+            <button
+              type="button"
+              onClick={() => setTplOpen((v) => !v)}
+              className="flex w-full items-center justify-between px-4 py-3 text-sm"
+            >
+              <span>Kenar görseli ayarları (şablon)</span>
+              <span className="text-muted-foreground">{tplOpen ? "−" : "+"}</span>
+            </button>
+            {tplOpen && (
+              <div className="border-t border-border p-3">
+                <p className="mb-3 text-xs text-muted-foreground">
+                  Bu ayarlar globaldir: her giden bültenin çerçevesini belirler, yalnızca bu sayıyı etkilemez.
+                </p>
+                <NewsletterTemplateSettings onState={onTplState} />
+              </div>
+            )}
+          </div>
         </div>
         <div>
-          <Label>Önizleme</Label>
-          <div className="mt-2 rounded-md border border-border bg-[#fffdf7] p-6 text-sm text-[#1a2a2e]">
-            <div className="mb-4 text-center text-xs uppercase tracking-[0.2em] text-[#0f766e]">PFA — Psiko-Fonksiyonel Analiz</div>
-            <div className="prose prose-sm max-w-none">
-              <ReactMarkdown>{content}</ReactMarkdown>
+          <Label>Canlı e-posta önizlemesi</Label>
+          <div className="mt-2 overflow-hidden rounded-md border border-[#e6dfcf] bg-[#fffdf7] text-sm text-[#1a2a2e]">
+            <div className="border-b border-[#eee5d0] px-6 py-4 text-center text-xs uppercase tracking-[0.2em] text-[#0f766e]">
+              PFA — Psiko-Fonksiyonel Analiz
             </div>
-            <div className="mt-6 border-t border-border pt-3 text-center text-[10px] text-muted-foreground">
+            {tpl?.url && tpl.side === "top" && (
+              <img src={tpl.url} alt={tpl.alt} style={{ width: Math.min(560, tpl.width), opacity: tpl.opacity / 100, display: "block", margin: "0 auto" }} />
+            )}
+            <div className="flex">
+              {tpl?.url && tpl.side === "left" && (
+                <img src={tpl.url} alt={tpl.alt} style={{ width: tpl.width, opacity: tpl.opacity / 100, alignSelf: "flex-start" }} />
+              )}
+              <div className="px-6 py-5">
+                {title && <div className="mb-3 font-serif text-lg">{title}</div>}
+                <div className="prose prose-sm max-w-none">
+                  <ReactMarkdown>{content}</ReactMarkdown>
+                </div>
+              </div>
+              {tpl?.url && tpl.side === "right" && (
+                <img src={tpl.url} alt={tpl.alt} style={{ width: tpl.width, opacity: tpl.opacity / 100, alignSelf: "flex-start" }} />
+              )}
+            </div>
+            {tpl?.url && tpl.side === "bottom" && (
+              <img src={tpl.url} alt={tpl.alt} style={{ width: Math.min(560, tpl.width), opacity: tpl.opacity / 100, display: "block", margin: "0 auto" }} />
+            )}
+            <div className="border-t border-[#eee5d0] px-6 py-3 text-center text-[10px] text-muted-foreground">
               Abonelikten ayrıl
             </div>
           </div>

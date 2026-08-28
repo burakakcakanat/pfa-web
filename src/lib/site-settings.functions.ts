@@ -65,7 +65,7 @@ export const getUpcomingWebinarForProduct = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: sess } = await supabaseAdmin
       .from("webinar_sessions_public")
-      .select("id, title, starts_at, banner_url")
+      .select("id, title, starts_at, banner_url, target_vertical")
       .eq("product_id", prod.id)
       .gte("starts_at", new Date().toISOString())
       .order("starts_at", { ascending: true })
@@ -74,3 +74,16 @@ export const getUpcomingWebinarForProduct = createServerFn({ method: "POST" })
 
     return { session: sess ?? null, price_cents: prod.price_cents ?? null };
   });
+
+/** Fiyat & Oran Merkezi'ndeki Fellow abonelik bedeli (tanıtım metinleri için). */
+export const getFellowSubscriptionUsd = createServerFn({ method: "GET" }).handler(
+  async (): Promise<number | null> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("system_rates")
+      .select("value_numeric")
+      .eq("key", "abonelik.fellow_bedel")
+      .maybeSingle();
+    return data?.value_numeric != null ? Number(data.value_numeric) : null;
+  },
+);

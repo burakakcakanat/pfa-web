@@ -112,6 +112,7 @@ function DirectSection() {
               <th className="px-2 py-2">Tip</th>
               <th className="px-2 py-2">Dil</th>
               <th className="px-2 py-2">Durum</th>
+              <th className="px-2 py-2">Onam</th>
               <th className="px-2 py-2">Seviye skorları</th>
             </tr>
           </thead>
@@ -128,11 +129,12 @@ function DirectSection() {
                   <td className="px-2 py-2">{s.type === "full" ? "Tam" : "Mini"}</td>
                   <td className="px-2 py-2 uppercase">{s.locale}</td>
                   <td className="px-2 py-2">{s.status === "completed" ? "Tamamlandı" : "Devam"}</td>
+                  <td className="px-2 py-2">{s.research_consent ? "Var" : "Yok"}</td>
                   <td className="px-2 py-2"><LevelScores scores={s.level_scores} /></td>
                 </tr>
                 {openId === s.id ? (
                   <tr className="border-b border-border bg-muted/20">
-                    <td colSpan={7} className="px-4 py-4">
+                    <td colSpan={8} className="px-4 py-4">
                       {!detail ? (
                         <p className="text-xs text-muted-foreground">Yükleniyor…</p>
                       ) : (

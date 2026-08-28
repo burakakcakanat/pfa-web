@@ -1,7 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { LayoutDashboard, Users, BookOpen, Megaphone, Percent, Globe } from "lucide-react";
+import { InfoHint } from "@/components/info-hint";
+import { fellowHintText } from "@/lib/fellow-hint";
+import { getFellowSubscriptionUsd } from "@/lib/site-settings.functions";
 import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/uygulayici-olun")({
   head: () => ({
@@ -187,7 +192,16 @@ const FAQ: Array<{ q: string; a: string }> = [
 ];
 
 function BecomePractitionerPage() {
+  const loadFellowUsd = useServerFn(getFellowSubscriptionUsd);
+  const [fellowUsd, setFellowUsd] = useState<number | null>(null);
+  useEffect(() => {
+    loadFellowUsd()
+      .then((v) => setFellowUsd(v as number | null))
+      .catch(() => setFellowUsd(null));
+  }, [loadFellowUsd]);
+
   return (
+
     <main className="bg-background text-foreground">
       {/* Hero */}
       <section className="container-page pt-16 pb-14 md:pt-24 md:pb-20">
@@ -249,10 +263,18 @@ function BecomePractitionerPage() {
             <ol className="space-y-10">
               {STAGES.map((s) => (
                 <Stage key={s.num} num={s.num} title={s.title}>
-                  <p>{s.body}</p>
+                  <p>
+                    {s.body}
+                    {s.title === "Rozetinizi Seçin" ? (
+                      <span className="ml-1 inline-flex align-middle">
+                        <InfoHint text={fellowHintText(fellowUsd)} />
+                      </span>
+                    ) : null}
+                  </p>
                 </Stage>
               ))}
             </ol>
+
           </div>
         </div>
       </section>

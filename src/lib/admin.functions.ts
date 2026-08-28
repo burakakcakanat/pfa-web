@@ -662,6 +662,8 @@ export const upsertWebinarSession = createServerFn({ method: "POST" })
           .transform((v) =>
             !v ? null : /^https?:\/\//i.test(v) ? v : `https://${v.replace(/^\/+/, "")}`,
           ),
+        // Hedef dikey oturum bazındadır; sitede vitrin şeridinde gösterilir.
+        target_vertical: z.string().trim().max(40).nullable().optional().transform((v) => v || null),
         // Fiyatın tek kaynağı products.price_cents; buradan yalnızca güncellenir.
         price_cents: z.number().int().min(0).nullable().optional(),
       })

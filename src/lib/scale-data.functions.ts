@@ -14,6 +14,7 @@ export type DirectSessionRow = {
   full_name: string | null;
   email: string | null;
   level_scores: Record<string, number> | null;
+  research_consent: boolean;
 };
 
 export type AnswerDetailRow = {
@@ -46,7 +47,7 @@ export const listDirectAssessmentSessions = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: sessions, error } = await supabaseAdmin
       .from("assessment_sessions")
-      .select("id, user_id, type, status, locale, instrument_version, created_at, completed_at")
+      .select("id, user_id, type, status, locale, instrument_version, created_at, completed_at, research_consent")
       .is("client_invite_id", null)
       .order("created_at", { ascending: false })
       .limit(300);
@@ -92,6 +93,7 @@ export const listDirectAssessmentSessions = createServerFn({ method: "GET" })
       full_name: s.user_id ? profs.get(s.user_id)?.full_name ?? null : null,
       email: s.user_id ? profs.get(s.user_id)?.email ?? null : null,
       level_scores: (results.get(s.id) ?? null) as Record<string, number> | null,
+      research_consent: Boolean((s as any).research_consent),
     }));
   });
 

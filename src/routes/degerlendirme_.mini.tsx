@@ -7,7 +7,7 @@ import { AssessmentResult } from "@/components/assessment-result";
 import { AssessmentNextSteps } from "@/components/assessment-next-steps";
 import { saveAssessment } from "@/lib/assessment.functions";
 import { computeScores } from "@/lib/assessment-scoring";
-import { ResearchConsentBlock } from "@/components/research-consent-block";
+import { ResearchConsentStep } from "@/components/research-consent-step";
 import { EMPTY_CONSENT, type ResearchConsentInput } from "@/lib/research-consent";
 
 const STORAGE_KEY = "pfa_pending_mini_answers";
@@ -34,6 +34,7 @@ function MiniTestPage() {
   const [err, setErr] = useState<string | null>(null);
   const [result, setResult] = useState<LocalResult | null>(null);
   const [consent, setConsent] = useState<ResearchConsentInput>(EMPTY_CONSENT);
+  const [started, setStarted] = useState(false);
 
   async function onComplete(answers: { question_id: string; value: number }[]) {
     setErr(null);
@@ -114,10 +115,15 @@ function MiniTestPage() {
           35 soru. 5-8 dakika. Üyelik gerekmez; sonucunuzu hemen görürsünüz.
         </p>
       </header>
-      <AssessmentRunner variant="mini" onComplete={onComplete} submitting={submitting} />
-      <div className="mx-auto mt-8 max-w-2xl">
-        <ResearchConsentBlock value={consent} onChange={setConsent} />
-      </div>
+      {started ? (
+        <AssessmentRunner variant="mini" onComplete={onComplete} submitting={submitting} />
+      ) : (
+        <ResearchConsentStep
+          value={consent}
+          onChange={setConsent}
+          onContinue={() => setStarted(true)}
+        />
+      )}
       {err && <div className="mx-auto mt-4 max-w-2xl rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">{err}</div>}
       <p className="mx-auto mt-10 max-w-2xl text-center text-xs text-muted-foreground">
         Bu değerlendirme klinik bir tanı aracı değildir; işlevsel farkındalık için bir gelişim aracıdır.

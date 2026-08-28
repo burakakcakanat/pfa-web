@@ -7,7 +7,6 @@ import { getProDashboard, createProInvite } from "@/lib/pro.functions";
 import { listMyEbooks, getEbookUrl } from "@/lib/ebooks.functions";
 import { listMyGifts } from "@/lib/gifts.functions";
 import { PractitionerAccountTab } from "@/components/practitioner-account";
-import { ResearchPreferences } from "@/components/research-preferences";
 import { NewsletterTabAction } from "@/components/newsletter-row";
 import { MySessionsTab } from "@/components/my-sessions";
 import { PractitionerWebinarsTab } from "@/components/practitioner-webinars";
@@ -58,7 +57,6 @@ const TABS = [
   { id: "reports", label: "Raporlarım" },
   { id: "ebooks", label: "E-Kitaplarım" },
   { id: "webinars", label: "Webinar Kayıtlarım" },
-  { id: "research", label: "Araştırma" },
 ] as const;
 
 function AccountPage() {
@@ -243,7 +241,6 @@ function AccountPage() {
         {tab === "clients" && <ClientsTab />}
         {tab === "pro-webinars" && <PractitionerWebinarsTab />}
         {tab === "sessions" && <MySessionsTab />}
-        {tab === "research" && <ResearchPreferences />}
         {tab === "practitioner" && (
           <PractitionerAccountTab onGoToClients={() => setTab("clients")} />
         )}
