@@ -1,6 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { getUpcomingWebinarForProduct } from "@/lib/site-settings.functions";
+import { WebinarShowcaseStrip } from "@/components/webinar-showcase";
 
 export const Route = createFileRoute("/webinarlar/")({
+  loader: async () => {
+    const [bsc, pro] = await Promise.all([
+      getUpcomingWebinarForProduct({ data: { slug: "bilinc-seviyeleri-calismalari" } }),
+      getUpcomingWebinarForProduct({ data: { slug: "pfa-pro-lisans-paketi" } }),
+    ]);
+    return { bsc, pro };
+  },
   head: () => ({
     meta: [
       { title: "Webinarlar — PFA" },
@@ -71,6 +80,7 @@ const BLOCKS = [
     desc:
       "Yedi işlevsel seviyeye giriş; kendi yaşam örnekleriniz üzerinden uygulamalı bir gelişim programı.",
     price: 150,
+    key: "bsc" as const,
     to: "/webinarlar/bilinc-seviyeleri" as const,
   },
   {
@@ -80,11 +90,24 @@ const BLOCKS = [
     desc:
       "6 canlı oturum, dijital sertifika, Pro panel ve 20 danışan ölçeği hakkı.",
     price: 450,
+    key: "pro" as const,
     to: "/webinarlar/pfa-pro" as const,
   },
 ];
 
 function WebinarsPage() {
+  const loaded = Route.useLoaderData() as Record<
+    "bsc" | "pro",
+    {
+      session: {
+        id: string;
+        title: string;
+        starts_at: string;
+        banner_url: string | null;
+        target_vertical?: string | null;
+      } | null;
+    }
+  >;
   return (
     <div className="container-page py-20">
       <header className="mx-auto max-w-3xl text-center">
@@ -101,6 +124,7 @@ function WebinarsPage() {
             key={b.title}
             className="flex flex-col rounded-lg border border-border bg-card p-8"
           >
+            <WebinarShowcaseStrip session={loaded?.[b.key]?.session ?? null} />
             <div className="text-xs tracking-[0.25em] text-accent">{b.badge.toLocaleUpperCase("tr-TR")}</div>
             <h2 className="mt-4 font-serif text-2xl">{b.title}</h2>
             <p className="mt-2 text-sm italic text-foreground/70">{b.subtitle}</p>
