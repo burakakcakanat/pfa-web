@@ -225,7 +225,7 @@ export const ensureTestPassports = createServerFn({ method: "POST" })
                     : spec.kind === "fellow"
                       ? "fellow"
                       : "practitioner",
-                client_quota: spec.kind === "user" || spec.kind === "practitioner" ? 3 : 7,
+                client_quota: spec.kind === "practitioner" ? 3 : 7,
                 client_used: 0,
                 referral_code: referral,
                 license_granted_at: new Date().toISOString(),
