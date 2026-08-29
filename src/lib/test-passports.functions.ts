@@ -4,7 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-export type PassportKind = "user" | "practitioner" | "fellow";
+export type PassportKind = "user" | "practitioner" | "fellow" | "resident_fellow";
 
 export type PassportSpec = {
   kind: PassportKind;
@@ -33,6 +33,12 @@ export const TEST_PASSPORTS: PassportSpec[] = [
     label: "Fellow Paneli",
     fullName: "Test Fellow",
   },
+  {
+    kind: "resident_fellow",
+    email: "test-resident@pfa.internal",
+    label: "Resident Fellow Paneli",
+    fullName: "Test Resident",
+  },
 ];
 
 const ALLOWED_EMAILS = TEST_PASSPORTS.map((p) => p.email);
@@ -56,7 +62,7 @@ function rolesFor(kind: PassportKind): Array<"user" | "pro" | "fellow"> {
     ? ["user"]
     : kind === "practitioner"
       ? ["user", "pro"]
-      : ["user", "pro", "fellow"];
+      : ["user", "pro", "fellow"];  // fellow ve resident_fellow aynı rol seti
 }
 
 async function assertAdmin(supabase: any, userId: string) {
@@ -213,12 +219,19 @@ export const ensureTestPassports = createServerFn({ method: "POST" })
               );
               const { error } = await supabaseAdmin.from("practitioner_accounts").insert({
                 user_id: userId,
-                tier: spec.kind === "fellow" ? "fellow" : "practitioner",
-                client_quota: spec.kind === "fellow" ? 7 : 3,
+                tier:
+                  spec.kind === "resident_fellow"
+                    ? "resident_fellow"
+                    : spec.kind === "fellow"
+                      ? "fellow"
+                      : "practitioner",
+                client_quota: spec.kind === "practitioner" ? 3 : 7,
                 client_used: 0,
                 referral_code: referral,
                 license_granted_at: new Date().toISOString(),
-                ...(spec.kind === "fellow" ? { subscription_status: "active" } : {}),
+                ...(spec.kind === "fellow" || spec.kind === "resident_fellow"
+                  ? { subscription_status: "active" }
+                  : {}),
               });
               if (!error) {
                 inserted = true;

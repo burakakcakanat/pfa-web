@@ -10,6 +10,7 @@ import { PractitionerAccountTab } from "@/components/practitioner-account";
 import { NewsletterTabAction } from "@/components/newsletter-row";
 import { MySessionsTab } from "@/components/my-sessions";
 import { PractitionerWebinarsTab } from "@/components/practitioner-webinars";
+import { ClientProfilesSection } from "@/components/practitioner-clients";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
   validateSearch: (s: Record<string, unknown>): { tab?: string; panel?: string } => ({
@@ -250,7 +251,7 @@ function AccountPage() {
                 replace: true,
               })
             }
-            clientsSlot={<ClientsTab />}
+            clientsSlot={<ClientsPanelSection />}
             webinarsSlot={<PractitionerWebinarsTab />}
           />
         )}
@@ -421,13 +422,31 @@ function GiftsList({ gifts }: { gifts: MyGift[] }) {
   );
 }
 
-function ClientsTab() {
+/** Panel → Danışanlar: danışan profilleri (üstte) + mevcut davet yönetimi. */
+function ClientsPanelSection() {
+  const [prefill, setPrefill] = useState<{ name: string; seq: number }>({ name: "", seq: 0 });
+  return (
+    <div className="space-y-6">
+      <ClientProfilesSection
+        onInvite={(name) => setPrefill((p) => ({ name, seq: p.seq + 1 }))}
+      />
+      <ClientsTab prefill={prefill} />
+    </div>
+  );
+}
+
+function ClientsTab({ prefill }: { prefill?: { name: string; seq: number } }) {
   const fetchDash = useServerFn(getProDashboard);
   const createInvite = useServerFn(createProInvite);
   const [data, setData] = useState<Awaited<ReturnType<typeof getProDashboard>> | null>(null);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  // Danışan profilinden "Davet gönder": yalnızca ad alanı ön-doldurulur.
+  useEffect(() => {
+    if (prefill && prefill.seq > 0) setName(prefill.name);
+  }, [prefill?.seq, prefill?.name]);
 
   const load = useCallback(async () => {
     setData(await fetchDash({ data: undefined as unknown as never }));

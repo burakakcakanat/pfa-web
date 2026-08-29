@@ -6,6 +6,7 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { InfoHint } from "@/components/info-hint";
+import { AvailabilitySection } from "@/components/practitioner-clients";
 import { fellowHintText } from "@/lib/fellow-hint";
 
 import {
@@ -171,8 +172,14 @@ export function PractitionerPanelView({
     );
   }
 
-  const isFellow = data.tier === "fellow";
-  const badge = isFellow ? "PFA Fellow" : "PFA Practitioner";
+  const isResident = data.tier === "resident_fellow";
+  // Resident Fellow, Fellow varyantının tüm haklarıyla görünür.
+  const isFellow = data.tier === "fellow" || isResident;
+  const badge = isResident
+    ? "Resident Fellow · PFA Ekibi"
+    : isFellow
+      ? "PFA Fellow"
+      : "PFA Practitioner";
 
   const validUntil = data.licenseValidUntil
     ? fmtDate(data.licenseValidUntil)
@@ -183,7 +190,12 @@ export function PractitionerPanelView({
         : "—";
 
   const sections = PANEL_SECTIONS.map((s) =>
-    s.id === "abonelik" ? { ...s, label: isFellow ? "Abonelik" : "Fellow'a Yükselt" } : s,
+    s.id === "abonelik"
+      ? {
+          ...s,
+          label: isResident ? "PFA Ekibi" : isFellow ? "Abonelik" : "Fellow'a Yükselt",
+        }
+      : s,
   );
 
   return (
@@ -377,25 +389,16 @@ export function PractitionerPanelView({
         </>
       ) : null}
 
-      {active === "takvim" ? (
-        calendarSlot ?? (
-          <Section
-            title="Takvim & Müsaitlik"
-            hint="Seans saatleri şimdilik PFA tarafından yönetilir; kendi takviminiz yayına alındığında bu bölümde görünecek."
-          >
-            <p className="text-sm text-muted-foreground">
-              Müsaitlik saatleriniz henüz tanımlı değil. Seans saatlerinizi paylaşmak için PFA ile
-              iletişime geçebilirsiniz.
-            </p>
-            <Link to="/iletisim" className="mt-4 inline-block text-sm text-accent underline underline-offset-4">
-              İletişime geç →
-            </Link>
-          </Section>
-        )
-      ) : null}
+      {active === "takvim" ? calendarSlot ?? <AvailabilitySection /> : null}
 
       {active === "abonelik" ? (
-        isFellow ? (
+        isResident ? (
+          <Section title="PFA Ekibi" highlight>
+            <p className="text-sm text-foreground/85">
+              PFA ekibindesiniz — seans, ölçek ve ödemeleriniz PFA tarafından yönetilir.
+            </p>
+          </Section>
+        ) : isFellow ? (
           <Section
             title="Aboneliğim"
             hint="Abonelikten ayrılırsanız lisansınız 5 yıl daha geçerli kalır ve PFA Practitioner rozetine dönersiniz."

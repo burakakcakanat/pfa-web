@@ -1271,6 +1271,36 @@ export type Database = {
         }
         Relationships: []
       }
+      practitioner_availability: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          note: string | null
+          start_time: string
+          user_id: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          note?: string | null
+          start_time: string
+          user_id: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          note?: string | null
+          start_time?: string
+          user_id?: string
+          weekday?: number
+        }
+        Relationships: []
+      }
       practitioner_billing: {
         Row: {
           adres: string | null
@@ -1301,6 +1331,45 @@ export type Database = {
           user_id?: string
           vergi_dairesi?: string | null
           vergi_no?: string | null
+        }
+        Relationships: []
+      }
+      practitioner_clients: {
+        Row: {
+          birth_year: number | null
+          city: string | null
+          created_at: string
+          full_name: string
+          gender: string | null
+          id: string
+          notes: string | null
+          occupation: string | null
+          practitioner_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          birth_year?: number | null
+          city?: string | null
+          created_at?: string
+          full_name: string
+          gender?: string | null
+          id?: string
+          notes?: string | null
+          occupation?: string | null
+          practitioner_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          birth_year?: number | null
+          city?: string | null
+          created_at?: string
+          full_name?: string
+          gender?: string | null
+          id?: string
+          notes?: string | null
+          occupation?: string | null
+          practitioner_user_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
