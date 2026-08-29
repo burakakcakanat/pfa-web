@@ -245,7 +245,10 @@ function AccountPage() {
           <PractitionerAccountTab
             panel={search.panel}
             onPanelChange={(id) =>
-              navigate({ search: (prev) => ({ ...prev, tab: "practitioner", panel: id }), replace: true })
+              navigate({
+                search: (prev: { tab?: string; panel?: string }) => ({ ...prev, tab: "practitioner", panel: id }),
+                replace: true,
+              })
             }
             clientsSlot={<ClientsTab />}
             webinarsSlot={<PractitionerWebinarsTab />}
