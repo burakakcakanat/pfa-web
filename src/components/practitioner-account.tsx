@@ -24,7 +24,19 @@ function fmtDate(v: string) {
   return new Date(v).toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric" });
 }
 
-export function PractitionerAccountTab({ onGoToClients }: { onGoToClients?: () => void }) {
+export function PractitionerAccountTab({
+  onGoToClients,
+  panel,
+  onPanelChange,
+  clientsSlot,
+  webinarsSlot,
+}: {
+  onGoToClients?: () => void;
+  panel?: string;
+  onPanelChange?: (id: string) => void;
+  clientsSlot?: React.ReactNode;
+  webinarsSlot?: React.ReactNode;
+}) {
   const fetchState = useServerFn(getMyPractitionerState);
   const [state, setState] = useState<MyPractitionerState | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -44,10 +56,13 @@ export function PractitionerAccountTab({ onGoToClients }: { onGoToClients?: () =
   // Lisans tanımlıysa tam Uygulayıcı Paneli (PFAP / Fellow varyantı) gösterilir.
   if (state.hasProEntitlement) {
     return (
-      <div className="space-y-6">
-        <PractitionerPanelView onGoToClients={onGoToClients} />
-        <MyGuideCardPreview />
-      </div>
+      <PractitionerPanelView
+        panel={panel}
+        onPanelChange={onPanelChange}
+        clientsSlot={clientsSlot}
+        webinarsSlot={webinarsSlot}
+        guideSlot={<MyGuideCardPreview />}
+      />
     );
   }
 

@@ -12,8 +12,10 @@ import { MySessionsTab } from "@/components/my-sessions";
 import { PractitionerWebinarsTab } from "@/components/practitioner-webinars";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
-  validateSearch: (s: Record<string, unknown>): { tab?: string } =>
-    typeof s.tab === "string" ? { tab: s.tab } : {},
+  validateSearch: (s: Record<string, unknown>): { tab?: string; panel?: string } => ({
+    ...(typeof s.tab === "string" ? { tab: s.tab } : {}),
+    ...(typeof s.panel === "string" ? { panel: s.panel } : {}),
+  }),
   head: () => ({
     meta: [
       { title: "Hesabım — PFA" },
@@ -61,6 +63,7 @@ const TABS = [
 
 function AccountPage() {
   const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [entitlements, setEntitlements] = useState<Entitlement[]>([]);
@@ -106,8 +109,7 @@ function AccountPage() {
     entitlements.some((x) => x.type === "pfa_pro") || roles.includes("admin");
   const tabs = [
     ...TABS,
-    { id: "practitioner", label: "Uygulayıcı" },
-    ...(isPro ? [{ id: "clients", label: "Danışanlarım" }, { id: "pro-webinars", label: "Uygulayıcı Webinarları" }] : []),
+    { id: "practitioner", label: isPro ? "Admin" : "Uygulayıcı Ol" },
   ];
 
   async function saveProfile() {
@@ -238,11 +240,19 @@ function AccountPage() {
           </div>
         )}
 
-        {tab === "clients" && <ClientsTab />}
-        {tab === "pro-webinars" && <PractitionerWebinarsTab />}
         {tab === "sessions" && <MySessionsTab />}
         {tab === "practitioner" && (
-          <PractitionerAccountTab onGoToClients={() => setTab("clients")} />
+          <PractitionerAccountTab
+            panel={search.panel}
+            onPanelChange={(id) =>
+              navigate({
+                search: (prev: { tab?: string; panel?: string }) => ({ ...prev, tab: "practitioner", panel: id }),
+                replace: true,
+              })
+            }
+            clientsSlot={<ClientsTab />}
+            webinarsSlot={<PractitionerWebinarsTab />}
+          />
         )}
       </div>
     </div>
