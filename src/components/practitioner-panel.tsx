@@ -189,7 +189,12 @@ export function PractitionerPanelView({
         : "—";
 
   const sections = PANEL_SECTIONS.map((s) =>
-    s.id === "abonelik" ? { ...s, label: isFellow ? "Abonelik" : "Fellow'a Yükselt" } : s,
+    s.id === "abonelik"
+      ? {
+          ...s,
+          label: isResident ? "PFA Ekibi" : isFellow ? "Abonelik" : "Fellow'a Yükselt",
+        }
+      : s,
   );
 
   return (
