@@ -171,8 +171,14 @@ export function PractitionerPanelView({
     );
   }
 
-  const isFellow = data.tier === "fellow";
-  const badge = isFellow ? "PFA Fellow" : "PFA Practitioner";
+  const isResident = data.tier === "resident_fellow";
+  // Resident Fellow, Fellow varyantının tüm haklarıyla görünür.
+  const isFellow = data.tier === "fellow" || isResident;
+  const badge = isResident
+    ? "Resident Fellow · PFA Ekibi"
+    : isFellow
+      ? "PFA Fellow"
+      : "PFA Practitioner";
 
   const validUntil = data.licenseValidUntil
     ? fmtDate(data.licenseValidUntil)
