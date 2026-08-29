@@ -63,6 +63,7 @@ const TABS = [
 
 function AccountPage() {
   const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [entitlements, setEntitlements] = useState<Entitlement[]>([]);
