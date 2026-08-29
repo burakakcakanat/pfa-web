@@ -239,11 +239,16 @@ function AccountPage() {
           </div>
         )}
 
-        {tab === "clients" && <ClientsTab />}
-        {tab === "pro-webinars" && <PractitionerWebinarsTab />}
         {tab === "sessions" && <MySessionsTab />}
         {tab === "practitioner" && (
-          <PractitionerAccountTab onGoToClients={() => setTab("clients")} />
+          <PractitionerAccountTab
+            panel={search.panel}
+            onPanelChange={(id) =>
+              navigate({ search: (prev) => ({ ...prev, tab: "practitioner", panel: id }), replace: true })
+            }
+            clientsSlot={<ClientsTab />}
+            webinarsSlot={<PractitionerWebinarsTab />}
+          />
         )}
       </div>
     </div>
