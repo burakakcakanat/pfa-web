@@ -108,8 +108,7 @@ function AccountPage() {
     entitlements.some((x) => x.type === "pfa_pro") || roles.includes("admin");
   const tabs = [
     ...TABS,
-    { id: "practitioner", label: "Uygulayıcı" },
-    ...(isPro ? [{ id: "clients", label: "Danışanlarım" }, { id: "pro-webinars", label: "Uygulayıcı Webinarları" }] : []),
+    { id: "practitioner", label: isPro ? "Admin" : "Uygulayıcı Ol" },
   ];
 
   async function saveProfile() {
