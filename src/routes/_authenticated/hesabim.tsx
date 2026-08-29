@@ -12,8 +12,10 @@ import { MySessionsTab } from "@/components/my-sessions";
 import { PractitionerWebinarsTab } from "@/components/practitioner-webinars";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
-  validateSearch: (s: Record<string, unknown>): { tab?: string } =>
-    typeof s.tab === "string" ? { tab: s.tab } : {},
+  validateSearch: (s: Record<string, unknown>): { tab?: string; panel?: string } => ({
+    ...(typeof s.tab === "string" ? { tab: s.tab } : {}),
+    ...(typeof s.panel === "string" ? { panel: s.panel } : {}),
+  }),
   head: () => ({
     meta: [
       { title: "Hesabım — PFA" },
