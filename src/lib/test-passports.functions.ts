@@ -218,7 +218,7 @@ export const ensureTestPassports = createServerFn({ method: "POST" })
                 client_used: 0,
                 referral_code: referral,
                 license_granted_at: new Date().toISOString(),
-                ...(spec.kind === "fellow" ? { subscription_status: "aktif" } : {}),
+                ...(spec.kind === "fellow" ? { subscription_status: "active" } : {}),
               });
               if (!error) {
                 inserted = true;
