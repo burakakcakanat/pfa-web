@@ -250,7 +250,7 @@ function AccountPage() {
                 replace: true,
               })
             }
-            clientsSlot={<ClientsTab />}
+            clientsSlot={<ClientsPanelSection />}
             webinarsSlot={<PractitionerWebinarsTab />}
           />
         )}
