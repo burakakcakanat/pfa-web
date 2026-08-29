@@ -376,7 +376,7 @@ export const countNewPractitionerApplications = createServerFn({ method: "GET" }
 // -------- KULLANICI DURUMU (Hesabım → Uygulayıcı) --------
 export type MyPractitionerState = {
   isPro: boolean;
-  /** Tek yetki kaynağı: pfa_pro entitlement (satın alma ile verilir). */
+  /** Tek yetki kaynağı: practitioner_accounts satırının varlığı (isim geriye dönük korundu). */
   hasProEntitlement: boolean;
   certificateStatus: "pending" | "issued" | "revoked" | null;
   directoryPublished: boolean;

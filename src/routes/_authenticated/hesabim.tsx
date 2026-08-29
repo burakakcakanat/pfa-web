@@ -105,9 +105,12 @@ function AccountPage() {
     fetchGifts().then((g) => setGifts((g ?? []) as unknown as MyGift[])).catch(() => setGifts([]));
   }, [fetchGifts]);
 
-  // Panel erişimi tek kaynağa bağlı: pfa_pro entitlement (admin istisnası korunur).
+  // Tek doğruluk kaynağı: roller (pro/fellow/admin). Entitlement geriye-dönük emniyet.
   const isPro =
-    entitlements.some((x) => x.type === "pfa_pro") || roles.includes("admin");
+    roles.includes("pro") ||
+    roles.includes("fellow") ||
+    roles.includes("admin") ||
+    entitlements.some((x) => x.type === "pfa_pro");
   const tabs = [
     ...TABS,
     { id: "practitioner", label: isPro ? "Admin" : "Uygulayıcı Ol" },
