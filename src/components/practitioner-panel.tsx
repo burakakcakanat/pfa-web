@@ -388,25 +388,16 @@ export function PractitionerPanelView({
         </>
       ) : null}
 
-      {active === "takvim" ? (
-        calendarSlot ?? (
-          <Section
-            title="Takvim & Müsaitlik"
-            hint="Seans saatleri şimdilik PFA tarafından yönetilir; kendi takviminiz yayına alındığında bu bölümde görünecek."
-          >
-            <p className="text-sm text-muted-foreground">
-              Müsaitlik saatleriniz henüz tanımlı değil. Seans saatlerinizi paylaşmak için PFA ile
-              iletişime geçebilirsiniz.
-            </p>
-            <Link to="/iletisim" className="mt-4 inline-block text-sm text-accent underline underline-offset-4">
-              İletişime geç →
-            </Link>
-          </Section>
-        )
-      ) : null}
+      {active === "takvim" ? calendarSlot ?? <AvailabilitySection /> : null}
 
       {active === "abonelik" ? (
-        isFellow ? (
+        isResident ? (
+          <Section title="PFA Ekibi" highlight>
+            <p className="text-sm text-foreground/85">
+              PFA ekibindesiniz — seans, ölçek ve ödemeleriniz PFA tarafından yönetilir.
+            </p>
+          </Section>
+        ) : isFellow ? (
           <Section
             title="Aboneliğim"
             hint="Abonelikten ayrılırsanız lisansınız 5 yıl daha geçerli kalır ve PFA Practitioner rozetine dönersiniz."
