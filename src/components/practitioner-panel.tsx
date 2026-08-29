@@ -90,10 +90,57 @@ const CERT_LABEL: Record<string, string> = {
   revoked: "İptal",
 };
 
-export function PractitionerPanelView({ onGoToClients }: { onGoToClients?: () => void }) {
+export type PanelSectionId =
+  | "genel"
+  | "danisanlar"
+  | "komisyonlar"
+  | "faturalar"
+  | "webinarlar"
+  | "takvim"
+  | "abonelik"
+  | "rehber";
+
+export const PANEL_SECTIONS: Array<{ id: PanelSectionId; label: string }> = [
+  { id: "genel", label: "Genel Bakış" },
+  { id: "danisanlar", label: "Danışanlar" },
+  { id: "komisyonlar", label: "Komisyonlar" },
+  { id: "faturalar", label: "Faturalar" },
+  { id: "webinarlar", label: "Webinarlar" },
+  { id: "takvim", label: "Takvim & Müsaitlik" },
+  { id: "abonelik", label: "Abonelik" },
+  { id: "rehber", label: "Rehber Kartım" },
+];
+
+export function PractitionerPanelView({
+  panel,
+  onPanelChange,
+  clientsSlot,
+  webinarsSlot,
+  guideSlot,
+  calendarSlot,
+}: {
+  panel?: string;
+  onPanelChange?: (id: PanelSectionId) => void;
+  clientsSlot?: ReactNode;
+  webinarsSlot?: ReactNode;
+  guideSlot?: ReactNode;
+  calendarSlot?: ReactNode;
+}) {
   const fetchPanel = useServerFn(getPractitionerPanel);
   const [data, setData] = useState<PractitionerPanel | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [localPanel, setLocalPanel] = useState<PanelSectionId>("genel");
+
+  const active: PanelSectionId =
+    (PANEL_SECTIONS.find((s) => s.id === panel)?.id as PanelSectionId | undefined) ?? localPanel;
+
+  const setActive = useCallback(
+    (id: PanelSectionId) => {
+      setLocalPanel(id);
+      onPanelChange?.(id);
+    },
+    [onPanelChange],
+  );
 
   const load = useCallback(async () => {
     try {
@@ -135,174 +182,220 @@ export function PractitionerPanelView({ onGoToClients }: { onGoToClients?: () =>
         ? fmtDate(addYears(data.licenseGrantedAt, 5))
         : "—";
 
+  const sections = PANEL_SECTIONS.map((s) =>
+    s.id === "abonelik" ? { ...s, label: isFellow ? "Abonelik" : "Fellow'a Yükselt" } : s,
+  );
+
   return (
     <div className="space-y-6">
-      {/* 1 — Lisans kartı */}
-      <Section
-        title="Lisansım"
-        hint="PFA Practitioner lisansı 5 yıl geçerlidir; beş yılın sonunda bir günlük tazeleme çalışmasına katılırsınız (Mart/Ekim)."
-        highlight
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              Rozet
-              {isFellow ? <InfoHint text={fellowHintText(data.fellowSubscriptionUsd)} /> : null}
-            </div>
-            <div className="mt-0.5">{badge}</div>
-          </div>
+      {/* Panel alt gezinmesi */}
+      <nav className="flex flex-wrap gap-2 rounded-lg border border-border bg-card p-2">
+        {sections.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => setActive(s.id)}
+            className={`rounded-md px-3 py-1.5 text-xs transition-colors ${
+              active === s.id
+                ? "bg-accent text-accent-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </nav>
 
-          <Row label="Veriliş" value={fmtDate(data.licenseGrantedAt)} />
-          <Row label="Geçerlilik" value={validUntil} />
-          <Row
-            label="Sertifika"
-            value={data.certificateStatus ? (CERT_LABEL[data.certificateStatus] ?? data.certificateStatus) : "Hazırlanıyor"}
-          />
-          <Row label="Sıradaki tazeleme penceresi" value={nextRefreshWindow()} />
-        </div>
-      </Section>
-
-      {/* 2 — Kota */}
-      <Section
-        title="Danışan Ölçeği Kotası"
-        hint="Lisansınızla verilen ücretsiz davet hakkı. Bittiğinde davetleriniz otomatik olarak 'danışan öder' moduna geçer — danışanınız %5 referans indirimiyle öder, size komisyon işler."
-      >
-        <div className="flex items-baseline justify-between">
-          <span className="font-serif text-2xl">
-            {data.quota.remaining} / {data.quota.total}
-          </span>
-          <span className="text-xs text-muted-foreground">{data.quota.used} kullanıldı</span>
-        </div>
-        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full bg-accent transition-all"
-            style={{
-              width: `${data.quota.total > 0 ? Math.min(100, (data.quota.remaining / data.quota.total) * 100) : 0}%`,
-            }}
-          />
-        </div>
-        {data.quota.total === 0 ? (
-          <p className="mt-3 text-xs text-muted-foreground">Henüz tanımlı bir kotanız yok.</p>
-        ) : null}
-        <div className="mt-4 flex flex-wrap gap-3">
-          {onGoToClients ? (
-            <button
-              type="button"
-              onClick={onGoToClients}
-              className="inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm text-accent-foreground"
-            >
-              Danışanlarım →
-            </button>
-          ) : null}
-          <Link to="/uygulayicilar" className="inline-flex items-center rounded-md border border-border px-4 py-2 text-sm">
-            Uygulayıcı Rehberi
-          </Link>
-        </div>
-      </Section>
-
-      {/* 3 — Referans kodum */}
-      <ReferralSection code={data.referralCode} />
-
-      {/* 4 — Cari Hesap */}
-      <Section title="Cari Hesap">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Row label="Bekleyen Komisyon Alacağı" value={moneyMap(data.pendingByCurrency)} />
-          <Row label="Toplam tahakkuk" value={moneyMap(data.earnedTotalByCurrency)} />
-        </div>
-
-        <div className="mt-4 rounded-md border border-border bg-background/60 px-3 py-2 text-xs text-muted-foreground">
-          Ekstre her ayın 8'inde kesilir · Fatura için son gün 15'i · Havale 22'sinde.
-        </div>
-
-        <div className="mt-5">
-          <div className="text-xs uppercase tracking-[0.2em] text-accent">Son hareketler</div>
-          {data.ledger.length === 0 ? (
-            <p className="mt-2 text-sm text-muted-foreground">Henüz komisyon hareketiniz yok.</p>
-          ) : (
-            <ul className="mt-2 divide-y divide-border rounded-md border border-border">
-              {data.ledger.slice(0, 12).map((l) => (
-                <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-xs">
-                  <span className="text-muted-foreground">{fmtDate(l.created_at)}</span>
-                  <span className="min-w-0 flex-1 truncate px-2">{l.product_slug ?? "—"}</span>
-                  <span className="text-muted-foreground">
-                    brüt {fmtMoney(l.gross_amount_cents, l.currency)} · %{l.commission_rate_pct}
-                  </span>
-                  <span className="font-medium">{fmtMoney(l.commission_amount_cents, l.currency)}</span>
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{l.status}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className="mt-5">
-          <div className="text-xs uppercase tracking-[0.2em] text-accent">Ekstre geçmişi</div>
-          {data.statements.length === 0 ? (
-            <p className="mt-2 text-sm text-muted-foreground">Henüz ekstreniz yok.</p>
-          ) : (
-            <ul className="mt-2 divide-y divide-border rounded-md border border-border">
-              {data.statements.map((s) => (
-                <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-xs">
-                  <span>
-                    {fmtDate(s.period_start)} – {fmtDate(s.period_end)}
-                  </span>
-                  <span className="font-medium">{fmtMoney(s.total_amount_cents, s.currency)}</span>
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{s.status}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </Section>
-
-      {/* 5 — Performansım */}
-      <Section title="Performansım">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Row label="Gönderilen davet" value={String(data.performance.invitesSent)} />
-          <Row label="Tamamlanan" value={String(data.performance.invitesCompleted)} />
-          <Row
-            label="Dönüşüm oranı"
-            value={
-              data.performance.invitesSent > 0
-                ? `${Math.round((data.performance.invitesCompleted / data.performance.invitesSent) * 100)}%`
-                : "—"
-            }
-          />
-          <Row label="Kazanılan komisyon (kümülatif)" value={moneyMap(data.earnedTotalByCurrency)} />
-          <Row label="Bu dönem" value={moneyMap(data.earnedPeriodByCurrency)} />
-        </div>
-        {data.performance.invitesSent === 0 ? (
-          <p className="mt-3 text-xs text-muted-foreground">
-            Henüz davet göndermediniz. Danışanlarım sekmesinden ilk davetinizi oluşturabilirsiniz.
-          </p>
-        ) : null}
-      </Section>
-
-      {/* PFAP-only: 7 & 8 */}
-      {!isFellow ? (
+      {active === "genel" ? (
         <>
-          <FellowUpgradeCard open={data.fellowRequestOpen} onChanged={load} />
-          <Section title="Rozet farkı">
-            {Object.keys(data.earnedPeriodByCurrency).length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Bu dönem henüz komisyon hareketiniz yok; hareket oluştuğunda Fellow rozetindeki
-                karşılığı burada görünür.
+          <Section
+            title="Lisansım"
+            hint="PFA Practitioner lisansı 5 yıl geçerlidir; beş yılın sonunda bir günlük tazeleme çalışmasına katılırsınız (Mart/Ekim)."
+            highlight
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  Rozet
+                  {isFellow ? <InfoHint text={fellowHintText(data.fellowSubscriptionUsd)} /> : null}
+                </div>
+                <div className="mt-0.5">{badge}</div>
+              </div>
+
+              <Row label="Veriliş" value={fmtDate(data.licenseGrantedAt)} />
+              <Row label="Geçerlilik" value={validUntil} />
+              <Row
+                label="Sertifika"
+                value={data.certificateStatus ? (CERT_LABEL[data.certificateStatus] ?? data.certificateStatus) : "Hazırlanıyor"}
+              />
+              <Row label="Sıradaki tazeleme penceresi" value={nextRefreshWindow()} />
+            </div>
+          </Section>
+
+          <Section
+            title="Danışan Ölçeği Kotası"
+            hint="Lisansınızla verilen ücretsiz davet hakkı. Bittiğinde davetleriniz otomatik olarak 'danışan öder' moduna geçer — danışanınız %5 referans indirimiyle öder, size komisyon işler."
+          >
+            <div className="flex items-baseline justify-between">
+              <span className="font-serif text-2xl">
+                {data.quota.remaining} / {data.quota.total}
+              </span>
+              <span className="text-xs text-muted-foreground">{data.quota.used} kullanıldı</span>
+            </div>
+            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-accent transition-all"
+                style={{
+                  width: `${data.quota.total > 0 ? Math.min(100, (data.quota.remaining / data.quota.total) * 100) : 0}%`,
+                }}
+              />
+            </div>
+            {data.quota.total === 0 ? (
+              <p className="mt-3 text-xs text-muted-foreground">Henüz tanımlı bir kotanız yok.</p>
+            ) : null}
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => setActive("danisanlar")}
+                className="inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm text-accent-foreground"
+              >
+                Danışanlar →
+              </button>
+              <Link to="/uygulayicilar" className="inline-flex items-center rounded-md border border-border px-4 py-2 text-sm">
+                Uygulayıcı Rehberi
+              </Link>
+            </div>
+          </Section>
+
+          <ReferralSection code={data.referralCode} />
+        </>
+      ) : null}
+
+      {active === "danisanlar" ? (
+        clientsSlot ?? (
+          <Section title="Danışanlar">
+            <p className="text-sm text-muted-foreground">Danışan yönetimi yüklenemedi.</p>
+          </Section>
+        )
+      ) : null}
+
+      {active === "komisyonlar" ? (
+        <>
+          <Section title="Cari Hesap">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Row label="Bekleyen Komisyon Alacağı" value={moneyMap(data.pendingByCurrency)} />
+              <Row label="Toplam tahakkuk" value={moneyMap(data.earnedTotalByCurrency)} />
+            </div>
+
+            <div className="mt-4 rounded-md border border-border bg-background/60 px-3 py-2 text-xs text-muted-foreground">
+              Ekstre her ayın 8'inde kesilir · Fatura için son gün 15'i · Havale 22'sinde.
+            </div>
+
+            <div className="mt-5">
+              <div className="text-xs uppercase tracking-[0.2em] text-accent">Son hareketler</div>
+              {data.ledger.length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">Henüz komisyon hareketiniz yok.</p>
+              ) : (
+                <ul className="mt-2 divide-y divide-border rounded-md border border-border">
+                  {data.ledger.slice(0, 12).map((l) => (
+                    <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-xs">
+                      <span className="text-muted-foreground">{fmtDate(l.created_at)}</span>
+                      <span className="min-w-0 flex-1 truncate px-2">{l.product_slug ?? "—"}</span>
+                      <span className="text-muted-foreground">
+                        brüt {fmtMoney(l.gross_amount_cents, l.currency)} · %{l.commission_rate_pct}
+                      </span>
+                      <span className="font-medium">{fmtMoney(l.commission_amount_cents, l.currency)}</span>
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{l.status}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </Section>
+
+          <Section title="Performansım">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Row label="Gönderilen davet" value={String(data.performance.invitesSent)} />
+              <Row label="Tamamlanan" value={String(data.performance.invitesCompleted)} />
+              <Row
+                label="Dönüşüm oranı"
+                value={
+                  data.performance.invitesSent > 0
+                    ? `${Math.round((data.performance.invitesCompleted / data.performance.invitesSent) * 100)}%`
+                    : "—"
+                }
+              />
+              <Row label="Kazanılan komisyon (kümülatif)" value={moneyMap(data.earnedTotalByCurrency)} />
+              <Row label="Bu dönem" value={moneyMap(data.earnedPeriodByCurrency)} />
+            </div>
+            {data.performance.invitesSent === 0 ? (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Henüz davet göndermediniz. Danışanlar bölümünden ilk davetinizi oluşturabilirsiniz.
               </p>
+            ) : null}
+          </Section>
+        </>
+      ) : null}
+
+      {active === "faturalar" ? (
+        <>
+          <BillingSection billing={data.billing} onSaved={load} />
+          <Section title="Ekstre geçmişi">
+            {data.statements.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Henüz ekstreniz yok.</p>
             ) : (
-              <ul className="space-y-1">
-                {Object.entries(data.earnedPeriodByCurrency).map(([cur, cents]) => (
-                  <li key={cur}>
-                    Bu dönem kazandığınız komisyon: <strong>{fmtMoney(cents, cur)}</strong> — Fellow
-                    rozetinde aynı satışlar <strong>{fmtMoney(cents * 2, cur)}</strong> ederdi.
+              <ul className="divide-y divide-border rounded-md border border-border">
+                {data.statements.map((s) => (
+                  <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-xs">
+                    <span>
+                      {fmtDate(s.period_start)} – {fmtDate(s.period_end)}
+                    </span>
+                    <span className="font-medium">{fmtMoney(s.total_amount_cents, s.currency)}</span>
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{s.status}</span>
                   </li>
                 ))}
               </ul>
             )}
           </Section>
         </>
-      ) : (
+      ) : null}
+
+      {active === "webinarlar" ? (
         <>
-          {/* Fellow-only: 9 */}
+          {isFellow ? (
+            <Section title="Gelişim webinarları">
+              <div className="rounded-md border border-accent/50 bg-accent/5 p-4">
+                <div className="text-sm font-medium text-accent">Programa dahil — ücretsiz katılın</div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Gelişim programına dahil uygulayıcı webinarlarına Fellow rozetinizle ücretsiz kayıt
+                  olabilirsiniz.
+                </p>
+              </div>
+            </Section>
+          ) : null}
+          {webinarsSlot}
+        </>
+      ) : null}
+
+      {active === "takvim" ? (
+        calendarSlot ?? (
+          <Section
+            title="Takvim & Müsaitlik"
+            hint="Seans saatleri şimdilik PFA tarafından yönetilir; kendi takviminiz yayına alındığında bu bölümde görünecek."
+          >
+            <p className="text-sm text-muted-foreground">
+              Müsaitlik saatleriniz henüz tanımlı değil. Seans saatlerinizi paylaşmak için PFA ile
+              iletişime geçebilirsiniz.
+            </p>
+            <Link to="/iletisim" className="mt-4 inline-block text-sm text-accent underline underline-offset-4">
+              İletişime geç →
+            </Link>
+          </Section>
+        )
+      ) : null}
+
+      {active === "abonelik" ? (
+        isFellow ? (
           <Section
             title="Aboneliğim"
             hint="Abonelikten ayrılırsanız lisansınız 5 yıl daha geçerli kalır ve PFA Practitioner rozetine dönersiniz."
@@ -324,22 +417,31 @@ export function PractitionerPanelView({ onGoToClients }: { onGoToClients?: () =>
               Abonelik işlemleri şimdilik PFA tarafından yürütülür.
             </p>
           </Section>
+        ) : (
+          <>
+            <FellowUpgradeCard open={data.fellowRequestOpen} onChanged={load} />
+            <Section title="Rozet farkı">
+              {Object.keys(data.earnedPeriodByCurrency).length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Bu dönem henüz komisyon hareketiniz yok; hareket oluştuğunda Fellow rozetindeki
+                  karşılığı burada görünür.
+                </p>
+              ) : (
+                <ul className="space-y-1">
+                  {Object.entries(data.earnedPeriodByCurrency).map(([cur, cents]) => (
+                    <li key={cur}>
+                      Bu dönem kazandığınız komisyon: <strong>{fmtMoney(cents, cur)}</strong> — Fellow
+                      rozetinde aynı satışlar <strong>{fmtMoney(cents * 2, cur)}</strong> ederdi.
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
+          </>
+        )
+      ) : null}
 
-          {/* Fellow-only: 10 */}
-          <Section title="Gelişim webinarları">
-            <div className="rounded-md border border-accent/50 bg-accent/5 p-4">
-              <div className="text-sm font-medium text-accent">Programa dahil — ücretsiz katılın</div>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Gelişim programına dahil uygulayıcı webinarlarına Fellow rozetinizle ücretsiz kayıt
-                olabilirsiniz.
-              </p>
-            </div>
-          </Section>
-        </>
-      )}
-
-      {/* 6 — Fatura bilgilerim */}
-      <BillingSection billing={data.billing} onSaved={load} />
+      {active === "rehber" ? guideSlot ?? null : null}
     </div>
   );
 }
