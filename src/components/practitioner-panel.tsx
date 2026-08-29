@@ -6,6 +6,7 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { InfoHint } from "@/components/info-hint";
+import { AvailabilitySection } from "@/components/practitioner-clients";
 import { fellowHintText } from "@/lib/fellow-hint";
 
 import {
