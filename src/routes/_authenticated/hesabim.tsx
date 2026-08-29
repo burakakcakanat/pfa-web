@@ -10,6 +10,7 @@ import { PractitionerAccountTab } from "@/components/practitioner-account";
 import { NewsletterTabAction } from "@/components/newsletter-row";
 import { MySessionsTab } from "@/components/my-sessions";
 import { PractitionerWebinarsTab } from "@/components/practitioner-webinars";
+import { ClientProfilesSection } from "@/components/practitioner-clients";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
   validateSearch: (s: Record<string, unknown>): { tab?: string; panel?: string } => ({
