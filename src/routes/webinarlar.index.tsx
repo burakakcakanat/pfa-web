@@ -99,19 +99,27 @@ const BLOCKS = [
   },
 ];
 
+type WebinarSessionCard = {
+  session: {
+    id: string;
+    title: string;
+    starts_at: string;
+    banner_url: string | null;
+    target_vertical?: string | null;
+  } | null;
+};
+
 function WebinarsPage() {
-  const loaded = Route.useLoaderData() as Record<
-    "bsc" | "pro",
-    {
-      session: {
-        id: string;
-        title: string;
-        starts_at: string;
-        banner_url: string | null;
-        target_vertical?: string | null;
-      } | null;
-    }
-  >;
+  const loaded = Route.useLoaderData() as {
+    bsc: WebinarSessionCard;
+    pro: WebinarSessionCard;
+    prices: CurrencyPriceMap;
+  };
+  // TR yüzey her zaman TRY; fiyatlar product_prices'tan gelir (sabit fiyat yok).
+  const priceLabel = (slug: string) => {
+    const p = priceFor(loaded.prices ?? {}, slug, "try");
+    return p ? fmtMoney(p.cents, p.currency) : null;
+  };
   return (
     <div className="container-page py-20">
       <header className="mx-auto max-w-3xl text-center">
@@ -134,7 +142,7 @@ function WebinarsPage() {
             <p className="mt-2 text-sm italic text-foreground/70">{b.subtitle}</p>
             <p className="mt-4 text-sm leading-relaxed text-foreground/80">{b.desc}</p>
             <div className="mt-6 flex items-center justify-between">
-              <div className="font-serif text-3xl">{"$" + b.price}</div>
+              <div className="font-serif text-3xl">{priceLabel(b.slug) ?? "Fiyat yakında"}</div>
               <Link to={b.to} className="btn-primary hover:btn-primary-hover">
                 Detay & Kayıt →
               </Link>
