@@ -17,7 +17,8 @@ import {
   setUsdPrice,
   syncFxNow,
 } from "@/lib/rates.functions";
-import { applyDiscount, fmtMoney, type Currency } from "@/lib/pricing";
+import { applyDiscount, fmtMoney, type Currency, type CurrencyPriceMap } from "@/lib/pricing";
+import { bookSlugFor, bundleComponents, resolveBundlePriceInCurrency } from "@/lib/bundles";
 
 type RateRow = {
   key: string;
