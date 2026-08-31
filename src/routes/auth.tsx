@@ -10,6 +10,7 @@ export const Route = createFileRoute("/auth")({
     meta: [
       { title: "Giriş Yap — PFA" },
       { name: "description", content: "PFA hesabınıza giriş yapın veya yeni bir hesap oluşturun." },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: AuthPage,
