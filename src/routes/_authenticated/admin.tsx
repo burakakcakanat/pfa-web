@@ -1281,15 +1281,25 @@ function UsersTab() {
   );
 }
 
+/**
+ * Kota gösterimi tek kurala bağlıdır: "kullanılan / toplam · Kalan: X".
+ * Girdiler aynı sırayı izler (kullanılan, toplam).
+ */
 function QuotaEdit({ quota, used, onSave }: { quota: number; used: number; onSave: (q: number, u: number) => void }) {
   const [q, setQ] = useState(quota);
   const [u, setU] = useState(used);
+  useEffect(() => { setQ(quota); setU(used); }, [quota, used]);
   return (
-    <div className="flex items-center gap-1">
-      <Input className="w-16" type="number" value={q} onChange={(e) => setQ(parseInt(e.target.value) || 0)} />
-      <span>/</span>
-      <Input className="w-16" type="number" value={u} onChange={(e) => setU(parseInt(e.target.value) || 0)} />
-      <Button size="sm" variant="outline" onClick={() => onSave(q, u)}>Kaydet</Button>
+    <div className="space-y-1">
+      <div className="text-xs tabular-nums">
+        {used} / {quota} <span className="text-muted-foreground">· Kalan: {Math.max(0, quota - used)}</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <Input className="w-16" type="number" value={u} onChange={(e) => setU(parseInt(e.target.value) || 0)} />
+        <span>/</span>
+        <Input className="w-16" type="number" value={q} onChange={(e) => setQ(parseInt(e.target.value) || 0)} />
+        <Button size="sm" variant="outline" onClick={() => onSave(q, u)}>Kaydet</Button>
+      </div>
     </div>
   );
 }
