@@ -1,8 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BuyButton } from "@/components/buy-button";
 import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
+import { getPublicPrices } from "@/lib/site-settings.functions";
+import { fmtMoney, priceFor, type CurrencyPriceMap } from "@/lib/pricing";
 
 export const Route = createFileRoute("/seanslar")({
+  loader: async () => ({
+    prices: await getPublicPrices({ data: { slugs: ["danismanlik-oturumu"] } }),
+  }),
   head: () => ({
     meta: [
       { title: "Seanslar — Birebir Danışmanlık | PFA" },
@@ -46,6 +51,9 @@ export const Route = createFileRoute("/seanslar")({
 });
 
 function SessionsPage() {
+  // Fiyat product_prices'tan; TR yüzeyde TRY.
+  const { prices } = Route.useLoaderData() as { prices: CurrencyPriceMap };
+  const sessionPrice = priceFor(prices ?? {}, "danismanlik-oturumu", "try");
 
   return (
     <div className="container-page py-20">
@@ -70,6 +78,14 @@ function SessionsPage() {
               <li>• Online (Zoom bağlantısı)</li>
               <li>• Europe/Istanbul saati</li>
             </ul>
+            {sessionPrice && (
+              <div className="mt-6 border-t border-border pt-6">
+                <div className="text-xs tracking-[0.25em] text-muted-foreground">FİYAT</div>
+                <div className="mt-2 font-serif text-3xl text-primary">
+                  {fmtMoney(sessionPrice.cents, sessionPrice.currency)}
+                </div>
+              </div>
+            )}
           </aside>
 
           <div className="bg-background p-8">

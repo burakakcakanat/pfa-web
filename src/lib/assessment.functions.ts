@@ -9,6 +9,21 @@ const AnswerSchema = z.object({
   value: z.number().int().min(1).max(5),
 });
 
+/**
+ * Aktif PFA Ölçeği madde sayısı (tanıtım metinleri sürüme göre konuşsun diye).
+ * Sabit sayı yazılmaz; kaynak assessment_questions.
+ */
+export const getActiveScaleItemCount = createServerFn({ method: "GET" }).handler(
+  async (): Promise<number> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { count } = await supabaseAdmin
+      .from("assessment_questions")
+      .select("id", { count: "exact", head: true })
+      .eq("active", true);
+    return count ?? 0;
+  },
+);
+
 export const saveAssessment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>

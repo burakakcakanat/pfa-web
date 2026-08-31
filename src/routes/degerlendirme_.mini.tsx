@@ -112,7 +112,7 @@ function MiniTestPage() {
         <div className="text-xs tracking-[0.3em] text-accent">MİNİ DEĞERLENDİRME</div>
         <h1 className="mt-3 font-serif text-3xl md:text-4xl">7 seviyede kısa bir bakış</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          35 soru. 5-8 dakika. Üyelik gerekmez; sonucunuzu hemen görürsünüz.
+          Yedi seviyeyi kapsayan kısa madde seti. 5-8 dakika. Üyelik gerekmez; sonucunuzu hemen görürsünüz.
         </p>
       </header>
       {started ? (

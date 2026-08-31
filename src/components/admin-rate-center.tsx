@@ -17,7 +17,8 @@ import {
   setUsdPrice,
   syncFxNow,
 } from "@/lib/rates.functions";
-import { applyDiscount, fmtMoney, type Currency } from "@/lib/pricing";
+import { applyDiscount, fmtMoney, type Currency, type CurrencyPriceMap } from "@/lib/pricing";
+import { bookSlugFor, bundleComponents, resolveBundlePriceInCurrency } from "@/lib/bundles";
 
 type RateRow = {
   key: string;
@@ -358,55 +359,103 @@ function ManualInput({ initial, onSave }: { initial: string; onSave: (v: string)
   );
 }
 
-/* ---------------- 2. Paket İndirimleri ---------------- */
+/* ---------------- 2. Paket Yönetimi ---------------- */
 
 function BundleDiscounts({ data, reload }: { data: Payload; reload: () => void }) {
   const save = useServerFn(setBundleDiscount);
-  const usdBySlug = useMemo(() => {
-    const m = new Map<string, number>();
+
+  // Çok para birimli fiyat haritası — kanonik fonksiyonun beklediği biçim.
+  const priceMap = useMemo(() => {
     const slugById = new Map<string, string>((data.products as any[]).map((p) => [p.id, p.slug]));
+    const m: CurrencyPriceMap = {};
     for (const r of data.prices as PriceRow[]) {
-      if (r.currency !== "usd" || !r.active) continue;
+      if (!r.active || !r.price_cents) continue;
       const slug = slugById.get(r.product_id);
-      if (slug) m.set(slug, r.price_cents);
+      if (!slug) continue;
+      (m[slug] ??= {})[r.currency as Currency] = r.price_cents;
     }
     return m;
   }, [data]);
 
+  const bookLangFor = (bookKey: string): "tr" | "en" => (bookKey === "hcd" ? "en" : "tr");
+
   return (
-    <Section title="Paket İndirimleri" desc="İndirim oranı düzenlenebilir; türetilen paket fiyatı önizlemedir (USD).">
-      <div className="space-y-2">
+    <Section
+      title="Paket Yönetimi"
+      desc="Tüm paketler bileşen toplamı − indirim modelindedir. Fiyatlar kanonik fonksiyonla türetilir (.90 bitişli); site, admin ve ödeme aynı değeri gösterir."
+    >
+      <div className="space-y-3">
         {(data.bundles as any[]).map((b) => {
-          const items = (data.bundleItems as any[]).filter((i) => i.bundle_id === b.id);
-          const subtotal = items.reduce((s, i) => s + (usdBySlug.get(i.product_slug) ?? 0) * (i.quantity ?? 1), 0);
-          const total = Math.max(0, subtotal - applyDiscount(subtotal, b.discount_percent));
+          const items = (data.bundleItems as any[])
+            .filter((i) => i.bundle_id === b.id)
+            .map((i) => ({ product_slug: i.product_slug, quantity: i.quantity ?? 1 }));
+          const lang = bookLangFor(b.book_key);
+          const shape = {
+            discount_percent: b.discount_percent ?? 0,
+            includes_book: !!b.includes_book,
+            book_key: b.book_key,
+            items,
+          };
+          const comps = bundleComponents(shape, lang);
+          const usd = resolveBundlePriceInCurrency(shape, priceMap, "usd", lang);
+          const try_ = resolveBundlePriceInCurrency(shape, priceMap, "try", lang);
           return (
-            <div key={b.id} className="flex flex-wrap items-center gap-3 rounded-md border border-border/70 px-3 py-2">
-              <span className="min-w-[220px] flex-1 text-sm">
-                {b.name_tr}
-                <span className="ml-2 text-[11px] text-muted-foreground">{b.slug}</span>
-              </span>
-              <PercentInput
-                initial={String(b.discount_percent ?? 0)}
-                onSave={async (v) => {
-                  const pct = Math.round(Number(v));
-                  if (!Number.isFinite(pct) || pct < 0 || pct > 100) return toast.error("0–100 arası bir oran girin");
-                  const old = Number(b.discount_percent ?? 0);
-                  if (old > 0 && Math.abs(pct - old) / old > 0.2) {
-                    if (!window.confirm(`Emin misiniz?\n${b.name_tr}\nEski: %${old} → Yeni: %${pct}`)) return;
-                  }
-                  try {
-                    await save({ data: { id: b.id, discount_percent: pct } });
-                    toast.success("İndirim kaydedildi");
-                    reload();
-                  } catch (e: any) {
-                    toast.error(e?.message ?? "Kaydedilemedi");
-                  }
-                }}
-              />
-              <span className="text-xs text-muted-foreground">
-                {fmtMoney(subtotal, "usd")} → <strong className="text-foreground">{fmtMoney(total, "usd")}</strong>
-              </span>
+            <div key={b.id} className="rounded-md border border-border/70 px-3 py-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="min-w-[220px] flex-1 text-sm">
+                  {b.name_tr}
+                  <span className="ml-2 text-[11px] text-muted-foreground">{b.slug}</span>
+                  {!b.active && (
+                    <Badge variant="secondary" className="ml-2 text-[10px]">
+                      pasif
+                    </Badge>
+                  )}
+                </span>
+                <PercentInput
+                  initial={String(b.discount_percent ?? 0)}
+                  onSave={async (v) => {
+                    const pct = Math.round(Number(v));
+                    if (!Number.isFinite(pct) || pct < 0 || pct > 100) return toast.error("0–100 arası bir oran girin");
+                    const old = Number(b.discount_percent ?? 0);
+                    if (old > 0 && Math.abs(pct - old) / old > 0.2) {
+                      if (!window.confirm(`Emin misiniz?\n${b.name_tr}\nEski: %${old} → Yeni: %${pct}`)) return;
+                    }
+                    try {
+                      await save({ data: { id: b.id, discount_percent: pct } });
+                      toast.success("İndirim kaydedildi");
+                      reload();
+                    } catch (e: any) {
+                      toast.error(e?.message ?? "Kaydedilemedi");
+                    }
+                  }}
+                />
+                <span className="text-xs tabular-nums text-muted-foreground">
+                  USD:{" "}
+                  <strong className="text-foreground">{usd ? fmtMoney(usd.cents, usd.currency) : "—"}</strong>
+                  {" · "}TRY:{" "}
+                  <strong className="text-foreground">
+                    {try_ && try_.currency === "try" ? fmtMoney(try_.cents, "try") : "—"}
+                  </strong>
+                </span>
+              </div>
+              <ul className="mt-2 space-y-1 text-[11px] text-muted-foreground">
+                {comps.map((c) => {
+                  const isBook = b.includes_book && c.slug === bookSlugFor(b.book_key, lang);
+                  return (
+                    <li key={c.slug} className="flex flex-wrap gap-2">
+                      <span className="min-w-[220px]">
+                        {c.slug}
+                        {c.quantity > 1 ? ` × ${c.quantity}` : ""}
+                        {isBook ? " (kitap)" : ""}
+                      </span>
+                      <span className="tabular-nums">
+                        USD {priceMap[c.slug]?.usd ? fmtMoney(priceMap[c.slug]!.usd!, "usd") : "—"} · TRY{" "}
+                        {priceMap[c.slug]?.try ? fmtMoney(priceMap[c.slug]!.try!, "try") : "—"}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           );
         })}

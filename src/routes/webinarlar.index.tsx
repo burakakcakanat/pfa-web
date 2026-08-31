@@ -1,14 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { getUpcomingWebinarForProduct } from "@/lib/site-settings.functions";
+import { getPublicPrices, getUpcomingWebinarForProduct } from "@/lib/site-settings.functions";
+import { fmtMoney, priceFor, type CurrencyPriceMap } from "@/lib/pricing";
 import { WebinarShowcaseStrip } from "@/components/webinar-showcase";
 
 export const Route = createFileRoute("/webinarlar/")({
   loader: async () => {
-    const [bsc, pro] = await Promise.all([
+    const [bsc, pro, prices] = await Promise.all([
       getUpcomingWebinarForProduct({ data: { slug: "bilinc-seviyeleri-calismalari" } }),
       getUpcomingWebinarForProduct({ data: { slug: "pfa-pro-lisans-paketi" } }),
+      getPublicPrices({
+        data: { slugs: ["bilinc-seviyeleri-calismalari", "pfa-pro-lisans-paketi"] },
+      }),
     ]);
-    return { bsc, pro };
+    return { bsc, pro, prices };
   },
   head: () => ({
     meta: [
@@ -79,7 +83,7 @@ const BLOCKS = [
     subtitle: "Kendi haritanızı okumayı öğrenin.",
     desc:
       "Yedi işlevsel seviyeye giriş; kendi yaşam örnekleriniz üzerinden uygulamalı bir gelişim programı.",
-    price: 150,
+    slug: "bilinc-seviyeleri-calismalari",
     key: "bsc" as const,
     to: "/webinarlar/bilinc-seviyeleri" as const,
   },
@@ -89,25 +93,33 @@ const BLOCKS = [
     subtitle: "PFA'yı danışanlarınızla uygulamak için eğitim + lisans + araçlar.",
     desc:
       "6 canlı oturum, dijital sertifika, Pro panel ve 20 danışan ölçeği hakkı.",
-    price: 450,
+    slug: "pfa-pro-lisans-paketi",
     key: "pro" as const,
     to: "/webinarlar/pfa-pro" as const,
   },
 ];
 
+type WebinarSessionCard = {
+  session: {
+    id: string;
+    title: string;
+    starts_at: string;
+    banner_url: string | null;
+    target_vertical?: string | null;
+  } | null;
+};
+
 function WebinarsPage() {
-  const loaded = Route.useLoaderData() as Record<
-    "bsc" | "pro",
-    {
-      session: {
-        id: string;
-        title: string;
-        starts_at: string;
-        banner_url: string | null;
-        target_vertical?: string | null;
-      } | null;
-    }
-  >;
+  const loaded = Route.useLoaderData() as {
+    bsc: WebinarSessionCard;
+    pro: WebinarSessionCard;
+    prices: CurrencyPriceMap;
+  };
+  // TR yüzey her zaman TRY; fiyatlar product_prices'tan gelir (sabit fiyat yok).
+  const priceLabel = (slug: string) => {
+    const p = priceFor(loaded.prices ?? {}, slug, "try");
+    return p ? fmtMoney(p.cents, p.currency) : null;
+  };
   return (
     <div className="container-page py-20">
       <header className="mx-auto max-w-3xl text-center">
@@ -130,7 +142,7 @@ function WebinarsPage() {
             <p className="mt-2 text-sm italic text-foreground/70">{b.subtitle}</p>
             <p className="mt-4 text-sm leading-relaxed text-foreground/80">{b.desc}</p>
             <div className="mt-6 flex items-center justify-between">
-              <div className="font-serif text-3xl">{"$" + b.price}</div>
+              <div className="font-serif text-3xl">{priceLabel(b.slug) ?? "Fiyat yakında"}</div>
               <Link to={b.to} className="btn-primary hover:btn-primary-hover">
                 Detay & Kayıt →
               </Link>

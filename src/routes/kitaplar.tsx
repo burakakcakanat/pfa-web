@@ -20,7 +20,7 @@ import {
   fmtUsd,
   isLive,
   MARKETPLACE_NAMES,
-  resolveBundlePrice,
+  resolveBundlePriceInCurrency,
 } from "@/lib/bundles";
 import hcdCover from "@/assets/hcd-cover.png.asset.json";
 
@@ -81,9 +81,10 @@ const PFA_META = {
   title: "Psycho-Functional Analysis",
   subtitle: "Bir Bilinç Haritası — Bekadan Aydınlanmaya",
   desc: "Yedi işlevsel seviye, yedi zekâ türü. Terapistler, koçlar, eğitimciler ve kendini anlamaya yola çıkmış herkes için bir yol bulma aracı.",
+  // Kapaklar kendi depomuzdan servis edilir (site-media kutusu, kalıcı adres).
   covers: {
-    tr: "https://static.wixstatic.com/media/db0c25_1409f60fe7f04746beef167966abdd57~mv2.png",
-    en: "https://static.wixstatic.com/media/db0c25_5566b0e9d34045899974c8ac7c564552~mv2.png",
+    tr: "/api/public/media/pfa-cover-tr.jpg",
+    en: "/api/public/media/pfa-cover-en.jpg",
   } as Record<"tr" | "en", string>,
 } as const;
 
@@ -466,12 +467,6 @@ function BundlesSection({
   const liveBundles = data.bundles.filter((b) => isLive(b));
   if (liveBundles.length === 0) return null;
 
-  const priceMap = useMemo(() => {
-    const m: Record<string, number> = {};
-    for (const p of data.products) m[p.slug] = p.price_cents;
-    return m;
-  }, [data.products]);
-
   return (
     <section className="border-t border-border pt-16">
       <div className="mx-auto max-w-2xl text-center">
@@ -487,7 +482,6 @@ function BundlesSection({
           <BundleRow
             key={b.id}
             bundle={b}
-            priceMap={priceMap}
             productBySlug={productBySlug}
             currency={currency}
             prices={data.prices}
@@ -502,7 +496,6 @@ function BundlesSection({
 
 function BundleRow({
   bundle,
-  priceMap,
   productBySlug,
   currency,
   prices,
@@ -510,7 +503,6 @@ function BundleRow({
   bundleShapes,
 }: {
   bundle: BooksPayload["bundles"][number];
-  priceMap: Record<string, number>;
   productBySlug: Map<string, BooksPayload["products"][number]>;
   currency: Currency;
   prices: BooksPayload["prices"];
@@ -518,43 +510,9 @@ function BundleRow({
   bundleShapes: BundleShape[];
 }) {
   const [lang, setLang] = useState<"tr" | "en">(bundle.book_key === "hcd" ? "en" : "tr");
-  const price = resolveBundlePrice(
-    {
-      pricing_mode: bundle.pricing_mode,
-      locked_to_product_slug: bundle.locked_to_product_slug,
-      discount_percent: bundle.discount_percent,
-      price_override_cents: bundle.price_override_cents,
-      includes_book: bundle.includes_book,
-      book_key: bundle.book_key,
-      items: bundle.items,
-    },
-    priceMap,
-    lang,
-  );
-
-  // Para birimi duyarlı paket fiyatı: liste toplamı − discount_percent.
-  // price_override_cents bilinçli olarak yok sayılır (tek para birimi varsayar).
-  const bundleSlugs = [
-    ...(bundle.includes_book ? [bookSlugFor(bundle.book_key, lang)] : []),
-    ...bundle.items.map((i) => i.product_slug),
-  ];
-  let ccy: Currency = currency;
-  let subtotal = 0;
-  let priced = true;
-  for (const s of bundleSlugs) {
-    const p = priceFor(prices, s, ccy);
-    if (!p) { priced = false; break; }
-    if (p.currency !== ccy) ccy = "usd";
-    subtotal += p.cents;
-  }
-  if (priced && ccy !== currency) {
-    subtotal = bundleSlugs.reduce((sum, s) => sum + (priceFor(prices, s, ccy)?.cents ?? 0), 0);
-  }
-  const bundleTotal = Math.max(
-    0,
-    subtotal - Math.round((subtotal * Math.max(0, Math.min(100, bundle.discount_percent || 0))) / 100),
-  );
-  const bundlePriceLabel = priced ? fmtMoney(bundleTotal, ccy) : fmtUsd(price);
+  // TEK doğruluk kaynağı: kanonik resolveBundlePriceInCurrency (src/lib/bundles.ts).
+  const resolved = resolveBundlePriceInCurrency(bundle, prices, currency, lang);
+  const bundlePriceLabel = resolved ? fmtMoney(resolved.cents, resolved.currency) : null;
 
   const hasSession = bundle.items.some((i) => i.product_slug === "danismanlik-oturumu");
   const hasAssessment = bundle.items.some((i) => i.product_slug === "tam-assessment-rapor");
@@ -629,7 +587,9 @@ function BundleRow({
           )}
 
           <div className="mt-6 flex flex-wrap items-baseline gap-4">
-            <div className="font-serif text-3xl text-primary">{bundlePriceLabel}</div>
+            <div className="font-serif text-3xl text-primary">
+              {bundlePriceLabel ?? "Fiyat yakında"}
+            </div>
           </div>
           {hasSession && (
             <p className="mt-2 text-xs text-muted-foreground">

@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { startCheckout } from "@/lib/checkout.functions";
 import { PAYMENTS_LIVE } from "@/lib/payments-config";
+import { resolveBundlePriceInCurrency } from "@/lib/bundles";
 import {
   addonSlugsForBook,
   applyDiscount,
@@ -103,8 +104,21 @@ export function CheckoutPanel({
     (mainPrice?.cents ?? 0) +
     selected.reduce((sum, s) => sum + (priceFor(prices, s, effCurrency)?.cents ?? 0), 0);
 
+  // Paket toplamı KANONİK fonksiyondan; indirim satırı türetilir.
   const match = matchBundleForSelection(bundles, bookKey, selected);
-  const discount = match ? applyDiscount(subtotal, match.discount_percent) : 0;
+  const canonical = match
+    ? resolveBundlePriceInCurrency(
+        match as never,
+        prices,
+        effCurrency,
+        productSlug.endsWith("-en") ? "en" : "tr",
+      )
+    : null;
+  const discount = canonical
+    ? Math.max(0, subtotal - canonical.cents)
+    : match
+      ? applyDiscount(subtotal, match.discount_percent)
+      : 0;
   const total = Math.max(0, subtotal - discount);
 
   if (!open) return null;

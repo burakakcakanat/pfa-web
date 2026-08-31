@@ -87,3 +87,33 @@ export const getFellowSubscriptionUsd = createServerFn({ method: "GET" }).handle
     return data?.value_numeric != null ? Number(data.value_numeric) : null;
   },
 );
+
+/**
+ * Tanıtım yüzeylerinde fiyat göstermek için çok para birimli fiyat haritası.
+ * Tek doğruluk kaynağı public.product_prices'tır; sayfalarda sabit fiyat yazılmaz.
+ */
+export const getPublicPrices = createServerFn({ method: "POST" })
+  .inputValidator((d: { slugs: string[] }) => d)
+  .handler(async ({ data }): Promise<Record<string, Partial<Record<string, number>>>> => {
+    const slugs = [...new Set((data.slugs ?? []).filter(Boolean))];
+    if (slugs.length === 0) return {};
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: prods } = await supabaseAdmin
+      .from("products")
+      .select("id, slug")
+      .in("slug", slugs);
+    const slugById = new Map((prods ?? []).map((p) => [p.id, p.slug]));
+    if (slugById.size === 0) return {};
+    const { data: rows } = await supabaseAdmin
+      .from("product_prices")
+      .select("product_id, currency, price_cents, active")
+      .in("product_id", [...slugById.keys()])
+      .eq("active", true);
+    const out: Record<string, Partial<Record<string, number>>> = {};
+    for (const r of rows ?? []) {
+      const slug = slugById.get(r.product_id);
+      if (!slug || !r.price_cents) continue;
+      (out[slug] ??= {})[r.currency] = r.price_cents;
+    }
+    return out;
+  });
