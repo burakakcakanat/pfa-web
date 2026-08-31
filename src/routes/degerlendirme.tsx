@@ -5,6 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { BuyButton } from "@/components/buy-button";
 import { useServerFn } from "@tanstack/react-start";
 import { resolveProInvite } from "@/lib/invites.functions";
+import { getPublicPrices } from "@/lib/site-settings.functions";
+import { getActiveScaleItemCount } from "@/lib/assessment.functions";
+import { fmtMoney, priceFor, type CurrencyPriceMap } from "@/lib/pricing";
 
 type InviteInfo = Awaited<ReturnType<typeof resolveProInvite>>;
 
@@ -13,13 +16,20 @@ export const Route = createFileRoute("/degerlendirme")({
     ...(typeof search.invite === "string" ? { invite: search.invite } : {}),
     ...(typeof search.ref === "string" ? { ref: search.ref.slice(0, 16) } : {}),
   }),
+  loader: async () => {
+    const [prices, itemCount] = await Promise.all([
+      getPublicPrices({ data: { slugs: ["tam-assessment-rapor"] } }),
+      getActiveScaleItemCount(),
+    ]);
+    return { prices, itemCount };
+  },
   head: () => ({
     meta: [
       { title: "PFA Bilinç Seviyeleri Ölçeği | PFA" },
       {
         name: "description",
         content:
-          "PFA Bilinç Seviyeleri Ölçeği: her bilinç seviyesi için 30 soru; farkındalığı işlevsel farkındalığa taşıyan değerlendirme aracı.",
+          "PFA Bilinç Seviyeleri Ölçeği: yedi bilinç seviyesini kapsayan madde havuzu; farkındalığı işlevsel farkındalığa taşıyan değerlendirme aracı.",
       },
       { property: "og:title", content: "PFA Bilinç Seviyeleri Ölçeği" },
       { property: "og:description", content: "PFA Bilinç Seviyeleri Ölçeği: bilinç seviyeleri için işlevsel değerlendirme aracı." },
@@ -32,6 +42,11 @@ export const Route = createFileRoute("/degerlendirme")({
 });
 
 function AssessmentPage() {
+  const { prices, itemCount } = Route.useLoaderData() as {
+    prices: CurrencyPriceMap;
+    itemCount: number;
+  };
+  const fullPrice = priceFor(prices ?? {}, "tam-assessment-rapor", "try");
   const [sent, setSent] = useState(false);
   const [hasFull, setHasFull] = useState(false);
   const { invite, ref } = Route.useSearch();
@@ -111,14 +126,16 @@ function AssessmentPage() {
           <div className="text-xs tracking-[0.25em] text-accent">ÜCRETSİZ</div>
           <h2 className="mt-2 font-serif text-2xl">Mini Test</h2>
           <p className="mt-3 text-sm text-foreground/80">
-            35 soru, 7 seviyede kısa bir görünüm. Sonucu görmek için ücretsiz üyelik gerekir.
+            {itemCount} madde, 7 seviyede kısa bir görünüm. Sonucu görmek için ücretsiz üyelik gerekir.
           </p>
           <Link to="/degerlendirme/mini" className="btn-primary mt-6 inline-block">
             Ücretsiz Mini Testi Başlat
           </Link>
         </div>
         <div className="rounded-lg border-2 border-accent/50 bg-accent/5 p-8">
-          <div className="text-xs uppercase tracking-[0.25em] text-accent">$29</div>
+          <div className="text-xs uppercase tracking-[0.25em] text-accent">
+            {fullPrice ? fmtMoney(fullPrice.cents, fullPrice.currency) : "Fiyat yakında"}
+          </div>
           <h2 className="mt-2 font-serif text-2xl">Tam Assessment + Bilinç Seviyesi Raporu</h2>
           <p className="mt-3 text-sm text-foreground/80">
             Tüm aktif sorular, seviye seviye ayrıntılı yorum, zeka türü skorları ve destek alınacak alanların derinlemesine haritası.
