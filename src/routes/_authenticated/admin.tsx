@@ -680,7 +680,7 @@ function ProductsTab() {
       for (const id of bundleDirtyIds) {
         const d = bundleDrafts[id]; const orig = bundleData.bundles.find((r) => r.id === id);
         const changed: any = { id };
-        for (const k of ["active","activate_at","sort_order","price_override_cents","discount_percent","name_tr","description_tr"]) {
+        for (const k of ["active","activate_at","sort_order","discount_percent","name_tr","description_tr"]) {
           if ((d[k] ?? null) !== (orig?.[k] ?? null)) changed[k] = d[k];
         }
         await upsertBundle({ data: changed });
@@ -851,12 +851,8 @@ function ProductsTab() {
   }, [rows]);
 
   const renderBundleForm = (b: any) => {
-    const auto = resolveBundlePrice(
-      { ...b, price_override_cents: null },
-      bundlePriceMap,
-      b.book_key === "hcd" ? "en" : "tr",
-    );
-    const override = bundleValue(b, "price_override_cents");
+    // Fiyat yönetimi Fiyat & Oran Merkezi'nde: burada yalnız içerik alanları var.
+    const auto = resolveBundlePrice(b, bundlePriceMap, b.book_key === "hcd" ? "en" : "tr");
     return (
       <div className="border-t border-border bg-muted/20 px-3 py-4">
         <div className="grid gap-3 md:grid-cols-2">
@@ -873,17 +869,9 @@ function ProductsTab() {
             <Textarea value={bundleValue(b, "description_tr") ?? ""} onChange={(e) => bundlePatch(b.id, "description_tr", e.target.value)} />
           </div>
           <div>
-            <Label>Otomatik hesaplanan fiyat</Label>
+            <Label>Türetilen fiyat (USD)</Label>
             <div className="mt-2 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">{fmtUsd(auto)}</div>
-          </div>
-          <div>
-            <Label>Fiyat (override) — boşsa otomatik</Label>
-            <PriceInput
-              cents={override}
-              nullable
-              placeholder="Otomatik"
-              onCommit={(cents) => bundlePatch(b.id, "price_override_cents", cents)}
-            />
+            <RateCentreLink />
           </div>
           <div>
             <Label>İndirim (%)</Label>
@@ -1018,7 +1006,7 @@ function ProductsTab() {
               const live = isLive({ active: !!bundleValue(b, "active"), activate_at: bundleValue(b, "activate_at") });
               const status = !bundleValue(b, "active") ? "pasif" : live ? "live" : "taslak";
               const price = resolveBundlePrice(
-                { ...b, price_override_cents: bundleValue(b, "price_override_cents"), discount_percent: bundleValue(b, "discount_percent") },
+                { ...b, discount_percent: bundleValue(b, "discount_percent") },
                 bundlePriceMap,
                 b.book_key === "hcd" ? "en" : "tr",
               );
