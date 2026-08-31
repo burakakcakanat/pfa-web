@@ -89,7 +89,7 @@ function AssessmentPage() {
           Resiflerde dalış yapan herkes anda ve farkındadır; ama yalnızca bir deniz
           biyoloğu hangi canlının neden renk değiştirdiğini görür. Bu fark,
           farkındalık ile işlevsel farkındalık arasındaki farktır. PFA Bilinç Seviyeleri Ölçeği bu
-          geçişin aracıdır. Her bilinç seviyesi için 30 soru; hangi seviyede işlev
+          geçişin aracıdır. Yedi bilinç seviyesini kapsayan {itemCount} maddelik havuz; hangi seviyede işlev
           aksadığını ve gelişimin nereden destek alacağını gösteren rapor. Bireysel
           gelişimden psikolojiye, eğitimden kurumsal seçme-yerleştirme-geliştirmeye
           uygulanabilir.
