@@ -2951,7 +2951,7 @@ function LicensesTab() {
                       reload();
                     }}
                   />
-                  <div className="mt-1 text-xs text-muted-foreground">Kalan: {r.remaining}</div>
+                  
                 </TableCell>
                 <TableCell className="text-xs">{r.invites_pending} / {r.invites_completed}</TableCell>
                 <TableCell>
