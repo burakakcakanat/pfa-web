@@ -5,14 +5,13 @@ import { WebinarShowcaseStrip } from "@/components/webinar-showcase";
 
 export const Route = createFileRoute("/webinarlar/")({
   loader: async () => {
-    const [bsc, pro, prices] = await Promise.all([
+    const [bsc, prices] = await Promise.all([
       getUpcomingWebinarForProduct({ data: { slug: "bilinc-seviyeleri-calismalari" } }),
-      getUpcomingWebinarForProduct({ data: { slug: "pfa-pro-lisans-paketi" } }),
       getPublicPrices({
-        data: { slugs: ["bilinc-seviyeleri-calismalari", "pfa-pro-lisans-paketi"] },
+        data: { slugs: ["bilinc-seviyeleri-calismalari"] },
       }),
     ]);
-    return { bsc, pro, prices };
+    return { bsc, prices };
   },
   head: () => ({
     meta: [
@@ -87,16 +86,6 @@ const BLOCKS = [
     key: "bsc" as const,
     to: "/webinarlar/bilinc-seviyeleri" as const,
   },
-  {
-    badge: "Profesyonel Uygulama İçin",
-    title: "PFA-Pro — Uygulayıcı Lisans Paketi",
-    subtitle: "PFA'yı danışanlarınızla uygulamak için eğitim + lisans + araçlar.",
-    desc:
-      "6 canlı oturum, dijital sertifika, Pro panel ve 20 danışan ölçeği hakkı.",
-    slug: "pfa-pro-lisans-paketi",
-    key: "pro" as const,
-    to: "/webinarlar/pfa-pro" as const,
-  },
 ];
 
 type WebinarSessionCard = {
@@ -112,7 +101,6 @@ type WebinarSessionCard = {
 function WebinarsPage() {
   const loaded = Route.useLoaderData() as {
     bsc: WebinarSessionCard;
-    pro: WebinarSessionCard;
     prices: CurrencyPriceMap;
   };
   // TR yüzey her zaman TRY; fiyatlar product_prices'tan gelir (sabit fiyat yok).
@@ -126,7 +114,7 @@ function WebinarsPage() {
         <div className="text-xs tracking-[0.3em] text-accent">WEBİNARLAR</div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">Programlar</h1>
         <p className="mt-6 text-sm text-muted-foreground">
-          İki farklı yolculuk: kendi haritanızı okumak ya da modeli danışanlarınızla uygulamak.
+          Kendi haritanızı okumak için canlı online gelişim programı.
         </p>
       </header>
 
@@ -150,6 +138,14 @@ function WebinarsPage() {
           </article>
         ))}
       </div>
+
+      <p className="mx-auto mt-14 max-w-3xl text-center text-sm text-muted-foreground">
+        Uygulayıcı olmak için{" "}
+        <Link to="/uygulayici-olun" className="underline underline-offset-4 hover:text-foreground">
+          Uygulayıcı Programı
+        </Link>
+        {" "}sayfasına göz atın.
+      </p>
     </div>
   );
 }
