@@ -14,6 +14,7 @@ import {
   type Currency,
   type CurrencyPriceMap,
 } from "@/lib/pricing";
+import { resolveBundlePriceInCurrency } from "@/lib/bundles";
 import { createProviderCheckout } from "@/lib/payment-provider.server";
 
 type AnyClient = SupabaseClient<any, any, any>;
@@ -110,7 +111,8 @@ export async function startCheckoutOnServer(
     lineItems.push({ slug: s, cents: p.cents });
   }
 
-  // Paket eşleştirme — indirim yalnızca discount_percent üzerinden.
+  // Paket eşleştirme — nihai paket fiyatı KANONİK fonksiyondan gelir
+  // (resolveBundlePriceInCurrency: bileşen toplamı − indirim → .90 yuvarlama).
   let bundleSlug: string | null = null;
   let discountCents = 0;
   if (addonSlugs.length > 0 && product.book_key) {
@@ -134,7 +136,15 @@ export async function startCheckoutOnServer(
     const match = matchBundleForSelection(shaped as any, product.book_key, addonSlugs);
     if (match) {
       bundleSlug = match.slug;
-      discountCents = applyDiscount(subtotal, match.discount_percent);
+      const canonical = resolveBundlePriceInCurrency(
+        match as any,
+        prices,
+        currency,
+        product.slug.endsWith("-en") ? "en" : "tr",
+      );
+      discountCents = canonical
+        ? Math.max(0, subtotal - canonical.cents)
+        : applyDiscount(subtotal, match.discount_percent);
     }
   }
 

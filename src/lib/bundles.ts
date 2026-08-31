@@ -1,5 +1,6 @@
 // Paylaşılan fiyat çözümleme ve Amazon URL yardımcıları.
 // Site, admin ve checkout aynı fonksiyonu kullanır.
+import type { Currency, CurrencyPriceMap } from "@/lib/pricing";
 
 export const AMAZON_DOMAINS: Record<string, string> = {
   us: "amazon.com",
@@ -81,17 +82,23 @@ export function isLive(row: { active: boolean | null; activate_at?: string | nul
   return new Date(row.activate_at).getTime() <= Date.now();
 }
 
-// Kuruş bazında .90 son ekli en yakın değere yuvarla.
-// round((c-90)/100)*100 + 90
+// Kuruş/cent bazında .90 son ekli en yakın değere yuvarla.
+// round((c-90)/100)*100 + 90 — TÜM para birimlerinde ve TÜM yüzeylerde geçerli.
 export function roundToNinety(cents: number): number {
-  return Math.round((cents - 90) / 100) * 100 + 90;
+  const v = Math.round((cents - 90) / 100) * 100 + 90;
+  return Math.max(90, v);
 }
 
+/**
+ * Paket fiyat girdisi. `pricing_mode`, `locked_to_product_slug` ve
+ * `price_override_cents` KULLANIM DIŞIDIR (kolonlar tabloda duruyor ama fiyat
+ * hesabına girmez): tüm paketler bileşen toplamı − indirim modelindedir.
+ */
 export type BundleForPricing = {
-  pricing_mode: "locked_to_product" | "sum_minus_percent";
-  locked_to_product_slug: string | null;
+  pricing_mode?: string | null;
+  locked_to_product_slug?: string | null;
   discount_percent: number;
-  price_override_cents: number | null;
+  price_override_cents?: number | null;
   includes_book: boolean;
   book_key: string;
   items: Array<{ product_slug: string; quantity: number }>;
@@ -99,35 +106,74 @@ export type BundleForPricing = {
 
 export type ProductPriceMap = Record<string, number>; // slug -> price_cents
 
+/** Paketin teslim ettiği tüm ürünler (kitap sürümü dâhil). */
+export function bundleComponents(
+  bundle: BundleForPricing,
+  bookLang: "tr" | "en" = "tr",
+): Array<{ slug: string; quantity: number }> {
+  const out = bundle.items.map((i) => ({
+    slug: i.product_slug,
+    quantity: i.quantity ?? 1,
+  }));
+  if (bundle.includes_book) {
+    const bookSlug = bookSlugFor(bundle.book_key, bookLang);
+    if (bookSlug) out.push({ slug: bookSlug, quantity: 1 });
+  }
+  return out;
+}
+
+function clampPct(pct: number): number {
+  return Math.max(0, Math.min(100, pct || 0));
+}
+
 /**
- * Bir paketin nihai kuruş fiyatını hesaplar.
- * @param bundle bundle satırı (+ items)
- * @param prices ürün slug → price_cents haritası (danismanlik-oturumu, tam-assessment-rapor, pfa-ebook-tr/en, hcd-ebook-en dâhil olmalı)
- * @param bookLang seçilen kitap dili (kitap dâhilse fiyatı bu dile göre eklenir)
+ * KANONİK paket fiyatı — site, admin ve checkout aynı fonksiyonu çağırır.
+ * taban = Σ(bileşen fiyatı × adet, istenen para biriminde) → − indirim → .90 yuvarlama.
+ * Bir bileşenin o para biriminde fiyatı yoksa USD'ye düşer; USD de yoksa null
+ * döner (eksik toplamla asla fiyat basılmaz).
+ */
+export function resolveBundlePriceInCurrency(
+  bundle: BundleForPricing,
+  prices: CurrencyPriceMap,
+  currency: Currency,
+  bookLang: "tr" | "en" = "tr",
+): { cents: number; currency: Currency } | null {
+  const comps = bundleComponents(bundle, bookLang);
+  if (comps.length === 0) return null;
+
+  const sumIn = (c: Currency): number | null => {
+    let sum = 0;
+    for (const it of comps) {
+      const v = prices[it.slug]?.[c];
+      if (typeof v !== "number" || v <= 0) return null;
+      sum += v * it.quantity;
+    }
+    return sum;
+  };
+
+  let ccy: Currency = currency;
+  let sum = sumIn(ccy);
+  if (sum == null && currency !== "usd") {
+    ccy = "usd";
+    sum = sumIn("usd");
+  }
+  if (sum == null) return null;
+
+  return { cents: roundToNinety(sum * (1 - clampPct(bundle.discount_percent) / 100)), currency: ccy };
+}
+
+/**
+ * Tek para birimli (USD) sarmalayıcı — sunucu tarafı eski çağrılar için.
+ * Kanonik fonksiyonu çağırır; fiyat çözülemezse 0 döner.
  */
 export function resolveBundlePrice(
   bundle: BundleForPricing,
   prices: ProductPriceMap,
   bookLang: "tr" | "en" = "tr",
 ): number {
-  if (bundle.price_override_cents != null) return bundle.price_override_cents;
-
-  if (bundle.pricing_mode === "locked_to_product") {
-    const slug = bundle.locked_to_product_slug ?? "";
-    return prices[slug] ?? 0;
-  }
-
-  // sum_minus_percent
-  let sum = 0;
-  for (const it of bundle.items) {
-    sum += (prices[it.product_slug] ?? 0) * (it.quantity ?? 1);
-  }
-  if (bundle.includes_book) {
-    const bookSlug = bookSlugFor(bundle.book_key, bookLang);
-    sum += prices[bookSlug] ?? 0;
-  }
-  const discounted = sum * (1 - (bundle.discount_percent ?? 0) / 100);
-  return roundToNinety(discounted);
+  const map: CurrencyPriceMap = {};
+  for (const [slug, cents] of Object.entries(prices)) map[slug] = { usd: cents };
+  return resolveBundlePriceInCurrency(bundle, map, "usd", bookLang)?.cents ?? 0;
 }
 
 export function bookSlugFor(bookKey: string, lang: "tr" | "en"): string {
