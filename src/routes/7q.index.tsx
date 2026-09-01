@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { SevenQCards } from "@/components/seven-q-cards";
 
 export const Route = createFileRoute("/7q/")({
   validateSearch: (search: Record<string, unknown>): { invite?: string } =>
