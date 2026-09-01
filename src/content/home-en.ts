@@ -17,7 +17,7 @@ export const HOME_COPY = {
     mapIntro:
       "Six core levels and one integrating level. All of them are active in everyone. PFA makes it possible to see which level needs regulating and which needs developing, so a person can orient themselves.",
     levels: [
-      { code: "L1", name: "Survival", intel: "Physical Intelligence (PQ)" },
+      { code: "L1", name: "Survival", intel: "Physiological Intelligence (PQ)" },
       { code: "L2", name: "Emotions / Memory", intel: "Emotional Intelligence (EQ)" },
       { code: "L3", name: "Rationality", intel: "Rational Intelligence (IQ)" },
       { code: "L4", name: "Meaning / Love", intel: "Love Intelligence (LQ)" },
