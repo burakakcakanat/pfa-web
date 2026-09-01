@@ -260,6 +260,7 @@ function OfferBlocks() {
           </span>
         </div>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-foreground/80">{C.sevenqDesc}</p>
+        <SevenQCards locale="en" />
       </div>
     </div>
   );
