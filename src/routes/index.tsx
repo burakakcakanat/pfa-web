@@ -287,40 +287,14 @@ function AudienceSection() {
 
 
 function IntelligencesStrip() {
-  const items = [1, 2, 3, 4, 5, 6, 7].map((lvl) => ({
-    lvl,
-    level: LEVEL_LABEL_TR[lvl],
-    intel: INTELLIGENCE_LABEL[LEVEL_TO_INTELLIGENCE[lvl]],
-    Icon: INTELLIGENCE_ICON[lvl],
-  }));
   return (
     <section className="container-page pb-10 pt-10 md:pb-14 md:pt-12">
       <div className="mx-auto max-w-4xl text-center">
         <div className="text-sm font-medium tracking-[0.3em] text-accent md:text-base">
           YEDİ SEVİYE, YEDİ ZEKÂ
         </div>
-        <ol className="mt-8 flex flex-wrap justify-center gap-3">
-          {items.map((it) => {
-            const Icon = it.Icon;
-            return (
-              <li
-                key={it.lvl}
-                className="group flex w-[calc(50%-0.375rem)] flex-col items-center justify-center rounded-lg border border-border/70 bg-card/70 px-3 py-4 text-center shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/60 hover:bg-card hover:shadow-[0_8px_22px_-14px_rgba(0,0,0,0.3)] sm:w-[calc(25%-0.5625rem)]"
-              >
-                <span className="flex items-center gap-1.5 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-accent/80">
-                  L{it.lvl}
-                  <span className="inline-block h-px w-4 bg-accent/40" />
-                </span>
-                <span className="mt-3 flex h-8 w-8 items-center justify-center rounded-md bg-accent/10 text-accent transition-colors group-hover:bg-accent/15">
-                  <Icon className="h-4 w-4" strokeWidth={1.5} />
-                </span>
-                <span className="mt-3 text-[0.72rem] font-medium leading-tight text-foreground/90">
-                  {it.intel}
-                </span>
-              </li>
-            );
-          })}
-        </ol>
+        <SevenQCards locale="tr" />
+
         <p className="mx-auto mt-6 max-w-2xl font-serif text-base leading-relaxed text-foreground/85 md:text-lg">
           Her seviyenin kendi zekâsı vardır; gelişim, bu zekâların birlikte
           akort edilmesidir.
