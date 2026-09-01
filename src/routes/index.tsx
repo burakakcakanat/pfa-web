@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import pfaMapAsset from "@/assets/pfa-torus-tr-map.png.asset.json";
 import heroStepsAsset from "@/assets/hero-steps.png.asset.json";
-import { INTELLIGENCE_LABEL, LEVEL_LABEL_TR, LEVEL_TO_INTELLIGENCE } from "@/lib/assessment-scoring";
-import { Dumbbell, Heart, Brain, Sparkles, Palette, BookOpen, Infinity as InfinityIcon, type LucideIcon } from "lucide-react";
+import { SevenQCards } from "@/components/seven-q-cards";
 import { alternateLinks } from "@/lib/i18n";
+
 
 const INTELLIGENCE_ICON: Record<number, LucideIcon> = {
   1: Dumbbell,
