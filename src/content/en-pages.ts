@@ -47,7 +47,7 @@ export const LEVELS_COPY = {
       {
         code: "L1",
         name: "Survival",
-        intel: "Physical Intelligence (PQ)",
+        intel: "Physiological Intelligence (PQ)",
         anchor: "Brain stem",
         body:
           "The oldest layer: breath, hunger, sleep, safety, the split between threat and resource. Its intelligence is the body's billions-of-years-old survival programme. It does not deliberate; it reacts — and it is right to. Everything else rises on the ground it provides.",
