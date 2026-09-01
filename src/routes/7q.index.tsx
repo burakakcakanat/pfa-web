@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { SevenQCards } from "@/components/seven-q-cards";
 
 export const Route = createFileRoute("/7q/")({
   validateSearch: (search: Record<string, unknown>): { invite?: string } =>
@@ -52,6 +53,13 @@ function SevenqIntro() {
         <InfoCard title="Ne kadar sürer?" body="Yaklaşık 15–20 dakika. Yanıtlar anında kaydedilir; yarıda bırakıp dönebilirsiniz." />
         <InfoCard title="Ne çıkar?" body="7Q skoru ve akort göstergesi, yedi seviye profili, beş kapasite radarı, seviye × kapasite haritası ve üç gelişim önerisi." />
       </div>
+
+      <div className="mx-auto mt-12 max-w-4xl text-center">
+        <div className="text-xs tracking-[0.3em] text-accent">YEDİ ZEKÂ</div>
+        <SevenQCards locale="tr" />
+      </div>
+
+
 
       <div className="mx-auto mt-12 max-w-3xl text-center">
         <Link to="/7q/form" search={{ invite }} className="btn-primary inline-block">

@@ -7,6 +7,7 @@ import { amazonUrlFor, bookSlugFor, fmtUsd, isLive, MARKETPLACE_NAMES_EN } from 
 import { HOME_COPY } from "@/content/home-en";
 import { SITE_URL, alternateLinksForEn } from "@/lib/i18n";
 import torusMap from "@/assets/torus-map-final-2.png.asset.json";
+import { SevenQCards } from "@/components/seven-q-cards";
 
 const C = HOME_COPY.en;
 const URL = `${SITE_URL}/en`;
@@ -259,6 +260,7 @@ function OfferBlocks() {
           </span>
         </div>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-foreground/80">{C.sevenqDesc}</p>
+        <SevenQCards locale="en" />
       </div>
     </div>
   );
