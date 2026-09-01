@@ -5,15 +5,6 @@ import { SevenQCards } from "@/components/seven-q-cards";
 import { alternateLinks } from "@/lib/i18n";
 
 
-const INTELLIGENCE_ICON: Record<number, LucideIcon> = {
-  1: Dumbbell,
-  2: Heart,
-  3: Brain,
-  4: Sparkles,
-  5: Palette,
-  6: BookOpen,
-  7: InfinityIcon,
-};
 
 export const Route = createFileRoute("/")({
   head: () => ({
