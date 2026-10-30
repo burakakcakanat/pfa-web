@@ -159,7 +159,8 @@ export function resolveBundlePriceInCurrency(
   }
   if (sum == null) return null;
 
-  return { cents: roundToNinety(sum * (1 - clampPct(bundle.discount_percent) / 100)), currency: ccy };
+  // Paket indirimi: taban (kitap dâhil) × (1 − %indirim), cent'e yuvarlanır.
+  return { cents: Math.round(sum * (1 - clampPct(bundle.discount_percent) / 100)), currency: ccy };
 }
 
 /**
