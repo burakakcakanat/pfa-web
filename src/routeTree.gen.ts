@@ -9,149 +9,73 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UygulayiciOlunRouteImport } from './routes/uygulayici-olun'
-import { Route as UygulayiciEkosistemiRouteImport } from './routes/uygulayici-ekosistemi'
-import { Route as UlkeLisansiRouteImport } from './routes/ulke-lisansi'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as SeanslarRouteImport } from './routes/seanslar'
-import { Route as McpRouteImport } from './routes/mcp'
-import { Route as KurumsalProgramLisansiRouteImport } from './routes/kurumsal-program-lisansi'
-import { Route as KurumsalLisansRouteImport } from './routes/kurumsal-lisans'
-import { Route as KullanimKosullariRouteImport } from './routes/kullanim-kosullari'
-import { Route as KitaplarRouteImport } from './routes/kitaplar'
-import { Route as IletisimRouteImport } from './routes/iletisim'
-import { Route as IadePolitikasiRouteImport } from './routes/iade-politikasi'
-import { Route as HakkindaRouteImport } from './routes/hakkinda'
-import { Route as GizlilikRouteImport } from './routes/gizlilik'
-import { Route as EgitimRouteImport } from './routes/egitim'
-import { Route as DegerlendirmeRouteImport } from './routes/degerlendirme'
-import { Route as BuyRouteImport } from './routes/buy'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as EnRouteRouteImport } from './routes/en/route'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as WebinarlarIndexRouteImport } from './routes/webinarlar.index'
-import { Route as UygulayicilarIndexRouteImport } from './routes/uygulayicilar.index'
-import { Route as EnIndexRouteImport } from './routes/en/index'
-import { Route as BlogIndexRouteImport } from './routes/blog.index'
-import { Route as R7qIndexRouteImport } from './routes/7q.index'
-import { Route as WebinarlarPfaProRouteImport } from './routes/webinarlar.pfa-pro'
-import { Route as WebinarlarBilincSeviyeleriRouteImport } from './routes/webinarlar.bilinc-seviyeleri'
-import { Route as UygulayicilarIdRouteImport } from './routes/uygulayicilar.$id'
-import { Route as HediyeTokenRouteImport } from './routes/hediye.$token'
-import { Route as EnTermsRouteImport } from './routes/en/terms'
-import { Route as EnRefundPolicyRouteImport } from './routes/en/refund-policy'
-import { Route as EnPrivacyRouteImport } from './routes/en/privacy'
-import { Route as EnLevelsRouteImport } from './routes/en/levels'
-import { Route as EnContactRouteImport } from './routes/en/contact'
-import { Route as EnBooksRouteImport } from './routes/en/books'
-import { Route as EnAboutRouteImport } from './routes/en/about'
-import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
-import { Route as BultenOnaylaRouteImport } from './routes/bulten.onayla'
-import { Route as BultenAyrilRouteImport } from './routes/bulten.ayril'
-import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
-import { Route as AuthSifreYenileRouteImport } from './routes/auth_.sifre-yenile'
-import { Route as AuthenticatedRaporFinalizeRouteImport } from './routes/_authenticated/rapor-finalize'
-import { Route as AuthenticatedHesabimRouteImport } from './routes/_authenticated/hesabim'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BuyRouteImport } from './routes/buy'
+import { Route as DegerlendirmeRouteImport } from './routes/degerlendirme'
+import { Route as EgitimRouteImport } from './routes/egitim'
+import { Route as EnRouteRouteImport } from './routes/en/route'
+import { Route as GizlilikRouteImport } from './routes/gizlilik'
+import { Route as HakkindaRouteImport } from './routes/hakkinda'
+import { Route as IadePolitikasiRouteImport } from './routes/iade-politikasi'
+import { Route as IletisimRouteImport } from './routes/iletisim'
+import { Route as KitaplarRouteImport } from './routes/kitaplar'
+import { Route as KullanimKosullariRouteImport } from './routes/kullanim-kosullari'
+import { Route as KurumsalLisansRouteImport } from './routes/kurumsal-lisans'
+import { Route as KurumsalProgramLisansiRouteImport } from './routes/kurumsal-program-lisansi'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as SeanslarRouteImport } from './routes/seanslar'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as UlkeLisansiRouteImport } from './routes/ulke-lisansi'
+import { Route as UygulayiciEkosistemiRouteImport } from './routes/uygulayici-ekosistemi'
+import { Route as UygulayiciOlunRouteImport } from './routes/uygulayici-olun'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
-import { Route as ApiPublicWebinarRemindersRouteImport } from './routes/api/public/webinar-reminders'
-import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
-import { Route as ApiPublicFxSyncRouteImport } from './routes/api/public/fx-sync'
-import { Route as AuthenticatedRaporSessionIdRouteImport } from './routes/_authenticated/rapor.$sessionId'
-import { Route as AuthenticatedDegerlendirmeTamRouteImport } from './routes/_authenticated/degerlendirme.tam'
-import { Route as Authenticated7qFormRouteImport } from './routes/_authenticated/7q.form'
-import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as R7qIndexRouteImport } from './routes/7q.index'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedHesabimRouteImport } from './routes/_authenticated/hesabim'
+import { Route as AuthenticatedRaporFinalizeRouteImport } from './routes/_authenticated/rapor-finalize'
+import { Route as AuthSifreYenileRouteImport } from './routes/auth_.sifre-yenile'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as BultenAyrilRouteImport } from './routes/bulten.ayril'
+import { Route as BultenOnaylaRouteImport } from './routes/bulten.onayla'
+import { Route as DegerlendirmeMiniRouteImport } from './routes/degerlendirme_.mini'
+import { Route as EnIndexRouteImport } from './routes/en/index'
+import { Route as EnAboutRouteImport } from './routes/en/about'
+import { Route as EnBooksRouteImport } from './routes/en/books'
+import { Route as EnContactRouteImport } from './routes/en/contact'
+import { Route as EnLevelsRouteImport } from './routes/en/levels'
+import { Route as EnPrivacyRouteImport } from './routes/en/privacy'
+import { Route as EnRefundPolicyRouteImport } from './routes/en/refund-policy'
+import { Route as EnTermsRouteImport } from './routes/en/terms'
+import { Route as HediyeTokenRouteImport } from './routes/hediye.$token'
+import { Route as UygulayicilarIndexRouteImport } from './routes/uygulayicilar.index'
+import { Route as UygulayicilarIdRouteImport } from './routes/uygulayicilar.$id'
+import { Route as WebinarlarIndexRouteImport } from './routes/webinarlar.index'
+import { Route as WebinarlarBilincSeviyeleriRouteImport } from './routes/webinarlar.bilinc-seviyeleri'
+import { Route as WebinarlarPfaProRouteImport } from './routes/webinarlar.pfa-pro'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
-import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
-import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
-import { Route as ApiPublicMediaFileRouteImport } from './routes/api/public/media/$file'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as Authenticated7qFormRouteImport } from './routes/_authenticated/7q.form'
+import { Route as AuthenticatedDegerlendirmeTamRouteImport } from './routes/_authenticated/degerlendirme.tam'
+import { Route as AuthenticatedRaporSessionIdRouteImport } from './routes/_authenticated/rapor.$sessionId'
+import { Route as ApiPublicFxSyncRouteImport } from './routes/api/public/fx-sync'
+import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
+import { Route as ApiPublicWebinarRemindersRouteImport } from './routes/api/public/webinar-reminders'
 import { Route as Authenticated7qRaporSessionIdRouteImport } from './routes/_authenticated/7q.rapor.$sessionId'
+import { Route as ApiPublicMediaFileRouteImport } from './routes/api/public/media/$file'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 
-const UygulayiciOlunRoute = UygulayiciOlunRouteImport.update({
-  id: '/uygulayici-olun',
-  path: '/uygulayici-olun',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const UygulayiciEkosistemiRoute = UygulayiciEkosistemiRouteImport.update({
-  id: '/uygulayici-ekosistemi',
-  path: '/uygulayici-ekosistemi',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const UlkeLisansiRoute = UlkeLisansiRouteImport.update({
-  id: '/ulke-lisansi',
-  path: '/ulke-lisansi',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SeanslarRoute = SeanslarRouteImport.update({
-  id: '/seanslar',
-  path: '/seanslar',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KurumsalProgramLisansiRoute = KurumsalProgramLisansiRouteImport.update({
-  id: '/kurumsal-program-lisansi',
-  path: '/kurumsal-program-lisansi',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KurumsalLisansRoute = KurumsalLisansRouteImport.update({
-  id: '/kurumsal-lisans',
-  path: '/kurumsal-lisans',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KullanimKosullariRoute = KullanimKosullariRouteImport.update({
-  id: '/kullanim-kosullari',
-  path: '/kullanim-kosullari',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KitaplarRoute = KitaplarRouteImport.update({
-  id: '/kitaplar',
-  path: '/kitaplar',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IletisimRoute = IletisimRouteImport.update({
-  id: '/iletisim',
-  path: '/iletisim',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IadePolitikasiRoute = IadePolitikasiRouteImport.update({
-  id: '/iade-politikasi',
-  path: '/iade-politikasi',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HakkindaRoute = HakkindaRouteImport.update({
-  id: '/hakkinda',
-  path: '/hakkinda',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GizlilikRoute = GizlilikRouteImport.update({
-  id: '/gizlilik',
-  path: '/gizlilik',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EgitimRoute = EgitimRouteImport.update({
-  id: '/egitim',
-  path: '/egitim',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DegerlendirmeRoute = DegerlendirmeRouteImport.update({
-  id: '/degerlendirme',
-  path: '/degerlendirme',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BuyRoute = BuyRouteImport.update({
-  id: '/buy',
-  path: '/buy',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -159,28 +83,157 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BuyRoute = BuyRouteImport.update({
+  id: '/buy',
+  path: '/buy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DegerlendirmeRoute = DegerlendirmeRouteImport.update({
+  id: '/degerlendirme',
+  path: '/degerlendirme',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EgitimRoute = EgitimRouteImport.update({
+  id: '/egitim',
+  path: '/egitim',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EnRouteRoute = EnRouteRouteImport.update({
   id: '/en',
   path: '/en',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const GizlilikRoute = GizlilikRouteImport.update({
+  id: '/gizlilik',
+  path: '/gizlilik',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const HakkindaRoute = HakkindaRouteImport.update({
+  id: '/hakkinda',
+  path: '/hakkinda',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WebinarlarIndexRoute = WebinarlarIndexRouteImport.update({
-  id: '/webinarlar/',
-  path: '/webinarlar/',
+const IadePolitikasiRoute = IadePolitikasiRouteImport.update({
+  id: '/iade-politikasi',
+  path: '/iade-politikasi',
   getParentRoute: () => rootRouteImport,
 } as any)
-const UygulayicilarIndexRoute = UygulayicilarIndexRouteImport.update({
-  id: '/uygulayicilar/',
-  path: '/uygulayicilar/',
+const IletisimRoute = IletisimRouteImport.update({
+  id: '/iletisim',
+  path: '/iletisim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KitaplarRoute = KitaplarRouteImport.update({
+  id: '/kitaplar',
+  path: '/kitaplar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KullanimKosullariRoute = KullanimKosullariRouteImport.update({
+  id: '/kullanim-kosullari',
+  path: '/kullanim-kosullari',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KurumsalLisansRoute = KurumsalLisansRouteImport.update({
+  id: '/kurumsal-lisans',
+  path: '/kurumsal-lisans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KurumsalProgramLisansiRoute = KurumsalProgramLisansiRouteImport.update({
+  id: '/kurumsal-program-lisansi',
+  path: '/kurumsal-program-lisansi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SeanslarRoute = SeanslarRouteImport.update({
+  id: '/seanslar',
+  path: '/seanslar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UlkeLisansiRoute = UlkeLisansiRouteImport.update({
+  id: '/ulke-lisansi',
+  path: '/ulke-lisansi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UygulayiciEkosistemiRoute = UygulayiciEkosistemiRouteImport.update({
+  id: '/uygulayici-ekosistemi',
+  path: '/uygulayici-ekosistemi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UygulayiciOlunRoute = UygulayiciOlunRouteImport.update({
+  id: '/uygulayici-olun',
+  path: '/uygulayici-olun',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const R7qIndexRoute = R7qIndexRouteImport.update({
+  id: '/7q/',
+  path: '/7q/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHesabimRoute = AuthenticatedHesabimRouteImport.update({
+  id: '/hesabim',
+  path: '/hesabim',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRaporFinalizeRoute =
+  AuthenticatedRaporFinalizeRouteImport.update({
+    id: '/rapor-finalize',
+    path: '/rapor-finalize',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthSifreYenileRoute = AuthSifreYenileRouteImport.update({
+  id: '/auth_/sifre-yenile',
+  path: '/auth/sifre-yenile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BultenAyrilRoute = BultenAyrilRouteImport.update({
+  id: '/bulten/ayril',
+  path: '/bulten/ayril',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BultenOnaylaRoute = BultenOnaylaRouteImport.update({
+  id: '/bulten/onayla',
+  path: '/bulten/onayla',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
+  id: '/degerlendirme_/mini',
+  path: '/degerlendirme/mini',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EnIndexRoute = EnIndexRouteImport.update({
@@ -188,19 +241,59 @@ const EnIndexRoute = EnIndexRouteImport.update({
   path: '/',
   getParentRoute: () => EnRouteRoute,
 } as any)
-const BlogIndexRoute = BlogIndexRouteImport.update({
-  id: '/blog/',
-  path: '/blog/',
+const EnAboutRoute = EnAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => EnRouteRoute,
+} as any)
+const EnBooksRoute = EnBooksRouteImport.update({
+  id: '/books',
+  path: '/books',
+  getParentRoute: () => EnRouteRoute,
+} as any)
+const EnContactRoute = EnContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => EnRouteRoute,
+} as any)
+const EnLevelsRoute = EnLevelsRouteImport.update({
+  id: '/levels',
+  path: '/levels',
+  getParentRoute: () => EnRouteRoute,
+} as any)
+const EnPrivacyRoute = EnPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => EnRouteRoute,
+} as any)
+const EnRefundPolicyRoute = EnRefundPolicyRouteImport.update({
+  id: '/refund-policy',
+  path: '/refund-policy',
+  getParentRoute: () => EnRouteRoute,
+} as any)
+const EnTermsRoute = EnTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => EnRouteRoute,
+} as any)
+const HediyeTokenRoute = HediyeTokenRouteImport.update({
+  id: '/hediye/$token',
+  path: '/hediye/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const R7qIndexRoute = R7qIndexRouteImport.update({
-  id: '/7q/',
-  path: '/7q/',
+const UygulayicilarIndexRoute = UygulayicilarIndexRouteImport.update({
+  id: '/uygulayicilar/',
+  path: '/uygulayicilar/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WebinarlarPfaProRoute = WebinarlarPfaProRouteImport.update({
-  id: '/webinarlar/pfa-pro',
-  path: '/webinarlar/pfa-pro',
+const UygulayicilarIdRoute = UygulayicilarIdRouteImport.update({
+  id: '/uygulayicilar/$id',
+  path: '/uygulayicilar/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WebinarlarIndexRoute = WebinarlarIndexRouteImport.update({
+  id: '/webinarlar/',
+  path: '/webinarlar/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WebinarlarBilincSeviyeleriRoute =
@@ -209,136 +302,15 @@ const WebinarlarBilincSeviyeleriRoute =
     path: '/webinarlar/bilinc-seviyeleri',
     getParentRoute: () => rootRouteImport,
   } as any)
-const UygulayicilarIdRoute = UygulayicilarIdRouteImport.update({
-  id: '/uygulayicilar/$id',
-  path: '/uygulayicilar/$id',
+const WebinarlarPfaProRoute = WebinarlarPfaProRouteImport.update({
+  id: '/webinarlar/pfa-pro',
+  path: '/webinarlar/pfa-pro',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HediyeTokenRoute = HediyeTokenRouteImport.update({
-  id: '/hediye/$token',
-  path: '/hediye/$token',
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
-} as any)
-const EnTermsRoute = EnTermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => EnRouteRoute,
-} as any)
-const EnRefundPolicyRoute = EnRefundPolicyRouteImport.update({
-  id: '/refund-policy',
-  path: '/refund-policy',
-  getParentRoute: () => EnRouteRoute,
-} as any)
-const EnPrivacyRoute = EnPrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => EnRouteRoute,
-} as any)
-const EnLevelsRoute = EnLevelsRouteImport.update({
-  id: '/levels',
-  path: '/levels',
-  getParentRoute: () => EnRouteRoute,
-} as any)
-const EnContactRoute = EnContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => EnRouteRoute,
-} as any)
-const EnBooksRoute = EnBooksRouteImport.update({
-  id: '/books',
-  path: '/books',
-  getParentRoute: () => EnRouteRoute,
-} as any)
-const EnAboutRoute = EnAboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => EnRouteRoute,
-} as any)
-const DegerlendirmeMiniRoute = DegerlendirmeMiniRouteImport.update({
-  id: '/degerlendirme_/mini',
-  path: '/degerlendirme/mini',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BultenOnaylaRoute = BultenOnaylaRouteImport.update({
-  id: '/bulten/onayla',
-  path: '/bulten/onayla',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BultenAyrilRoute = BultenAyrilRouteImport.update({
-  id: '/bulten/ayril',
-  path: '/bulten/ayril',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/blog/$slug',
-  path: '/blog/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthSifreYenileRoute = AuthSifreYenileRouteImport.update({
-  id: '/auth_/sifre-yenile',
-  path: '/auth/sifre-yenile',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRaporFinalizeRoute =
-  AuthenticatedRaporFinalizeRouteImport.update({
-    id: '/rapor-finalize',
-    path: '/rapor-finalize',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedHesabimRoute = AuthenticatedHesabimRouteImport.update({
-  id: '/hesabim',
-  path: '/hesabim',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const Char91DotmcpChar93ListToolsRoute =
-  Char91DotmcpChar93ListToolsRouteImport.update({
-    id: '/.mcp/list-tools',
-    path: '/.mcp/list-tools',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicWebinarRemindersRoute =
-  ApiPublicWebinarRemindersRouteImport.update({
-    id: '/api/public/webinar-reminders',
-    path: '/api/public/webinar-reminders',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
-  id: '/api/public/stripe-webhook',
-  path: '/api/public/stripe-webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicFxSyncRoute = ApiPublicFxSyncRouteImport.update({
-  id: '/api/public/fx-sync',
-  path: '/api/public/fx-sync',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRaporSessionIdRoute =
-  AuthenticatedRaporSessionIdRouteImport.update({
-    id: '/rapor/$sessionId',
-    path: '/rapor/$sessionId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedDegerlendirmeTamRoute =
-  AuthenticatedDegerlendirmeTamRouteImport.update({
-    id: '/degerlendirme/tam',
-    path: '/degerlendirme/tam',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const Authenticated7qFormRoute = Authenticated7qFormRouteImport.update({
-  id: '/7q/form',
-  path: '/7q/form',
-  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
@@ -346,14 +318,48 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
-const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
-  id: '/.lovable/oauth/consent',
-  path: '/.lovable/oauth/consent',
+const Authenticated7qFormRoute = Authenticated7qFormRouteImport.update({
+  id: '/7q/form',
+  path: '/7q/form',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDegerlendirmeTamRoute =
+  AuthenticatedDegerlendirmeTamRouteImport.update({
+    id: '/degerlendirme/tam',
+    path: '/degerlendirme/tam',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRaporSessionIdRoute =
+  AuthenticatedRaporSessionIdRouteImport.update({
+    id: '/rapor/$sessionId',
+    path: '/rapor/$sessionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiPublicFxSyncRoute = ApiPublicFxSyncRouteImport.update({
+  id: '/api/public/fx-sync',
+  path: '/api/public/fx-sync',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
-  id: '/lovable/email/auth/webhook',
-  path: '/lovable/email/auth/webhook',
+const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
+  id: '/api/public/stripe-webhook',
+  path: '/api/public/stripe-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWebinarRemindersRoute =
+  ApiPublicWebinarRemindersRouteImport.update({
+    id: '/api/public/webinar-reminders',
+    path: '/api/public/webinar-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Authenticated7qRaporSessionIdRoute =
+  Authenticated7qRaporSessionIdRouteImport.update({
+    id: '/7q/rapor/$sessionId',
+    path: '/7q/rapor/$sessionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiPublicMediaFileRoute = ApiPublicMediaFileRouteImport.update({
+  id: '/api/public/media/$file',
+  path: '/api/public/media/$file',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
@@ -361,17 +367,11 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicMediaFileRoute = ApiPublicMediaFileRouteImport.update({
-  id: '/api/public/media/$file',
-  path: '/api/public/media/$file',
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Authenticated7qRaporSessionIdRoute =
-  Authenticated7qRaporSessionIdRouteImport.update({
-    id: '/7q/rapor/$sessionId',
-    path: '/7q/rapor/$sessionId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -786,137 +786,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/uygulayici-olun': {
-      id: '/uygulayici-olun'
-      path: '/uygulayici-olun'
-      fullPath: '/uygulayici-olun'
-      preLoaderRoute: typeof UygulayiciOlunRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/uygulayici-ekosistemi': {
-      id: '/uygulayici-ekosistemi'
-      path: '/uygulayici-ekosistemi'
-      fullPath: '/uygulayici-ekosistemi'
-      preLoaderRoute: typeof UygulayiciEkosistemiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ulke-lisansi': {
-      id: '/ulke-lisansi'
-      path: '/ulke-lisansi'
-      fullPath: '/ulke-lisansi'
-      preLoaderRoute: typeof UlkeLisansiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/seanslar': {
-      id: '/seanslar'
-      path: '/seanslar'
-      fullPath: '/seanslar'
-      preLoaderRoute: typeof SeanslarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kurumsal-program-lisansi': {
-      id: '/kurumsal-program-lisansi'
-      path: '/kurumsal-program-lisansi'
-      fullPath: '/kurumsal-program-lisansi'
-      preLoaderRoute: typeof KurumsalProgramLisansiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kurumsal-lisans': {
-      id: '/kurumsal-lisans'
-      path: '/kurumsal-lisans'
-      fullPath: '/kurumsal-lisans'
-      preLoaderRoute: typeof KurumsalLisansRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kullanim-kosullari': {
-      id: '/kullanim-kosullari'
-      path: '/kullanim-kosullari'
-      fullPath: '/kullanim-kosullari'
-      preLoaderRoute: typeof KullanimKosullariRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kitaplar': {
-      id: '/kitaplar'
-      path: '/kitaplar'
-      fullPath: '/kitaplar'
-      preLoaderRoute: typeof KitaplarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/iletisim': {
-      id: '/iletisim'
-      path: '/iletisim'
-      fullPath: '/iletisim'
-      preLoaderRoute: typeof IletisimRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/iade-politikasi': {
-      id: '/iade-politikasi'
-      path: '/iade-politikasi'
-      fullPath: '/iade-politikasi'
-      preLoaderRoute: typeof IadePolitikasiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/hakkinda': {
-      id: '/hakkinda'
-      path: '/hakkinda'
-      fullPath: '/hakkinda'
-      preLoaderRoute: typeof HakkindaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gizlilik': {
-      id: '/gizlilik'
-      path: '/gizlilik'
-      fullPath: '/gizlilik'
-      preLoaderRoute: typeof GizlilikRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/egitim': {
-      id: '/egitim'
-      path: '/egitim'
-      fullPath: '/egitim'
-      preLoaderRoute: typeof EgitimRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/degerlendirme': {
-      id: '/degerlendirme'
-      path: '/degerlendirme'
-      fullPath: '/degerlendirme'
-      preLoaderRoute: typeof DegerlendirmeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/buy': {
-      id: '/buy'
-      path: '/buy'
-      fullPath: '/buy'
-      preLoaderRoute: typeof BuyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/en': {
-      id: '/en'
-      path: '/en'
-      fullPath: '/en'
-      preLoaderRoute: typeof EnRouteRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -926,186 +800,137 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/webinarlar/': {
-      id: '/webinarlar/'
-      path: '/webinarlar'
-      fullPath: '/webinarlar/'
-      preLoaderRoute: typeof WebinarlarIndexRouteImport
+    '/buy': {
+      id: '/buy'
+      path: '/buy'
+      fullPath: '/buy'
+      preLoaderRoute: typeof BuyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/uygulayicilar/': {
-      id: '/uygulayicilar/'
-      path: '/uygulayicilar'
-      fullPath: '/uygulayicilar/'
-      preLoaderRoute: typeof UygulayicilarIndexRouteImport
+    '/degerlendirme': {
+      id: '/degerlendirme'
+      path: '/degerlendirme'
+      fullPath: '/degerlendirme'
+      preLoaderRoute: typeof DegerlendirmeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/en/': {
-      id: '/en/'
-      path: '/'
-      fullPath: '/en/'
-      preLoaderRoute: typeof EnIndexRouteImport
-      parentRoute: typeof EnRouteRoute
-    }
-    '/blog/': {
-      id: '/blog/'
-      path: '/blog'
-      fullPath: '/blog/'
-      preLoaderRoute: typeof BlogIndexRouteImport
+    '/egitim': {
+      id: '/egitim'
+      path: '/egitim'
+      fullPath: '/egitim'
+      preLoaderRoute: typeof EgitimRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/7q/': {
-      id: '/7q/'
-      path: '/7q'
-      fullPath: '/7q/'
-      preLoaderRoute: typeof R7qIndexRouteImport
+    '/en': {
+      id: '/en'
+      path: '/en'
+      fullPath: '/en'
+      preLoaderRoute: typeof EnRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/webinarlar/pfa-pro': {
-      id: '/webinarlar/pfa-pro'
-      path: '/webinarlar/pfa-pro'
-      fullPath: '/webinarlar/pfa-pro'
-      preLoaderRoute: typeof WebinarlarPfaProRouteImport
+    '/gizlilik': {
+      id: '/gizlilik'
+      path: '/gizlilik'
+      fullPath: '/gizlilik'
+      preLoaderRoute: typeof GizlilikRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/webinarlar/bilinc-seviyeleri': {
-      id: '/webinarlar/bilinc-seviyeleri'
-      path: '/webinarlar/bilinc-seviyeleri'
-      fullPath: '/webinarlar/bilinc-seviyeleri'
-      preLoaderRoute: typeof WebinarlarBilincSeviyeleriRouteImport
+    '/hakkinda': {
+      id: '/hakkinda'
+      path: '/hakkinda'
+      fullPath: '/hakkinda'
+      preLoaderRoute: typeof HakkindaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/uygulayicilar/$id': {
-      id: '/uygulayicilar/$id'
-      path: '/uygulayicilar/$id'
-      fullPath: '/uygulayicilar/$id'
-      preLoaderRoute: typeof UygulayicilarIdRouteImport
+    '/iade-politikasi': {
+      id: '/iade-politikasi'
+      path: '/iade-politikasi'
+      fullPath: '/iade-politikasi'
+      preLoaderRoute: typeof IadePolitikasiRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/hediye/$token': {
-      id: '/hediye/$token'
-      path: '/hediye/$token'
-      fullPath: '/hediye/$token'
-      preLoaderRoute: typeof HediyeTokenRouteImport
+    '/iletisim': {
+      id: '/iletisim'
+      path: '/iletisim'
+      fullPath: '/iletisim'
+      preLoaderRoute: typeof IletisimRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/en/terms': {
-      id: '/en/terms'
-      path: '/terms'
-      fullPath: '/en/terms'
-      preLoaderRoute: typeof EnTermsRouteImport
-      parentRoute: typeof EnRouteRoute
-    }
-    '/en/refund-policy': {
-      id: '/en/refund-policy'
-      path: '/refund-policy'
-      fullPath: '/en/refund-policy'
-      preLoaderRoute: typeof EnRefundPolicyRouteImport
-      parentRoute: typeof EnRouteRoute
-    }
-    '/en/privacy': {
-      id: '/en/privacy'
-      path: '/privacy'
-      fullPath: '/en/privacy'
-      preLoaderRoute: typeof EnPrivacyRouteImport
-      parentRoute: typeof EnRouteRoute
-    }
-    '/en/levels': {
-      id: '/en/levels'
-      path: '/levels'
-      fullPath: '/en/levels'
-      preLoaderRoute: typeof EnLevelsRouteImport
-      parentRoute: typeof EnRouteRoute
-    }
-    '/en/contact': {
-      id: '/en/contact'
-      path: '/contact'
-      fullPath: '/en/contact'
-      preLoaderRoute: typeof EnContactRouteImport
-      parentRoute: typeof EnRouteRoute
-    }
-    '/en/books': {
-      id: '/en/books'
-      path: '/books'
-      fullPath: '/en/books'
-      preLoaderRoute: typeof EnBooksRouteImport
-      parentRoute: typeof EnRouteRoute
-    }
-    '/en/about': {
-      id: '/en/about'
-      path: '/about'
-      fullPath: '/en/about'
-      preLoaderRoute: typeof EnAboutRouteImport
-      parentRoute: typeof EnRouteRoute
-    }
-    '/degerlendirme_/mini': {
-      id: '/degerlendirme_/mini'
-      path: '/degerlendirme/mini'
-      fullPath: '/degerlendirme/mini'
-      preLoaderRoute: typeof DegerlendirmeMiniRouteImport
+    '/kitaplar': {
+      id: '/kitaplar'
+      path: '/kitaplar'
+      fullPath: '/kitaplar'
+      preLoaderRoute: typeof KitaplarRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/bulten/onayla': {
-      id: '/bulten/onayla'
-      path: '/bulten/onayla'
-      fullPath: '/bulten/onayla'
-      preLoaderRoute: typeof BultenOnaylaRouteImport
+    '/kullanim-kosullari': {
+      id: '/kullanim-kosullari'
+      path: '/kullanim-kosullari'
+      fullPath: '/kullanim-kosullari'
+      preLoaderRoute: typeof KullanimKosullariRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/bulten/ayril': {
-      id: '/bulten/ayril'
-      path: '/bulten/ayril'
-      fullPath: '/bulten/ayril'
-      preLoaderRoute: typeof BultenAyrilRouteImport
+    '/kurumsal-lisans': {
+      id: '/kurumsal-lisans'
+      path: '/kurumsal-lisans'
+      fullPath: '/kurumsal-lisans'
+      preLoaderRoute: typeof KurumsalLisansRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/$slug': {
-      id: '/blog/$slug'
-      path: '/blog/$slug'
-      fullPath: '/blog/$slug'
-      preLoaderRoute: typeof BlogSlugRouteImport
+    '/kurumsal-program-lisansi': {
+      id: '/kurumsal-program-lisansi'
+      path: '/kurumsal-program-lisansi'
+      fullPath: '/kurumsal-program-lisansi'
+      preLoaderRoute: typeof KurumsalProgramLisansiRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth_/sifre-yenile': {
-      id: '/auth_/sifre-yenile'
-      path: '/auth/sifre-yenile'
-      fullPath: '/auth/sifre-yenile'
-      preLoaderRoute: typeof AuthSifreYenileRouteImport
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/rapor-finalize': {
-      id: '/_authenticated/rapor-finalize'
-      path: '/rapor-finalize'
-      fullPath: '/rapor-finalize'
-      preLoaderRoute: typeof AuthenticatedRaporFinalizeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/seanslar': {
+      id: '/seanslar'
+      path: '/seanslar'
+      fullPath: '/seanslar'
+      preLoaderRoute: typeof SeanslarRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/hesabim': {
-      id: '/_authenticated/hesabim'
-      path: '/hesabim'
-      fullPath: '/hesabim'
-      preLoaderRoute: typeof AuthenticatedHesabimRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/ulke-lisansi': {
+      id: '/ulke-lisansi'
+      path: '/ulke-lisansi'
+      fullPath: '/ulke-lisansi'
+      preLoaderRoute: typeof UlkeLisansiRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+    '/uygulayici-ekosistemi': {
+      id: '/uygulayici-ekosistemi'
+      path: '/uygulayici-ekosistemi'
+      fullPath: '/uygulayici-ekosistemi'
+      preLoaderRoute: typeof UygulayiciEkosistemiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/uygulayici-olun': {
+      id: '/uygulayici-olun'
+      path: '/uygulayici-olun'
+      fullPath: '/uygulayici-olun'
+      preLoaderRoute: typeof UygulayiciOlunRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.mcp/list-tools': {
@@ -1115,53 +940,179 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/webinar-reminders': {
-      id: '/api/public/webinar-reminders'
-      path: '/api/public/webinar-reminders'
-      fullPath: '/api/public/webinar-reminders'
-      preLoaderRoute: typeof ApiPublicWebinarRemindersRouteImport
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/stripe-webhook': {
-      id: '/api/public/stripe-webhook'
-      path: '/api/public/stripe-webhook'
-      fullPath: '/api/public/stripe-webhook'
-      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
+    '/7q/': {
+      id: '/7q/'
+      path: '/7q'
+      fullPath: '/7q/'
+      preLoaderRoute: typeof R7qIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/fx-sync': {
-      id: '/api/public/fx-sync'
-      path: '/api/public/fx-sync'
-      fullPath: '/api/public/fx-sync'
-      preLoaderRoute: typeof ApiPublicFxSyncRouteImport
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/hesabim': {
+      id: '/_authenticated/hesabim'
+      path: '/hesabim'
+      fullPath: '/hesabim'
+      preLoaderRoute: typeof AuthenticatedHesabimRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/rapor-finalize': {
+      id: '/_authenticated/rapor-finalize'
+      path: '/rapor-finalize'
+      fullPath: '/rapor-finalize'
+      preLoaderRoute: typeof AuthenticatedRaporFinalizeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/auth_/sifre-yenile': {
+      id: '/auth_/sifre-yenile'
+      path: '/auth/sifre-yenile'
+      fullPath: '/auth/sifre-yenile'
+      preLoaderRoute: typeof AuthSifreYenileRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/rapor/$sessionId': {
-      id: '/_authenticated/rapor/$sessionId'
-      path: '/rapor/$sessionId'
-      fullPath: '/rapor/$sessionId'
-      preLoaderRoute: typeof AuthenticatedRaporSessionIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/degerlendirme/tam': {
-      id: '/_authenticated/degerlendirme/tam'
-      path: '/degerlendirme/tam'
-      fullPath: '/degerlendirme/tam'
-      preLoaderRoute: typeof AuthenticatedDegerlendirmeTamRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/7q/form': {
-      id: '/_authenticated/7q/form'
-      path: '/7q/form'
-      fullPath: '/7q/form'
-      preLoaderRoute: typeof Authenticated7qFormRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/bulten/ayril': {
+      id: '/bulten/ayril'
+      path: '/bulten/ayril'
+      fullPath: '/bulten/ayril'
+      preLoaderRoute: typeof BultenAyrilRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/.mcp/invoke-tool/$tool': {
-      id: '/.mcp/invoke-tool/$tool'
-      path: '/.mcp/invoke-tool/$tool'
-      fullPath: '/.mcp/invoke-tool/$tool'
-      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+    '/bulten/onayla': {
+      id: '/bulten/onayla'
+      path: '/bulten/onayla'
+      fullPath: '/bulten/onayla'
+      preLoaderRoute: typeof BultenOnaylaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/degerlendirme_/mini': {
+      id: '/degerlendirme_/mini'
+      path: '/degerlendirme/mini'
+      fullPath: '/degerlendirme/mini'
+      preLoaderRoute: typeof DegerlendirmeMiniRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/': {
+      id: '/en/'
+      path: '/'
+      fullPath: '/en/'
+      preLoaderRoute: typeof EnIndexRouteImport
+      parentRoute: typeof EnRouteRoute
+    }
+    '/en/about': {
+      id: '/en/about'
+      path: '/about'
+      fullPath: '/en/about'
+      preLoaderRoute: typeof EnAboutRouteImport
+      parentRoute: typeof EnRouteRoute
+    }
+    '/en/books': {
+      id: '/en/books'
+      path: '/books'
+      fullPath: '/en/books'
+      preLoaderRoute: typeof EnBooksRouteImport
+      parentRoute: typeof EnRouteRoute
+    }
+    '/en/contact': {
+      id: '/en/contact'
+      path: '/contact'
+      fullPath: '/en/contact'
+      preLoaderRoute: typeof EnContactRouteImport
+      parentRoute: typeof EnRouteRoute
+    }
+    '/en/levels': {
+      id: '/en/levels'
+      path: '/levels'
+      fullPath: '/en/levels'
+      preLoaderRoute: typeof EnLevelsRouteImport
+      parentRoute: typeof EnRouteRoute
+    }
+    '/en/privacy': {
+      id: '/en/privacy'
+      path: '/privacy'
+      fullPath: '/en/privacy'
+      preLoaderRoute: typeof EnPrivacyRouteImport
+      parentRoute: typeof EnRouteRoute
+    }
+    '/en/refund-policy': {
+      id: '/en/refund-policy'
+      path: '/refund-policy'
+      fullPath: '/en/refund-policy'
+      preLoaderRoute: typeof EnRefundPolicyRouteImport
+      parentRoute: typeof EnRouteRoute
+    }
+    '/en/terms': {
+      id: '/en/terms'
+      path: '/terms'
+      fullPath: '/en/terms'
+      preLoaderRoute: typeof EnTermsRouteImport
+      parentRoute: typeof EnRouteRoute
+    }
+    '/hediye/$token': {
+      id: '/hediye/$token'
+      path: '/hediye/$token'
+      fullPath: '/hediye/$token'
+      preLoaderRoute: typeof HediyeTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/uygulayicilar/': {
+      id: '/uygulayicilar/'
+      path: '/uygulayicilar'
+      fullPath: '/uygulayicilar/'
+      preLoaderRoute: typeof UygulayicilarIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/uygulayicilar/$id': {
+      id: '/uygulayicilar/$id'
+      path: '/uygulayicilar/$id'
+      fullPath: '/uygulayicilar/$id'
+      preLoaderRoute: typeof UygulayicilarIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/webinarlar/': {
+      id: '/webinarlar/'
+      path: '/webinarlar'
+      fullPath: '/webinarlar/'
+      preLoaderRoute: typeof WebinarlarIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/webinarlar/bilinc-seviyeleri': {
+      id: '/webinarlar/bilinc-seviyeleri'
+      path: '/webinarlar/bilinc-seviyeleri'
+      fullPath: '/webinarlar/bilinc-seviyeleri'
+      preLoaderRoute: typeof WebinarlarBilincSeviyeleriRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/webinarlar/pfa-pro': {
+      id: '/webinarlar/pfa-pro'
+      path: '/webinarlar/pfa-pro'
+      fullPath: '/webinarlar/pfa-pro'
+      preLoaderRoute: typeof WebinarlarPfaProRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.lovable/oauth/consent': {
@@ -1171,11 +1122,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/auth/webhook': {
-      id: '/lovable/email/auth/webhook'
-      path: '/lovable/email/auth/webhook'
-      fullPath: '/lovable/email/auth/webhook'
-      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/7q/form': {
+      id: '/_authenticated/7q/form'
+      path: '/7q/form'
+      fullPath: '/7q/form'
+      preLoaderRoute: typeof Authenticated7qFormRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/degerlendirme/tam': {
+      id: '/_authenticated/degerlendirme/tam'
+      path: '/degerlendirme/tam'
+      fullPath: '/degerlendirme/tam'
+      preLoaderRoute: typeof AuthenticatedDegerlendirmeTamRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/rapor/$sessionId': {
+      id: '/_authenticated/rapor/$sessionId'
+      path: '/rapor/$sessionId'
+      fullPath: '/rapor/$sessionId'
+      preLoaderRoute: typeof AuthenticatedRaporSessionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/fx-sync': {
+      id: '/api/public/fx-sync'
+      path: '/api/public/fx-sync'
+      fullPath: '/api/public/fx-sync'
+      preLoaderRoute: typeof ApiPublicFxSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/stripe-webhook': {
+      id: '/api/public/stripe-webhook'
+      path: '/api/public/stripe-webhook'
+      fullPath: '/api/public/stripe-webhook'
+      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/webinar-reminders': {
+      id: '/api/public/webinar-reminders'
+      path: '/api/public/webinar-reminders'
+      fullPath: '/api/public/webinar-reminders'
+      preLoaderRoute: typeof ApiPublicWebinarRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/7q/rapor/$sessionId': {
+      id: '/_authenticated/7q/rapor/$sessionId'
+      path: '/7q/rapor/$sessionId'
+      fullPath: '/7q/rapor/$sessionId'
+      preLoaderRoute: typeof Authenticated7qRaporSessionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/media/$file': {
+      id: '/api/public/media/$file'
+      path: '/api/public/media/$file'
+      fullPath: '/api/public/media/$file'
+      preLoaderRoute: typeof ApiPublicMediaFileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/auth/preview': {
@@ -1185,19 +1192,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/media/$file': {
-      id: '/api/public/media/$file'
-      path: '/api/public/media/$file'
-      fullPath: '/api/public/media/$file'
-      preLoaderRoute: typeof ApiPublicMediaFileRouteImport
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/7q/rapor/$sessionId': {
-      id: '/_authenticated/7q/rapor/$sessionId'
-      path: '/7q/rapor/$sessionId'
-      fullPath: '/7q/rapor/$sessionId'
-      preLoaderRoute: typeof Authenticated7qRaporSessionIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }

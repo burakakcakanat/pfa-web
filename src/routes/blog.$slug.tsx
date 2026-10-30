@@ -1,3 +1,4 @@
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import ReactMarkdown from "react-markdown";
 import { getBlogPost } from "@/lib/blog.functions";
@@ -143,12 +144,12 @@ function BlogPostPage() {
   );
 }
 
-function BlogPostError({ error, reset }: { error: Error; reset: () => void }) {
+function BlogPostError({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   return (
     <div className="container-page py-24 text-center">
       <h1 className="font-serif text-3xl">Bir sorun oluştu</h1>
-      <p className="mt-4 text-foreground/70">{error.message}</p>
+      <p className="mt-4 text-foreground/70">{error instanceof Error ? error.message : String(error)}</p>
       <button
         onClick={() => {
           reset();
