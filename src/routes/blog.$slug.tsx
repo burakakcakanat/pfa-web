@@ -1,3 +1,4 @@
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import ReactMarkdown from "react-markdown";
 import { getBlogPost } from "@/lib/blog.functions";
@@ -143,7 +144,7 @@ function BlogPostPage() {
   );
 }
 
-function BlogPostError({ error, reset }: { error: Error; reset: () => void }) {
+function BlogPostError({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   return (
     <div className="container-page py-24 text-center">
