@@ -8,3 +8,4 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Book waitlist discount logic lives only in `src/lib/waitlist.ts` (pure) and is applied in checkout for single-book orders; why: one source, never stacked on packages.

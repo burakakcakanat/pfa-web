@@ -20,6 +20,7 @@ import { Route as GizlilikRouteImport } from './routes/gizlilik'
 import { Route as HakkindaRouteImport } from './routes/hakkinda'
 import { Route as IadePolitikasiRouteImport } from './routes/iade-politikasi'
 import { Route as IletisimRouteImport } from './routes/iletisim'
+import { Route as ImzaliKitapRouteImport } from './routes/imzali-kitap'
 import { Route as KitaplarRouteImport } from './routes/kitaplar'
 import { Route as KullanimKosullariRouteImport } from './routes/kullanim-kosullari'
 import { Route as KurumsalLisansRouteImport } from './routes/kurumsal-lisans'
@@ -121,6 +122,11 @@ const IadePolitikasiRoute = IadePolitikasiRouteImport.update({
 const IletisimRoute = IletisimRouteImport.update({
   id: '/iletisim',
   path: '/iletisim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImzaliKitapRoute = ImzaliKitapRouteImport.update({
+  id: '/imzali-kitap',
+  path: '/imzali-kitap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KitaplarRoute = KitaplarRouteImport.update({
@@ -384,6 +390,7 @@ export interface FileRoutesByFullPath {
   '/hakkinda': typeof HakkindaRoute
   '/iade-politikasi': typeof IadePolitikasiRoute
   '/iletisim': typeof IletisimRoute
+  '/imzali-kitap': typeof ImzaliKitapRoute
   '/kitaplar': typeof KitaplarRoute
   '/kullanim-kosullari': typeof KullanimKosullariRoute
   '/kurumsal-lisans': typeof KurumsalLisansRoute
@@ -443,6 +450,7 @@ export interface FileRoutesByTo {
   '/hakkinda': typeof HakkindaRoute
   '/iade-politikasi': typeof IadePolitikasiRoute
   '/iletisim': typeof IletisimRoute
+  '/imzali-kitap': typeof ImzaliKitapRoute
   '/kitaplar': typeof KitaplarRoute
   '/kullanim-kosullari': typeof KullanimKosullariRoute
   '/kurumsal-lisans': typeof KurumsalLisansRoute
@@ -505,6 +513,7 @@ export interface FileRoutesById {
   '/hakkinda': typeof HakkindaRoute
   '/iade-politikasi': typeof IadePolitikasiRoute
   '/iletisim': typeof IletisimRoute
+  '/imzali-kitap': typeof ImzaliKitapRoute
   '/kitaplar': typeof KitaplarRoute
   '/kullanim-kosullari': typeof KullanimKosullariRoute
   '/kurumsal-lisans': typeof KurumsalLisansRoute
@@ -567,6 +576,7 @@ export interface FileRouteTypes {
     | '/hakkinda'
     | '/iade-politikasi'
     | '/iletisim'
+    | '/imzali-kitap'
     | '/kitaplar'
     | '/kullanim-kosullari'
     | '/kurumsal-lisans'
@@ -626,6 +636,7 @@ export interface FileRouteTypes {
     | '/hakkinda'
     | '/iade-politikasi'
     | '/iletisim'
+    | '/imzali-kitap'
     | '/kitaplar'
     | '/kullanim-kosullari'
     | '/kurumsal-lisans'
@@ -687,6 +698,7 @@ export interface FileRouteTypes {
     | '/hakkinda'
     | '/iade-politikasi'
     | '/iletisim'
+    | '/imzali-kitap'
     | '/kitaplar'
     | '/kullanim-kosullari'
     | '/kurumsal-lisans'
@@ -749,6 +761,7 @@ export interface RootRouteChildren {
   HakkindaRoute: typeof HakkindaRoute
   IadePolitikasiRoute: typeof IadePolitikasiRoute
   IletisimRoute: typeof IletisimRoute
+  ImzaliKitapRoute: typeof ImzaliKitapRoute
   KitaplarRoute: typeof KitaplarRoute
   KullanimKosullariRoute: typeof KullanimKosullariRoute
   KurumsalLisansRoute: typeof KurumsalLisansRoute
@@ -861,6 +874,13 @@ declare module '@tanstack/react-router' {
       path: '/iletisim'
       fullPath: '/iletisim'
       preLoaderRoute: typeof IletisimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/imzali-kitap': {
+      id: '/imzali-kitap'
+      path: '/imzali-kitap'
+      fullPath: '/imzali-kitap'
+      preLoaderRoute: typeof ImzaliKitapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kitaplar': {
@@ -1262,6 +1282,7 @@ const rootRouteChildren: RootRouteChildren = {
   HakkindaRoute: HakkindaRoute,
   IadePolitikasiRoute: IadePolitikasiRoute,
   IletisimRoute: IletisimRoute,
+  ImzaliKitapRoute: ImzaliKitapRoute,
   KitaplarRoute: KitaplarRoute,
   KullanimKosullariRoute: KullanimKosullariRoute,
   KurumsalLisansRoute: KurumsalLisansRoute,

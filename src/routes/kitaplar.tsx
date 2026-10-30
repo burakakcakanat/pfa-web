@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense, useMemo, useState } from "react";
@@ -376,6 +376,14 @@ function BookBuyLauncher(props: {
 }) {
   const [open, setOpen] = useState(false);
   if (!PAYMENTS_LIVE) {
+    // Tek kitap → bekleme listesi; paketler henüz bekleme listesine girmez.
+    if (!props.initialAddons?.length) {
+      return (
+        <Link to="/imzali-kitap" search={{ kitap: props.productSlug, kaynak: "kitaplar" }} className="btn-primary hover:btn-primary-hover">
+          Yerini ayırt · %10 indirim
+        </Link>
+      );
+    }
     return (
       <button
         type="button"
@@ -422,9 +430,13 @@ function GiftLauncher({
   const [open, setOpen] = useState(false);
   if (!PAYMENTS_LIVE) {
     return (
-      <span className="cursor-not-allowed text-xs text-muted-foreground/70">
-        Hediye Et · yakında
-      </span>
+      <Link
+        to="/imzali-kitap"
+        search={{ kitap: productSlug, hediye: "1", kaynak: "kitaplar" }}
+        className="text-xs text-foreground/70 underline decoration-accent decoration-1 underline-offset-4 hover:text-accent"
+      >
+        Hediye Et →
+      </Link>
     );
   }
   return (

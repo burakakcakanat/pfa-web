@@ -15,6 +15,7 @@ import {
   type CurrencyPriceMap,
 } from "@/lib/pricing";
 import { resolveBundlePriceInCurrency } from "@/lib/bundles";
+import { isWaitlistBook, waitlistDiscountCents, WAITLIST_DEFAULT_PCT, WAITLIST_RATE_KEY } from "@/lib/waitlist";
 import { createProviderCheckout } from "@/lib/payment-provider.server";
 
 type AnyClient = SupabaseClient<any, any, any>;
@@ -148,6 +149,35 @@ export async function startCheckoutOnServer(
     }
   }
 
+  // --- Bekleme listesi indirimi (yalnız tek kitap satırı, güncel fiyattan) ---
+  let waitlistCents = 0;
+  let waitlistId: string | null = null;
+  if (addonSlugs.length === 0 && isWaitlistBook(product.slug)) {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: wl } = await supabaseAdmin
+      .from("book_waitlist")
+      .select("id")
+      .eq("user_id", userId)
+      .in("status", ["waiting", "notified"])
+      .order("created_at")
+      .limit(1)
+      .maybeSingle();
+    if (wl) {
+      const { data: rate } = await supabaseAdmin
+        .from("system_rates")
+        .select("value_numeric")
+        .eq("key", WAITLIST_RATE_KEY)
+        .maybeSingle();
+      waitlistCents = waitlistDiscountCents(subtotal, {
+        productSlug: product.slug,
+        hasActiveWaitlist: true,
+        pct: Number(rate?.value_numeric ?? WAITLIST_DEFAULT_PCT),
+        hasAddons: false,
+      });
+      waitlistId = wl.id;
+    }
+  }
+
   // --- Uygulayıcı referans kodu -------------------------------------------
   // Genel çalışır: assessment tipindeki (ve slug'ında 7q geçen) TÜM ürünler.
   // Kod geçersizse sessizce yok sayılır: normal fiyat, referans yok.
@@ -171,12 +201,12 @@ export async function startCheckoutOnServer(
         .eq("key", "indirim.referral")
         .maybeSingle();
       referralPct = Number(rate?.value_numeric ?? 5);
-      referralCents = applyDiscount(subtotal - discountCents, referralPct);
+      referralCents = applyDiscount(subtotal - discountCents - waitlistCents, referralPct);
       referringPractitionerId = refEnt.user_id;
     }
   }
 
-  const total = Math.max(0, subtotal - discountCents - referralCents);
+  const total = Math.max(0, subtotal - discountCents - referralCents - waitlistCents);
 
   const bookLang: "tr" | "en" = product.slug.endsWith("-en") ? "en" : "tr";
   const metadata: Record<string, unknown> = {
@@ -188,6 +218,10 @@ export async function startCheckoutOnServer(
     book_lang: bookLang,
     is_gift: isGift,
   };
+  if (waitlistId) {
+    metadata.waitlist_id = waitlistId;
+    metadata.waitlist_discount_cents = waitlistCents;
+  }
   if (referringPractitionerId) {
     metadata.referring_practitioner_id = referringPractitionerId;
     metadata.referral_code = refCode;

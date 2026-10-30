@@ -328,6 +328,57 @@ export type Database = {
         }
         Relationships: []
       }
+      book_waitlist: {
+        Row: {
+          converted_order_id: string | null
+          created_at: string
+          dedication_name: string | null
+          gift_note: string | null
+          id: string
+          is_gift: boolean
+          notified_at: string | null
+          product_slug: string
+          recipient_email: string | null
+          recipient_name: string | null
+          source: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          converted_order_id?: string | null
+          created_at?: string
+          dedication_name?: string | null
+          gift_note?: string | null
+          id?: string
+          is_gift?: boolean
+          notified_at?: string | null
+          product_slug: string
+          recipient_email?: string | null
+          recipient_name?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          converted_order_id?: string | null
+          created_at?: string
+          dedication_name?: string | null
+          gift_note?: string | null
+          id?: string
+          is_gift?: boolean
+          notified_at?: string | null
+          product_slug?: string
+          recipient_email?: string | null
+          recipient_name?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bundle_items: {
         Row: {
           bundle_id: string
