@@ -112,7 +112,7 @@ export async function startCheckoutOnServer(
   }
 
   // Paket eşleştirme — nihai paket fiyatı KANONİK fonksiyondan gelir
-  // (resolveBundlePriceInCurrency: bileşen toplamı − indirim → .90 yuvarlama).
+  // (resolveBundlePriceInCurrency: bileşen toplamı + kitap − indirim → cent yuvarlama).
   let bundleSlug: string | null = null;
   let discountCents = 0;
   if (addonSlugs.length > 0 && product.book_key) {

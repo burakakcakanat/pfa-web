@@ -128,7 +128,7 @@ function clampPct(pct: number): number {
 
 /**
  * KANONİK paket fiyatı — site, admin ve checkout aynı fonksiyonu çağırır.
- * taban = Σ(bileşen fiyatı × adet, istenen para biriminde) → − indirim → .90 yuvarlama.
+ * taban = Σ(bileşen fiyatı × adet, istenen para biriminde) (+ includes_book ise e-kitap) → − indirim → cent yuvarlama.
  * Bir bileşenin o para biriminde fiyatı yoksa USD'ye düşer; USD de yoksa null
  * döner (eksik toplamla asla fiyat basılmaz).
  */
@@ -159,7 +159,8 @@ export function resolveBundlePriceInCurrency(
   }
   if (sum == null) return null;
 
-  return { cents: roundToNinety(sum * (1 - clampPct(bundle.discount_percent) / 100)), currency: ccy };
+  // Paket indirimi: taban (kitap dâhil) × (1 − %indirim), cent'e yuvarlanır.
+  return { cents: Math.round(sum * (1 - clampPct(bundle.discount_percent) / 100)), currency: ccy };
 }
 
 /**
