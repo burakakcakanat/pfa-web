@@ -11,6 +11,7 @@ import { NewsletterTabAction } from "@/components/newsletter-row";
 import { MySessionsTab } from "@/components/my-sessions";
 import { PractitionerWebinarsTab } from "@/components/practitioner-webinars";
 import { ClientProfilesSection } from "@/components/practitioner-clients";
+import { MyWaitlistTab } from "@/components/my-waitlist";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
   validateSearch: (s: Record<string, unknown>): { tab?: string; panel?: string } => ({
@@ -55,6 +56,7 @@ type ProInvite = {
 
 const TABS = [
   { id: "profile", label: "Profil" },
+  { id: "waitlist", label: "Taleplerim" },
   { id: "orders", label: "Satın Alımlarım" },
   { id: "sessions", label: "Seanslarım" },
   { id: "reports", label: "Raporlarım" },
@@ -244,6 +246,7 @@ function AccountPage() {
           </div>
         )}
 
+        {tab === "waitlist" && <MyWaitlistTab />}
         {tab === "sessions" && <MySessionsTab />}
         {tab === "practitioner" && (
           <PractitionerAccountTab

@@ -101,6 +101,7 @@ import {
 } from "@/lib/admin.functions";
 import { setProTier } from "@/lib/admin.functions";
 import { AdminCommissions } from "@/components/admin-commissions";
+import { AdminWaitlist } from "@/components/admin-waitlist";
 import { resolveBundlePrice, fmtUsd, MARKETPLACE_NAMES, AMAZON_DOMAINS } from "@/lib/bundles";
 import {
   refreshWebinarBannerUrl,
@@ -257,6 +258,7 @@ function AdminPage() {
             <TabsTrigger value="orders">Siparişler</TabsTrigger>
             <TabsTrigger value="commissions">Cari &amp; Ekstreler</TabsTrigger>
             <TabsTrigger value="purchase-inquiries">Satış Talepleri</TabsTrigger>
+            <TabsTrigger value="waitlist">Bekleme Listesi</TabsTrigger>
             <TabsTrigger value="settings">Site Ayarları</TabsTrigger>
             <TabsTrigger value="practitioners" className="relative">
               Uygulayıcılar
@@ -321,6 +323,7 @@ function AdminPage() {
                 <AdminSessionRequests />
               </div>
             </TabsContent>
+            <TabsContent value="waitlist"><TabIntro text="İsme imzalı kitap bekleme listesi. Kayıtlılara kitapta süresiz indirim (oran: Fiyat & Oran Merkezi → indirim.bekleme_listesi_kitap). Bildirim, kartlı ödeme açılınca aktifleşir." steps={["Talep", "Ödeme açıldı (bildir)", "Ödendi", "Kitap teslim"]} /><AdminWaitlist /></TabsContent>
             <TabsContent value="settings"><TabIntro text="Site geneli anahtarlar: sosyal linkler, bildirim e-postası, ödeme modu." /><SiteSettingsTab /></TabsContent>
             <TabsContent value="practitioners"><TabIntro text="Rehber kartları. 'Yayında' = Uygulayıcı Rehberi'nde görünür." /><PractitionersTab /></TabsContent>
             <TabsContent value="newsletter"><TabIntro text="Aboneler, sayılar ve gönderim. Şablon görseli her giden bültenin çerçevesidir." /><NewsletterTab /></TabsContent>
