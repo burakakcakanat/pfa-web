@@ -3,7 +3,7 @@
 export const WAITLIST_BOOKS = [
   { slug: "pfa-ebook-tr", label: "Psİko-Fonksİyonel Analİz (Türkçe)" },
   { slug: "pfa-ebook-en", label: "Psycho-Functional Analysis (İngilizce)" },
-  { slug: "hcd-ebook-en", label: "HCD (İngilizce)" },
+  { slug: "hcd-ebook-en", label: "Human Consciousness Decoded (İngilizce)" },
 ] as const;
 
 export type WaitlistBookSlug = (typeof WAITLIST_BOOKS)[number]["slug"];
