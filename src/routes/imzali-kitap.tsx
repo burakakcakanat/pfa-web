@@ -84,7 +84,7 @@ function WaitlistPage() {
   }
 
   return (
-    <main className="container mx-auto max-w-2xl px-5 py-14 md:py-20">
+    <div className="container mx-auto max-w-2xl px-5 py-14 md:py-20">
       {done ? (
         <div className="rounded-lg border border-accent/40 bg-card p-8 text-center">
           <p className="text-xs uppercase tracking-widest text-accent">Yeriniz ayrıldı</p>
@@ -130,6 +130,6 @@ function WaitlistPage() {
           </div>
         </>
       )}
-    </main>
+    </div>
   );
 }
