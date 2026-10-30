@@ -382,7 +382,7 @@ function BundleDiscounts({ data, reload }: { data: Payload; reload: () => void }
   return (
     <Section
       title="Paket Yönetimi"
-      desc="Tüm paketler bileşen toplamı − indirim modelindedir. Fiyatlar kanonik fonksiyonla türetilir (.90 bitişli); site, admin ve ödeme aynı değeri gösterir."
+      desc="Tüm paketler bileşen toplamı − indirim modelindedir. Taban = bileşenler + (varsa) e-kitap; indirim sonrası cent'e yuvarlanır; site, admin ve ödeme aynı değeri gösterir."
     >
       <div className="space-y-3">
         {(data.bundles as any[]).map((b) => {
