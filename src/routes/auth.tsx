@@ -28,33 +28,6 @@ function AuthPage() {
   const [resetSent, setResetSent] = useState(false);
   const [signupSent, setSignupSent] = useState(false);
 
-  if (signupSent) {
-    return (
-      <div className="container-page flex min-h-[70vh] items-center justify-center py-16">
-        <div className="w-full max-w-md rounded-lg border border-border bg-card p-8">
-          <h1 className="mb-3 font-serif text-2xl text-foreground">E-postanızı kontrol edin</h1>
-          <p className="text-sm text-foreground/80">
-            <strong>{email}</strong> adresine bir onay bağlantısı gönderdik. Hesabınızı
-            etkinleştirmek için bağlantıya tıklayın; ardından otomatik olarak giriş yapılır.
-          </p>
-          <p className="mt-3 text-xs text-muted-foreground">
-            E-posta birkaç dakika içinde gelmezse spam/gereksiz klasörüne bakın.
-          </p>
-          <button
-            type="button"
-            className="btn-primary mt-6 w-full"
-            onClick={() => {
-              setSignupSent(false);
-              setMode("signin");
-            }}
-          >
-            Giriş ekranına dön
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   async function onGoogle() {
     setError(null);
     try {
@@ -126,6 +99,33 @@ function AuthPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (signupSent) {
+    return (
+      <div className="container-page flex min-h-[70vh] items-center justify-center py-16">
+        <div className="w-full max-w-md rounded-lg border border-border bg-card p-8">
+          <h1 className="mb-3 font-serif text-2xl text-foreground">E-postanızı kontrol edin</h1>
+          <p className="text-sm text-foreground/80">
+            <strong>{email}</strong> adresine bir onay bağlantısı gönderdik. Hesabınızı
+            etkinleştirmek için bağlantıya tıklayın; ardından otomatik olarak giriş yapılır.
+          </p>
+          <p className="mt-3 text-xs text-muted-foreground">
+            E-posta birkaç dakika içinde gelmezse spam/gereksiz klasörüne bakın.
+          </p>
+          <button
+            type="button"
+            className="btn-primary mt-6 w-full"
+            onClick={() => {
+              setSignupSent(false);
+              setMode("signin");
+            }}
+          >
+            Giriş ekranına dön
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
