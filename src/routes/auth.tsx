@@ -26,6 +26,7 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resetSent, setResetSent] = useState(false);
+  const [signupSent, setSignupSent] = useState(false);
 
   async function onGoogle() {
     setError(null);
@@ -72,7 +73,7 @@ function AuthPage() {
         return;
       }
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -83,6 +84,10 @@ function AuthPage() {
           },
         });
         if (error) throw error;
+        if (!data.session) {
+          setSignupSent(true);
+          return;
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -90,10 +95,37 @@ function AuthPage() {
       const target = isSafeRedirect(redirect) ? redirect! : "/hesabim";
       navigate({ href: target, replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Bir hata oluştu.");
+      setError(trError(err));
     } finally {
       setLoading(false);
     }
+  }
+
+  if (signupSent) {
+    return (
+      <div className="container-page flex min-h-[70vh] items-center justify-center py-16">
+        <div className="w-full max-w-md rounded-lg border border-border bg-card p-8">
+          <h1 className="mb-3 font-serif text-2xl text-foreground">E-postanızı kontrol edin</h1>
+          <p className="text-sm text-foreground/80">
+            <strong>{email}</strong> adresine bir onay bağlantısı gönderdik. Hesabınızı
+            etkinleştirmek için bağlantıya tıklayın; ardından otomatik olarak giriş yapılır.
+          </p>
+          <p className="mt-3 text-xs text-muted-foreground">
+            E-posta birkaç dakika içinde gelmezse spam/gereksiz klasörüne bakın.
+          </p>
+          <button
+            type="button"
+            className="btn-primary mt-6 w-full"
+            onClick={() => {
+              setSignupSent(false);
+              setMode("signin");
+            }}
+          >
+            Giriş ekranına dön
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -250,4 +282,18 @@ function AuthPage() {
 function isSafeRedirect(v: string | undefined): boolean {
   if (!v) return false;
   return v.startsWith("/") && !v.startsWith("//");
+}
+function trError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : "";
+  const status = (err as { status?: number })?.status;
+  if (status === 429 || /security purposes|rate limit|too many/i.test(msg))
+    return "Onay e-postası az önce gönderildi. Lütfen gelen kutunuzu kontrol edin; tekrar denemek için bir dakika bekleyin.";
+  if (/invalid login credentials/i.test(msg)) return "E-posta veya şifre hatalı.";
+  if (/email not confirmed/i.test(msg))
+    return "E-posta adresiniz henüz onaylanmadı. Gelen kutunuzdaki onay bağlantısına tıklayın.";
+  if (/already registered|already exists/i.test(msg))
+    return "Bu e-posta ile zaten bir hesap var. Giriş yapmayı deneyin.";
+  if (/password/i.test(msg) && /(least|short|weak|pwned)/i.test(msg))
+    return "Şifre çok zayıf veya kısa. En az 8 karakterli, tahmin edilmesi zor bir şifre seçin.";
+  return msg || "Bir hata oluştu.";
 }
