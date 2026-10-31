@@ -283,3 +283,17 @@ function isSafeRedirect(v: string | undefined): boolean {
   if (!v) return false;
   return v.startsWith("/") && !v.startsWith("//");
 }
+function trError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : "";
+  const status = (err as { status?: number })?.status;
+  if (status === 429 || /security purposes|rate limit|too many/i.test(msg))
+    return "Onay e-postası az önce gönderildi. Lütfen gelen kutunuzu kontrol edin; tekrar denemek için bir dakika bekleyin.";
+  if (/invalid login credentials/i.test(msg)) return "E-posta veya şifre hatalı.";
+  if (/email not confirmed/i.test(msg))
+    return "E-posta adresiniz henüz onaylanmadı. Gelen kutunuzdaki onay bağlantısına tıklayın.";
+  if (/already registered|already exists/i.test(msg))
+    return "Bu e-posta ile zaten bir hesap var. Giriş yapmayı deneyin.";
+  if (/password/i.test(msg) && /(least|short|weak|pwned)/i.test(msg))
+    return "Şifre çok zayıf veya kısa. En az 8 karakterli, tahmin edilmesi zor bir şifre seçin.";
+  return msg || "Bir hata oluştu.";
+}
