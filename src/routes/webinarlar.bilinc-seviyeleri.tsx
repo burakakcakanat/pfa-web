@@ -49,9 +49,9 @@ export const Route = createFileRoute("/webinarlar/bilinc-seviyeleri")({
 
 const PROGRAM = [
   { t: "Harita ve Pusula", d: "Yedi seviyeye giriş, genişleme ve bütünleşme." },
-  { t: "Alt Katlar", d: "Beka, duygular ve bellek kayıtları — alarmı tanımak." },
-  { t: "Orta Katlar", d: "Akıl ve sevgi — analizden anlama." },
-  { t: "Üst Katlar", d: "Yaratıcılık, bilgelik, birlik — ve mini ölçeğinizi birlikte okumak." },
+  { t: "Alt Seviyeler", d: "Beka, duygular ve bellek kayıtları — alarmı tanımak." },
+  { t: "Orta Seviyeler", d: "Akıl ve sevgi — analizden anlama." },
+  { t: "Üst Seviyeler", d: "Yaratıcılık, bilgelik, birlik — ve mini ölçeğinizi birlikte okumak." },
 ];
 
 const KAZANIMLAR = [
