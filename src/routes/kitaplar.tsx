@@ -256,6 +256,30 @@ function BookBlock({
               </div>
             </div>
 
+            {!PAYMENTS_LIVE && paymentMode !== "card" && (
+              <div className="mt-4 flex flex-wrap items-start gap-4">
+                <PurchaseInquiryForm
+                  kind="ebook"
+                  productSlug={productSlug}
+                  productLabel={`${meta.title} — İsme İmzalı Dijital Nüsha`}
+                  buttonLabel="Havale ile Satın Al"
+                  hint="Hesabınızı açtığınız e-postayı yazın; dekont onayından sonra kitap hesabınıza iner."
+                  bookLang={meta.lang === "en" ? "en" : "tr"}
+                  offerAddon={false}
+                />
+                <PurchaseInquiryForm
+                  kind="ebook"
+                  gift
+                  productSlug={productSlug}
+                  productLabel={`${meta.title} — Hediye İmzalı Nüsha`}
+                  buttonLabel="Havale ile Hediye Et"
+                  hint="Kitap alıcının adına imzalanır; ödeme onayında alıcıya hediye bağlantısı gider."
+                  bookLang={meta.lang === "en" ? "en" : "tr"}
+                  offerAddon={false}
+                />
+              </div>
+            )}
+
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <BookBuyLauncher
                 productSlug={productSlug}
