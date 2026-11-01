@@ -300,6 +300,12 @@ export function AdminPurchaseInquiries() {
                       {r.metadata.badge_intent === "fellow" ? "PFA Fellow" : "PFA Practitioner"}
                     </span>
                   ) : null}
+                  {(r.metadata as Record<string, unknown> | null)?.is_gift ? (
+                    <div className="mt-1 text-xs text-accent">
+                      🎁 Hediye → {String((r.metadata as Record<string, unknown>).recipient_name ?? "")} ·{" "}
+                      {String((r.metadata as Record<string, unknown>).recipient_email ?? "")}
+                    </div>
+                  ) : null}
                 </TableCell>
                 <TableCell className="text-xs">{PURCHASE_KIND_LABEL[r.kind]}</TableCell>
 

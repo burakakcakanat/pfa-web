@@ -52,6 +52,15 @@ export const purchaseInquirySchema = z.object({
   // Optional badge-tier intent for practitioner license requests — persisted
   // into purchase_inquiries.metadata.badge_intent (admin-rendered only).
   badge_intent: z.enum(["practitioner", "fellow"]).optional(),
+  // Signed e-book bought as a gift (kind = "ebook" only).
+  gift: z
+    .object({
+      recipient_name: z.string().trim().min(2, { message: "Alıcının adını yazın." }).max(200),
+      recipient_email: z.string().trim().email({ message: "Alıcının e-posta adresini kontrol edin." }).max(200),
+      gift_note: z.string().trim().max(500).optional().default(""),
+    })
+    .nullable()
+    .optional(),
   // honeypot — must stay empty
   website_hp: z.string().max(0).optional().default(""),
 });

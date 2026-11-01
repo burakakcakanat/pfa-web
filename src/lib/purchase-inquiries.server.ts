@@ -120,7 +120,17 @@ export async function createPurchaseInquiry(
     fulfil_kind: addonBundleSlug ? "bundle" : "product",
     fulfil_slug: addonBundleSlug ?? data.product_slug,
     fulfil_book_lang: data.book_lang,
-    metadata: data.badge_intent ? { badge_intent: data.badge_intent } : {},
+    metadata: {
+      ...(data.badge_intent ? { badge_intent: data.badge_intent } : {}),
+      ...(data.kind === "ebook" && data.gift
+        ? {
+            is_gift: true,
+            recipient_name: data.gift.recipient_name,
+            recipient_email: data.gift.recipient_email.toLowerCase(),
+            gift_note: data.gift.gift_note || null,
+          }
+        : {}),
+    },
   } as never);
   if (insErr) throw new Error(insErr.message);
 

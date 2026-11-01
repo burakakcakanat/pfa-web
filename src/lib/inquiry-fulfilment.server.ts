@@ -119,7 +119,28 @@ export async function fulfilPurchaseInquiry(
   const entries: GrantedLogEntry[] = [];
   let already = 0;
 
+  // ---- gift: signed e-book goes to a recipient via the existing gift-claim flow ----
+  const inqMeta = (inq.metadata ?? {}) as Record<string, unknown>;
+  const isGift = inqMeta.is_gift === true;
+  const giftSlugs = new Set<string>();
+  let giftEmailed = false;
+  if (isGift) {
+    for (const slug of slugs) if (entitlementTypeForSlug(slug) === "ebook") giftSlugs.add(slug);
+    if (giftSlugs.size > 0 && !userId) {
+      throw new Error(
+        "Hediye için alıcı değil, satın alan kişinin hesabı gerekli. Talep e-postasıyla bir hesap açılmasını isteyin, sonra tekrar deneyin.",
+      );
+    }
+    for (const slug of giftSlugs) {
+      const r = await fulfilGift(inq, inqMeta, userId as string, slug, input.notify !== false);
+      if (r.already) already++;
+      if (r.emailed) giftEmailed = true;
+      entries.push({ type: "ebook_gift", slug });
+    }
+  }
+
   for (const slug of slugs) {
+    if (giftSlugs.has(slug)) continue;
     const type = entitlementTypeForSlug(slug) as EntitlementTypeName | null;
     if (!type) continue;
     const key = `${type}:${slug}`;
@@ -217,8 +238,8 @@ export async function fulfilPurchaseInquiry(
     .eq("id", inq.id);
   if (upErr) throw new Error(upErr.message);
 
-  let emailed = false;
-  if (input.notify !== false && entries.length > 0) {
+  let emailed = giftEmailed;
+  if (input.notify !== false && entries.some((e) => e.type !== "ebook_gift")) {
     try {
       emailed = await sendDeliveryEmail(inq, log);
     } catch (e) {
@@ -291,4 +312,114 @@ async function sendDeliveryEmail(
     }),
   });
   return res.ok;
+}
+
+
+/**
+ * Gift path for a bank-transfer e-book: records a paid manual order so the
+ * existing paid-order trigger creates the gift + claim token (same as card),
+ * then e-mails the recipient the claim link. Idempotent per (inquiry, slug).
+ */
+async function fulfilGift(
+  inq: AdminPurchaseInquiryRow,
+  meta: Record<string, unknown>,
+  buyerId: string,
+  slug: string,
+  notify: boolean,
+): Promise<{ already: boolean; emailed: boolean }> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const recipientName = String(meta.recipient_name ?? "").trim();
+  const recipientEmail = String(meta.recipient_email ?? "").trim().toLowerCase();
+  if (!recipientName || !recipientEmail) throw new Error("Hediye alıcısının adı / e-postası eksik.");
+
+  const { data: existing } = await supabaseAdmin
+    .from("orders")
+    .select("id")
+    .eq("provider", "manual")
+    .eq("provider_ref", `inquiry:${inq.id}:${slug}`)
+    .maybeSingle();
+  if (existing) return { already: true, emailed: false };
+
+  const { data: prod, error: pErr } = await supabaseAdmin
+    .from("products")
+    .select("id, name_tr, price_cents")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (pErr || !prod) throw new Error(`Ürün bulunamadı: ${slug}`);
+
+  const amountCents =
+    inq.transfer_amount != null ? Math.round(Number(inq.transfer_amount) * 100) : (prod.price_cents ?? 0);
+  const { data: order, error: oErr } = await supabaseAdmin
+    .from("orders")
+    .insert({
+      user_id: buyerId,
+      product_id: prod.id,
+      amount_cents: amountCents,
+      currency: (inq.transfer_currency || "TRY").toLowerCase(),
+      provider: "manual",
+      provider_ref: `inquiry:${inq.id}:${slug}`,
+      status: "pending",
+      locale: inq.locale,
+      metadata: {
+        source: "bank_transfer",
+        inquiry_id: inq.id,
+        is_gift: true,
+        recipient_name: recipientName,
+        recipient_email: recipientEmail,
+        gift_note: (meta.gift_note as string | null) ?? null,
+      },
+    } as never)
+    .select("id")
+    .single();
+  if (oErr || !order) throw new Error(oErr?.message ?? "Sipariş oluşturulamadı");
+  const { error: payErr } = await supabaseAdmin
+    .from("orders")
+    .update({ status: "paid" } as never)
+    .eq("id", order.id);
+  if (payErr) throw new Error(payErr.message);
+
+  const { data: gift } = await supabaseAdmin
+    .from("ebook_gifts")
+    .select("claim_token")
+    .eq("order_id", order.id)
+    .maybeSingle();
+  if (!gift?.claim_token) throw new Error("Hediye kaydı oluşmadı.");
+  if (!notify) return { already: false, emailed: false };
+
+  try {
+    const { sendEmail } = await import("@/lib/email/send.server");
+    const { renderEmail, esc } = await import("@/lib/email/templates");
+    const site = "https://psychofunctionalanalysis.com";
+    const link = `${site}/hediye/${gift.claim_token}`;
+    const note = (meta.gift_note as string | null) ?? "";
+    const body = `
+      <p>Merhaba ${esc(recipientName.split(/\s+/)[0] || recipientName)},</p>
+      <p><strong>${esc(inq.full_name)}</strong> size Burak Akçakanat'ın <strong>${esc(
+        (prod.name_tr as string) || slug,
+      )}</strong> kitabının adınıza imzalı dijital nüshasını hediye etti.</p>
+      ${note ? `<p style="font-style:italic">“${esc(note)}”</p>` : ""}
+      <p><a href="${link}">Hediyenizi almak için tıklayın</a>. Bu e-posta adresiyle (${esc(
+        recipientEmail,
+      )}) hesap açtığınızda kitap hesabınıza iner.</p>`;
+    await sendEmail({
+      to: recipientEmail,
+      subject: "Size imzalı bir kitap hediye edildi",
+      html: renderEmail({ title: "Size bir kitap hediye edildi", bodyHtml: body, ctaLabel: "Hediyemi al", ctaHref: link }),
+    });
+    // Buyer confirmation
+    await sendEmail({
+      to: inq.email,
+      subject: "Hediyeniz alıcıya gönderildi",
+      html: renderEmail({
+        title: "Ödemeniz alındı",
+        bodyHtml: `<p>Merhaba ${esc(inq.full_name)},</p><p>Ödemeniz alındı. Hediyeniz <strong>${esc(
+          recipientName,
+        )}</strong> (${esc(recipientEmail)}) adresine gönderildi. Hediye bağlantısını hesabınızdan da görebilirsiniz.</p>`,
+      }),
+    });
+    return { already: false, emailed: true };
+  } catch (e) {
+    console.error("[fulfil] gift e-mail failed", e);
+    return { already: false, emailed: false };
+  }
 }

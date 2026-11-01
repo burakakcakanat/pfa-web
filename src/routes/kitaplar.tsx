@@ -6,6 +6,8 @@ import { ClipboardList, MessagesSquare, Plus } from "lucide-react";
 import { CheckoutPanel } from "@/components/checkout-panel";
 import { GiftModal } from "@/components/gift-modal";
 import { PAYMENTS_LIVE } from "@/lib/payments-config";
+import { usePaymentMode } from "@/lib/payment-mode";
+import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 import {
   addonSlugsForBook,
   fmtMoney,
@@ -197,6 +199,7 @@ function BookBlock({
   const productSlug = bookSlugFor(meta.key, lang);
   const product = productBySlug.get(productSlug);
   const productLive = product ? isLive(product) : false;
+  const paymentMode = usePaymentMode();
 
   const editions = data.editions
     .filter((e) => e.book_key === meta.key && e.language === lang)
@@ -255,6 +258,30 @@ function BookBlock({
                 PDF ve EPUB formatlarının ikisi birden · İsme imzalı nüsha
               </div>
             </div>
+
+            {!PAYMENTS_LIVE && paymentMode !== "card" && (
+              <div className="mt-4 flex flex-wrap items-start gap-4">
+                <PurchaseInquiryForm
+                  kind="ebook"
+                  productSlug={productSlug}
+                  productLabel={`${meta.title} — İsme İmzalı Dijital Nüsha`}
+                  buttonLabel="Havale ile Satın Al"
+                  hint="Hesabınızı açtığınız e-postayı yazın; dekont onayından sonra kitap hesabınıza iner."
+                  bookLang={lang}
+                  offerAddon={false}
+                />
+                <PurchaseInquiryForm
+                  kind="ebook"
+                  gift
+                  productSlug={productSlug}
+                  productLabel={`${meta.title} — Hediye İmzalı Nüsha`}
+                  buttonLabel="Havale ile Hediye Et"
+                  hint="Kitap alıcının adına imzalanır; ödeme onayında alıcıya hediye bağlantısı gider."
+                  bookLang={lang}
+                  offerAddon={false}
+                />
+              </div>
+            )}
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <BookBuyLauncher

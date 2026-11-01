@@ -24,6 +24,10 @@ type Props = {
   bookLang?: "tr" | "en";
   /** Set false to suppress the optional package add-on (e.g. free flows). */
   offerAddon?: boolean;
+  /** Signed e-book bought as a gift: asks for the recipient. */
+  gift?: boolean;
+  /** Helper line under the closed button. */
+  hint?: string;
 };
 
 const inputCls =
@@ -40,6 +44,8 @@ export function PurchaseInquiryForm({
   locale = "tr",
   bookLang,
   offerAddon = true,
+  gift = false,
+  hint,
 }: Props) {
   const submit = useServerFn(submitPurchaseInquiry);
   const fetchOffer = useServerFn(getAddonOffer);
@@ -57,11 +63,14 @@ export function PurchaseInquiryForm({
   const [slot, setSlot] = useState(slotDefault);
   const [message, setMessage] = useState("");
   const [hp, setHp] = useState("");
+  const [rName, setRName] = useState("");
+  const [rEmail, setREmail] = useState("");
+  const [rNote, setRNote] = useState("");
 
   // One offer maximum, derived from a real bundle. Hidden when the signed-in
   // user already holds the add-on entitlement.
   useEffect(() => {
-    if (!offerAddon || !open) return;
+    if (!offerAddon || !open || gift) return;
     let alive = true;
     (async () => {
       try {
@@ -106,6 +115,7 @@ export function PurchaseInquiryForm({
           book_lang: effBookLang,
           addon_bundle_slug: wantsAddon && offer ? offer.bundle_slug : null,
           website_hp: hp,
+          gift: gift ? { recipient_name: rName, recipient_email: rEmail, gift_note: rNote } : null,
         },
       });
       setDone(true);
@@ -121,8 +131,9 @@ export function PurchaseInquiryForm({
       <div className={`rounded-md border border-accent/50 bg-accent/10 p-5 ${className ?? ""}`}>
         <div className="font-serif text-lg">Talebiniz alındı.</div>
         <p className="mt-2 text-sm text-foreground/80">
-          En geç 24 saat içinde e-posta ile size dönüş yapacağız; katılım ve ödeme adımlarını
-          birlikte netleştireceğiz.
+          {kind === "ebook"
+            ? "Havale bilgileri ve tutar e-postanıza gelecek. Havaleyi yapıp dekontu o e-postaya yanıt olarak gönderin; ödeme onaylanınca kitap " + (gift ? "alıcıya hediye bağlantısıyla gönderilir." : "hesabınıza iner.")
+            : "En geç 24 saat içinde e-posta ile size dönüş yapacağız; katılım ve ödeme adımlarını birlikte netleştireceğiz."}
         </p>
       </div>
     );
@@ -139,7 +150,7 @@ export function PurchaseInquiryForm({
           {buttonLabel}
         </button>
         <span className="max-w-xs text-xs leading-relaxed text-muted-foreground">
-          Kısa formu doldurun; 24 saat içinde dönüş yapıp ayrıntıları birlikte netleştirelim.
+          {hint ?? "Kısa formu doldurun; 24 saat içinde dönüş yapıp ayrıntıları birlikte netleştirelim."}
         </span>
       </div>
     );
@@ -186,6 +197,14 @@ export function PurchaseInquiryForm({
           placeholder="Telefon (opsiyonel)"
           className={inputCls}
         />
+        {gift ? (
+          <div className="grid gap-3 rounded-md border border-accent/40 bg-accent/5 p-3">
+            <div className="text-xs tracking-[0.2em] text-accent">HEDİYE ALICISI</div>
+            <input required value={rName} onChange={(e) => setRName(e.target.value)} placeholder="Alıcının adı soyadı (kitap bu isme imzalanır)" className={inputCls} />
+            <input required type="email" value={rEmail} onChange={(e) => setREmail(e.target.value)} placeholder="Alıcının e-postası" className={inputCls} />
+            <textarea rows={2} maxLength={500} value={rNote} onChange={(e) => setRNote(e.target.value)} placeholder="Hediye notunuz (opsiyonel)" className={inputCls} />
+          </div>
+        ) : null}
         {askSlot ? (
           <SessionSlotPicker value={slot} onChange={setSlot} locale={locale} />
         ) : null}
