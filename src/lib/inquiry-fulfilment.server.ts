@@ -404,19 +404,19 @@ async function fulfilGift(
     await sendEmail({
       to: recipientEmail,
       subject: "Size imzalı bir kitap hediye edildi",
-      html: renderEmail({ title: "Size bir kitap hediye edildi", body }),
-    } as never);
+      html: renderEmail({ title: "Size bir kitap hediye edildi", bodyHtml: body, ctaLabel: "Hediyemi al", ctaHref: link }),
+    });
     // Buyer confirmation
     await sendEmail({
       to: inq.email,
       subject: "Hediyeniz alıcıya gönderildi",
       html: renderEmail({
         title: "Ödemeniz alındı",
-        body: `<p>Merhaba ${esc(inq.full_name)},</p><p>Ödemeniz alındı. Hediyeniz <strong>${esc(
+        bodyHtml: `<p>Merhaba ${esc(inq.full_name)},</p><p>Ödemeniz alındı. Hediyeniz <strong>${esc(
           recipientName,
         )}</strong> (${esc(recipientEmail)}) adresine gönderildi. Hediye bağlantısını hesabınızdan da görebilirsiniz.</p>`,
       }),
-    } as never);
+    });
     return { already: false, emailed: true };
   } catch (e) {
     console.error("[fulfil] gift e-mail failed", e);
