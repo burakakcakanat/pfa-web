@@ -65,6 +65,7 @@ export const Route = createFileRoute("/kitaplar")({
         { property: "og:title", content: "Kitaplar — PFA" },
         { property: "og:description", content: "PFA kitapları ve imzalı nüshalar." },
         { property: "og:type", content: "website" },
+        {name:"twitter:card",content:"summary"},
         { property: "og:url", content: url },
       ],
       links: [{ rel: "canonical", href: url }],
@@ -266,7 +267,7 @@ function BookBlock({
                   productSlug={productSlug}
                   productLabel={`${meta.title} — İsme İmzalı Dijital Nüsha`}
                   buttonLabel="Havale ile Satın Al"
-                  hint="Hesabınızı açtığınız e-postayı yazın; dekont onayından sonra kitap hesabınıza iner."
+                  hint="Kitap hesabınıza teslim edilir; hak sahibiyseniz %10 bekleme indiriminiz tutardan düşer."
                   bookLang={lang}
                   offerAddon={false}
                 />
@@ -400,6 +401,7 @@ function BookBuyLauncher(props: {
   addonLabels: Record<string, string>;
   label?: string;
   initialAddons?: string[];
+  bundleSlug?: string;
 }) {
   const [open, setOpen] = useState(false);
   if (!PAYMENTS_LIVE) {
@@ -411,16 +413,7 @@ function BookBuyLauncher(props: {
         </Link>
       );
     }
-    return (
-      <button
-        type="button"
-        disabled
-        aria-disabled="true"
-        className="btn-primary cursor-not-allowed opacity-50"
-      >
-        Çok Yakında
-      </button>
-    );
+    return props.bundleSlug ? <PurchaseInquiryForm kind="ebook" selectionKind="bundle" productSlug={props.bundleSlug} productLabel={props.productTitle} bookLang={props.productSlug.endsWith('-en')?'en':'tr'} offerAddon={false} buttonLabel="Havale ile satın al" /> : null;
   }
   return (
     <>
@@ -646,6 +639,7 @@ function BundleRow({
               bundles={bundleShapes}
               addonLabels={addonLabels}
               label="Satın Al"
+              bundleSlug={bundle.slug}
               initialAddons={bundle.items
                 .map((i) => i.product_slug)
                 .filter((s) => addonSlugsForBook(bundleShapes, bundle.book_key).includes(s))}

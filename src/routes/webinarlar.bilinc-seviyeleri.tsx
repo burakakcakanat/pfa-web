@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 import { BuyButton } from "@/components/buy-button";
 import { getUpcomingWebinarForProduct } from "@/lib/site-settings.functions";
 import { formatWebinarPrice } from "@/lib/social-drafts";
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/webinarlar/bilinc-seviyeleri")({
         content:
           "Kendi haritanızı okumayı öğreten 4 canlı online oturumluk PFA gelişim programı.",
       },
+      {property:'og:title',content:'Bilinç Seviyeleri Çalışmaları — PFA'}, {property:'og:description',content:'Canlı PFA gelişim programı için tarih ve kayıt talepleri.'}, {property:'og:type',content:'website'}, {name:'twitter:card',content:'summary'},
     ],
     scripts: [
       {
@@ -130,7 +132,7 @@ function Page() {
 
         <div className="mt-10 flex flex-wrap items-center gap-6 rounded-lg border border-border bg-card p-6">
           <div className="font-serif text-4xl">{priceLabel}</div>
-          <BuyButton productSlug="bilinc-seviyeleri-calismalari" label="Kayıt Ol" />
+          <PurchaseInquiryForm kind="webinar" productSlug="bilinc-seviyeleri-calismalari" productLabel="Bilinç Seviyeleri Çalışmaları" offerAddon={false} buttonLabel={session ? "Havale ile kayıt ol" : "Tarih açıklanınca haber ver"} />
         </div>
 
         <p className="mt-8 text-xs text-muted-foreground">

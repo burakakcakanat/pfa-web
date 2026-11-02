@@ -11,6 +11,7 @@ import { NewsletterTabAction } from "@/components/newsletter-row";
 import { MySessionsTab } from "@/components/my-sessions";
 import { PractitionerWebinarsTab } from "@/components/practitioner-webinars";
 import { ClientProfilesSection } from "@/components/practitioner-clients";
+import { MyTransfers } from "@/components/my-transfers";
 import { MyWaitlistTab } from "@/components/my-waitlist";
 
 export const Route = createFileRoute("/_authenticated/hesabim")({
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/_authenticated/hesabim")({
     meta: [
       { title: "Hesabım — PFA" },
       { name: "description", content: "PFA hesap paneli: profil, satın alımlar, raporlar, e-book'lar ve webinar kayıtları." },
+      {property:'og:title',content:'Hesabım — PFA'}, {property:'og:description',content:'PFA taleplerinizi, havale ödemelerinizi ve içeriklerinizi takip edin.'}, {property:'og:type',content:'website'}, {name:'twitter:card',content:'summary'},
     ],
   }),
   component: AccountPage,
@@ -67,6 +69,7 @@ const TABS = [
 function AccountPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  useEffect(()=>{if(search.tab)setTab(search.tab);},[search.tab]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [entitlements, setEntitlements] = useState<Entitlement[]>([]);
@@ -153,7 +156,7 @@ function AccountPage() {
 
       <div className="mt-10 flex flex-wrap gap-2 border-b border-border">
         {tabs.map((t) => (
-          <button key={t.id} type="button" onClick={() => setTab(t.id)}
+          <button key={t.id} type="button" onClick={() => {setTab(t.id);navigate({search:(prev)=>({...prev,tab:t.id})});}}
             className={`-mb-px border-b-2 px-4 py-2 text-sm transition-colors ${tab === t.id ? "border-accent text-accent" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
             {t.label}
           </button>
@@ -200,6 +203,7 @@ function AccountPage() {
               </ul>
             )}
             </div>
+            <MyTransfers historyOnly />
             {gifts.length > 0 && <GiftsList gifts={gifts} />}
           </div>
         )}
@@ -246,7 +250,7 @@ function AccountPage() {
           </div>
         )}
 
-        {tab === "waitlist" && <MyWaitlistTab />}
+        {tab === "waitlist" && <div className="space-y-10"><MyTransfers /><div className="border-t border-border pt-8"><h2 className="mb-4 font-serif text-2xl">Kitap bekleme listesi</h2><MyWaitlistTab /></div></div>}
         {tab === "sessions" && <MySessionsTab />}
         {tab === "practitioner" && (
           <PractitionerAccountTab

@@ -11,6 +11,7 @@ export const Route = createFileRoute("/auth")({
       { title: "Giriş Yap — PFA" },
       { name: "description", content: "PFA hesabınıza giriş yapın veya yeni bir hesap oluşturun." },
       { name: "robots", content: "noindex, nofollow" },
+      {property:"og:title",content:"Giriş Yap — PFA"},{property:"og:description",content:"PFA hesabınıza giriş yapın ve satın alma talebinize devam edin."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary"},
     ],
   }),
   component: AuthPage,
@@ -28,12 +29,13 @@ function AuthPage() {
   const [resetSent, setResetSent] = useState(false);
   const [signupSent, setSignupSent] = useState(false);
 
+  useEffect(()=>{if(isSafeRedirect(redirect))sessionStorage.setItem('pfa.auth.return',redirect??'/hesabim');},[redirect]);
   async function onGoogle() {
     setError(null);
     try {
-      const target = isSafeRedirect(redirect) ? redirect! : "/hesabim";
+      const target = isSafeRedirect(redirect) ? redirect ?? "/hesabim" : "/hesabim";
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}${target.startsWith("/.lovable/oauth/consent") ? target : ""}`,
+        redirect_uri: `${window.location.origin}/auth${isSafeRedirect(target)?`?redirect=${encodeURIComponent(target)}`:''}`,
       });
       if ("error" in result && result.error) throw result.error;
     } catch (err) {
@@ -44,7 +46,7 @@ function AuthPage() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
-        const target = isSafeRedirect(redirect) ? redirect! : "/hesabim";
+        const target = isSafeRedirect(redirect) ? redirect ?? "/hesabim" : "/hesabim";
         navigate({ href: target, replace: true });
       }
     });
@@ -79,8 +81,8 @@ function AuthPage() {
           options: {
             data: { full_name: fullName },
             emailRedirectTo: isSafeRedirect(redirect)
-              ? `${window.location.origin}${redirect}`
-              : window.location.origin,
+              ? `${window.location.origin}/auth?redirect=${encodeURIComponent(redirect??'/hesabim')}`
+              : `${window.location.origin}/auth`,
           },
         });
         if (error) throw error;
@@ -92,7 +94,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
-      const target = isSafeRedirect(redirect) ? redirect! : "/hesabim";
+      const target = isSafeRedirect(redirect) ? redirect ?? "/hesabim" : "/hesabim";
       navigate({ href: target, replace: true });
     } catch (err) {
       setError(trError(err));
@@ -281,7 +283,7 @@ function AuthPage() {
 
 function isSafeRedirect(v: string | undefined): boolean {
   if (!v) return false;
-  return v.startsWith("/") && !v.startsWith("//");
+  return v.startsWith("/") && !v.startsWith("//") && !/[\\\r\n]/.test(v);
 }
 function trError(err: unknown): string {
   const msg = err instanceof Error ? err.message : "";

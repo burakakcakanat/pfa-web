@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 import { BuyButton } from "@/components/buy-button";
 import { useServerFn } from "@tanstack/react-start";
 import { resolveProInvite } from "@/lib/invites.functions";
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/degerlendirme")({
       { property: "og:title", content: "PFA Bilinç Seviyeleri Ölçeği" },
       { property: "og:description", content: "PFA Bilinç Seviyeleri Ölçeği: bilinç seviyeleri için işlevsel değerlendirme aracı." },
       { property: "og:type", content: "website" },
+      {name:"twitter:card",content:"summary"},
       { property: "og:url", content: "https://psychofunctionalanalysis.com/degerlendirme" },
     ],
     links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/degerlendirme" }],
@@ -150,11 +152,7 @@ function AssessmentPage() {
                 Davetli Ölçeği Başlat
               </Link>
             ) : (
-              <BuyButton
-                productSlug="tam-assessment-rapor"
-                label="Tam Ölçeği Satın Al"
-                refCode={inviteInfo?.referral_code ?? ref ?? null}
-              />
+              <PurchaseInquiryForm kind="assessment" productSlug="tam-assessment-rapor" productLabel="Tam PFA Ölçeği + Bilinç Seviyesi Raporu" offerAddon={false} buttonLabel="Havale ile satın al" />
             )}
           </div>
         </div>
@@ -166,59 +164,7 @@ function AssessmentPage() {
           Ölçek erişimi ve rapor detayları için formu doldurun.
         </p>
 
-        {sent ? (
-          <div className="mt-8 rounded-md border border-accent/50 bg-accent/10 p-6 text-center">
-            <div className="font-serif text-xl">Teşekkürler.</div>
-            <p className="mt-2 text-sm text-foreground/80">
-              Talebiniz alındı. En kısa sürede size dönüş yapacağız.
-            </p>
-          </div>
-        ) : (
-          <form
-            className="mt-8 grid gap-5"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSent(true);
-            }}
-          >
-            <div className="grid gap-5 md:grid-cols-2">
-              <Field label="Ad" name="firstName" required />
-              <Field label="Soyad" name="lastName" required />
-            </div>
-            <Field label="E-posta" name="email" type="email" required />
-            <Field label="Telefon (opsiyonel)" name="phone" type="tel" />
-            <label className="grid gap-2 text-sm">
-              <span className="text-foreground/80">
-                Ölçeği hangi amaçla kullanmak istiyorsunuz?
-              </span>
-              <select
-                required
-                name="purpose"
-                className="rounded-md border border-input bg-background px-3 py-2.5 text-sm"
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  Seçiniz…
-                </option>
-                <option>Bireysel gelişim</option>
-                <option>Terapötik çalışma</option>
-                <option>Kurumsal gelişim</option>
-                <option>Eğitim ve pedagoji</option>
-              </select>
-            </label>
-            <label className="grid gap-2 text-sm">
-              <span className="text-foreground/80">Mesaj</span>
-              <textarea
-                name="message"
-                rows={4}
-                className="rounded-md border border-input bg-background px-3 py-2.5 text-sm"
-              />
-            </label>
-            <button type="submit" className="btn-primary hover:btn-primary-hover justify-self-start">
-              Gönder
-            </button>
-          </form>
-        )}
+        <div className="mt-6"><PurchaseInquiryForm kind="assessment" intent="information" productSlug="tam-assessment-rapor" productLabel="PFA Ölçeği — bilgi talebi" offerAddon={false} buttonLabel="Bilgi talebi gönder" /></div>
       </div>
     </div>
   );
