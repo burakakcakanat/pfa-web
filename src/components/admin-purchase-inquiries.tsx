@@ -36,6 +36,7 @@ import {
   type AdminPurchaseInquiryRow,
   type PurchaseInquiryStatus,
 } from "@/lib/purchase-inquiries";
+import { receiptUrl } from "@/lib/transfer.functions";
 import { usePaymentMode } from "@/lib/payment-mode";
 
 const fmtDate = (s: string | null) =>
@@ -61,6 +62,9 @@ export function LocaleBadge({ locale }: { locale?: string | null }) {
 
 export function AdminPurchaseInquiries() {
   const list = useServerFn(listAdminPurchaseInquiries);
+  const getReceipt = useServerFn(receiptUrl);
+  const [receiptFilter,setReceiptFilter]=useState(false);
+  const [confirmPaid,setConfirmPaid]=useState(false);
   const update = useServerFn(updateAdminPurchaseInquiry);
   const sendTransfer = useServerFn(sendTransferInstructionsFn);
   const loadOptions = useServerFn(listFulfilOptions);
@@ -105,15 +109,16 @@ export function AdminPurchaseInquiries() {
     () =>
       rows.filter(
         (r) =>
-          (statusFilter === "all" || r.status === statusFilter) &&
+          (!receiptFilter || !!r.payment_reported_at) && (statusFilter === "all" || r.status === statusFilter) &&
           (localeFilter === "all" || (r.locale ?? "tr") === localeFilter),
       ),
-    [rows, statusFilter, localeFilter],
+    [rows, statusFilter, localeFilter,receiptFilter],
   );
 
   const opened = rows.find((r) => r.id === openId) ?? null;
   useEffect(() => {
     setNote(opened?.admin_note ?? "");
+    setConfirmPaid(false);
     setNotifyPaid(true);
     const kind = opened?.fulfil_kind ?? "product";
     setSelKind(kind);
@@ -147,7 +152,7 @@ export function AdminPurchaseInquiries() {
   }
 
   async function onFulfil() {
-    if (!opened || !selSlug) return;
+    if (!opened || !selSlug || !confirmPaid) return;
     setFulfilling(true);
     try {
       const res = await fulfil({
@@ -164,7 +169,7 @@ export function AdminPurchaseInquiries() {
       } else if (res.already > 0 && res.granted.entries.length === res.already) {
         toast.info("Zaten tanımlıydı — yeni bir hak eklenmedi.");
       } else {
-        toast.success("Haklar tanımlandı ve teslim e-postası gönderildi.");
+        if(res.emailed) toast.success("Haklar tanımlandı ve teslim e-postası gönderildi."); else toast.warning("Haklar hazır; teslim e-postası gönderilemedi. Yeniden deneyin.");
       }
       reload();
     } catch (e: any) {
@@ -227,6 +232,7 @@ export function AdminPurchaseInquiries() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-3">
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={receiptFilter} onChange={e=>setReceiptFilter(e.target.checked)}/>Dekont gelenler</label>
         <div>
           <Label className="text-xs">Durum</Label>
           <Select
@@ -367,19 +373,24 @@ export function AdminPurchaseInquiries() {
             <p className="whitespace-pre-wrap text-sm">{opened.message || "—"}</p>
           </div>
 
+          {opened.quote && <div className="space-y-1 border-t border-border pt-4 text-sm"><p>Ürün / paket: {(opened.quote.subtotalCents/100).toLocaleString('tr-TR')} TRY</p><p>Bekleme indirimi: {(opened.quote.discountCents/100).toLocaleString('tr-TR')} TRY</p><p>Onaylanan tutar: {opened.transfer_amount ?? opened.quote.totalCents/100} TRY</p>{opened.quote.reason&&<p className="text-destructive">{opened.quote.reason}</p>}</div>}
+          {opened.receipt_path&&<Button variant="outline" onClick={async()=>{try{window.open(await getReceipt({data:{id:opened.id}}),'_blank','noopener');}catch(e){toast.error(e instanceof Error?e.message:'Dekont açılamadı.');}}}>Dekontu incele</Button>}
+          {opened.delivery_error&&<p className="text-sm text-destructive">{opened.delivery_error}</p>}
+          <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={confirmPaid} onChange={e=>setConfirmPaid(e.target.checked)}/>Banka hareketini kontrol ettim; tutar ve ürün doğru.</label>
           <div className="space-y-3 rounded-md border border-accent/40 bg-accent/5 p-4">
             <div className="text-xs tracking-[0.2em] text-accent">ÖDEME VE HAK TANIMLAMA</div>
             <div className="flex flex-wrap items-end gap-3">
               <div>
                 <Label className="text-xs">Ne satın alınıyor?</Label>
                 <Select
+                  disabled={!!opened.quote}
                   value={`${selKind}:${selSlug}`}
                   onValueChange={(v) => {
                     const [k, ...rest] = v.split(":");
                     pickSelection(k as "product" | "bundle", rest.join(":"));
                   }}
                 >
-                  <SelectTrigger className="mt-1 w-96">
+                  <SelectTrigger className="mt-1 w-full max-w-96">
                     <SelectValue placeholder="Ürün veya paket seçin" />
                   </SelectTrigger>
                   <SelectContent>
@@ -398,7 +409,7 @@ export function AdminPurchaseInquiries() {
               </div>
               <div>
                 <Label className="text-xs">Kitap dili</Label>
-                <Select value={selLang} onValueChange={(v) => setSelLang(v as "tr" | "en")}>
+                <Select disabled={!!opened.quote} value={selLang} onValueChange={(v) => setSelLang(v as "tr" | "en")}>
                   <SelectTrigger className="mt-1 w-24">
                     <SelectValue />
                   </SelectTrigger>
@@ -408,8 +419,8 @@ export function AdminPurchaseInquiries() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button size="sm" onClick={onFulfil} disabled={fulfilling || !selSlug}>
-                {fulfilling ? "Tanımlanıyor…" : "Ödeme alındı ve hakları tanımla"}
+              <Button size="sm" onClick={onFulfil} disabled={fulfilling || !selSlug || !confirmPaid}>
+                {fulfilling ? "Tanımlanıyor…" : opened.delivery_error ? "Teslimatı yeniden dene" : "Ödeme alındı ve hakları tanımla"}
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -459,7 +470,8 @@ export function AdminPurchaseInquiries() {
                 <Input
                   className="mt-1 w-24"
                   value={currency}
-                  onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+                  readOnly
+                  onChange={(e) => setCurrency("TRY")}
                 />
               </div>
               <div>
@@ -513,7 +525,7 @@ export function AdminPurchaseInquiries() {
               “Ödeme alındı” işaretlendiğinde talep sahibine kısa bir onay e-postası gönder
             </label>
             <div className="mt-2 flex flex-wrap gap-2">
-              {PURCHASE_STATUS_ORDER.map((s) => (
+              {PURCHASE_STATUS_ORDER.filter(s=>s!=="paid"&&s!=="fulfilled").map((s) => (
                 <Button
                   key={s}
                   size="sm"
@@ -544,12 +556,7 @@ export function AdminPurchaseInquiries() {
             <Button size="sm" variant="outline" asChild>
               <a href={`mailto:${opened.email}`}>E-posta gönder</a>
             </Button>
-            <Button size="sm" variant="outline" asChild>
-              <a href="#admin-test-order">Hak tanımla (sipariş aracı)</a>
-            </Button>
-            <span className="text-xs text-muted-foreground">
-              Havale onaylandıktan sonra hak tanımlamayı Siparişler sekmesindeki araçla yapın.
-            </span>
+
           </div>
         </div>
       ) : null}
