@@ -8,6 +8,13 @@
       "when": 1793385390157,
       "tag": "0000_book_waitlist",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793646618706,
+      "tag": "0001_transfer_inquiry_tracking",
+      "breakpoints": true
     }
   ]
 }

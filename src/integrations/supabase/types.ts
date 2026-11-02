@@ -1726,9 +1726,12 @@ export type Database = {
           admin_note: string | null
           country: string | null
           created_at: string
+          delivery_email_sent: boolean | null
+          delivery_error: string | null
           email: string
           fulfil_book_lang: string
           fulfil_kind: string | null
+          fulfil_lock_until: string | null
           fulfil_slug: string | null
           fulfilled_at: string | null
           full_name: string
@@ -1740,24 +1743,31 @@ export type Database = {
           message: string | null
           metadata: Json
           payment_reference: string | null
+          payment_reported_at: string | null
           phone: string | null
           preferred_slot: string | null
           product_label: string | null
           product_slug: string
+          quote: Json | null
+          receipt_path: string | null
           status: string
           transfer_amount: number | null
           transfer_currency: string
           transfer_sent_at: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           addon_bundle_slug?: string | null
           admin_note?: string | null
           country?: string | null
           created_at?: string
+          delivery_email_sent?: boolean | null
+          delivery_error?: string | null
           email: string
           fulfil_book_lang?: string
           fulfil_kind?: string | null
+          fulfil_lock_until?: string | null
           fulfil_slug?: string | null
           fulfilled_at?: string | null
           full_name: string
@@ -1769,24 +1779,31 @@ export type Database = {
           message?: string | null
           metadata?: Json
           payment_reference?: string | null
+          payment_reported_at?: string | null
           phone?: string | null
           preferred_slot?: string | null
           product_label?: string | null
           product_slug: string
+          quote?: Json | null
+          receipt_path?: string | null
           status?: string
           transfer_amount?: number | null
           transfer_currency?: string
           transfer_sent_at?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           addon_bundle_slug?: string | null
           admin_note?: string | null
           country?: string | null
           created_at?: string
+          delivery_email_sent?: boolean | null
+          delivery_error?: string | null
           email?: string
           fulfil_book_lang?: string
           fulfil_kind?: string | null
+          fulfil_lock_until?: string | null
           fulfil_slug?: string | null
           fulfilled_at?: string | null
           full_name?: string
@@ -1798,15 +1815,19 @@ export type Database = {
           message?: string | null
           metadata?: Json
           payment_reference?: string | null
+          payment_reported_at?: string | null
           phone?: string | null
           preferred_slot?: string | null
           product_label?: string | null
           product_slug?: string
+          quote?: Json | null
+          receipt_path?: string | null
           status?: string
           transfer_amount?: number | null
           transfer_currency?: string
           transfer_sent_at?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -2335,6 +2356,38 @@ export type Database = {
         }
         Relationships: []
       }
+      transfer_receipts: {
+        Row: {
+          created_at: string
+          id: string
+          inquiry_id: string
+          path: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inquiry_id: string
+          path: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inquiry_id?: string
+          path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfer_receipts_inquiry_id_fkey"
+            columns: ["inquiry_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_inquiries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_entitlements: {
         Row: {
           created_at: string
@@ -2613,6 +2666,10 @@ export type Database = {
       }
     }
     Functions: {
+      acquire_transfer_fulfil_lock: {
+        Args: { inquiry_uuid: string }
+        Returns: boolean
+      }
       admin_set_client_quota: {
         Args: { _quota: number; _used: number; _user_id: string }
         Returns: undefined
