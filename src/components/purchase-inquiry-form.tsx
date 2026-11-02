@@ -6,11 +6,11 @@ import type { AddonOffer } from "@/lib/offers";
 import { fmtUsd } from "@/lib/bundles";
 import { supabase } from "@/integrations/supabase/client";
 import type { PurchaseInquiryKind } from "@/lib/purchase-inquiries";
-import { Link } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
-import { getTransferQuote } from '@/lib/transfer.functions';
-import type { TransferQuote } from '@/lib/purchase-inquiries';
-import { fmtMoney } from '@/lib/pricing';
+import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+import { getTransferQuote } from "@/lib/transfer.functions";
+import type { TransferQuote } from "@/lib/purchase-inquiries";
+import { fmtMoney } from "@/lib/pricing";
 import { SessionSlotPicker } from "@/components/session-slot-picker";
 
 type Props = {
@@ -59,9 +59,9 @@ export function PurchaseInquiryForm({
   const submit = useServerFn(submitPurchaseInquiry);
   const fetchQuote = useServerFn(getTransferQuote);
   const [quote, setQuote] = useState<TransferQuote | null>(null);
-  const [accountEmail,setAccountEmail] = useState<string | null>(null);
-  const [accountLoaded,setAccountLoaded] = useState(false);
-  const [quoteLoading,setQuoteLoading] = useState(false);
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
+  const [accountLoaded, setAccountLoaded] = useState(false);
+  const [quoteLoading, setQuoteLoading] = useState(false);
   const draftKey = `pfa.transfer.${selectionKind}.${productSlug}.${gift}`;
   const fetchOffer = useServerFn(getAddonOffer);
   const [open, setOpen] = useState(false);
@@ -83,15 +83,79 @@ export function PurchaseInquiryForm({
   const [rNote, setRNote] = useState("");
 
   useEffect(() => {
-    try { const raw=sessionStorage.getItem(draftKey); if(raw){const d=JSON.parse(raw);setFullName(d.fullName??'');setPhone(d.phone??'');setSlot(d.slot??'');setMessage(d.message??'');setRName(d.rName??'');setREmail(d.rEmail??'');setRNote(d.rNote??'');setOpen(true);} } catch {}
-    supabase.auth.getUser().then(({data})=>{setAccountEmail(data.user?.email??null);setEmail(data.user?.email??'');setAccountLoaded(true);});
-  },[draftKey]);
-  useEffect(()=>{
-    if(!open || !accountEmail || intent==='information' || ['corporate','pro_license'].includes(kind)) return;
-    let alive=true; setQuoteLoading(true);setError(null);
-    fetchQuote({data:{slug:wantsAddon&&offer?offer.bundle_slug:productSlug,kind:wantsAddon&&offer?'bundle':selectionKind,lang:effBookLang}}).then(q=>{if(alive)setQuote(q);}).catch(e=>{if(alive){setQuote(null);setError(e instanceof Error?e.message:'Fiyat okunamadı.');}}).finally(()=>{if(alive)setQuoteLoading(false);});return()=>{alive=false;};
-  },[open,accountEmail,intent,kind,productSlug,selectionKind,effBookLang,fetchQuote,wantsAddon,offer]);
-  function saveDraft(){try{sessionStorage.setItem(draftKey,JSON.stringify({fullName,phone,slot,message,rName,rEmail,rNote}));}catch{}}
+    try {
+      const raw = sessionStorage.getItem(draftKey);
+      if (raw) {
+        const d = JSON.parse(raw);
+        setFullName(d.fullName ?? "");
+        setPhone(d.phone ?? "");
+        setSlot(d.slot ?? "");
+        setMessage(d.message ?? "");
+        setRName(d.rName ?? "");
+        setREmail(d.rEmail ?? "");
+        setRNote(d.rNote ?? "");
+        setOpen(true);
+      }
+    } catch {}
+    supabase.auth.getUser().then(({ data }) => {
+      setAccountEmail(data.user?.email ?? null);
+      setEmail(data.user?.email ?? "");
+      setAccountLoaded(true);
+    });
+  }, [draftKey]);
+  useEffect(() => {
+    if (
+      !open ||
+      !accountEmail ||
+      intent === "information" ||
+      ["corporate", "pro_license"].includes(kind)
+    )
+      return;
+    let alive = true;
+    setQuoteLoading(true);
+    setError(null);
+    fetchQuote({
+      data: {
+        slug: wantsAddon && offer ? offer.bundle_slug : productSlug,
+        kind: wantsAddon && offer ? "bundle" : selectionKind,
+        lang: effBookLang,
+      },
+    })
+      .then((q) => {
+        if (alive) setQuote(q);
+      })
+      .catch((e) => {
+        if (alive) {
+          setQuote(null);
+          setError(e instanceof Error ? e.message : "Fiyat okunamadı.");
+        }
+      })
+      .finally(() => {
+        if (alive) setQuoteLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [
+    open,
+    accountEmail,
+    intent,
+    kind,
+    productSlug,
+    selectionKind,
+    effBookLang,
+    fetchQuote,
+    wantsAddon,
+    offer,
+  ]);
+  function saveDraft() {
+    try {
+      sessionStorage.setItem(
+        draftKey,
+        JSON.stringify({ fullName, phone, slot, message, rName, rEmail, rNote }),
+      );
+    } catch {}
+  }
 
   // One offer maximum, derived from a real bundle. Hidden when the signed-in
   // user already holds the add-on entitlement.
@@ -160,9 +224,15 @@ export function PurchaseInquiryForm({
       <div className={`rounded-md border border-accent/50 bg-accent/10 p-5 ${className ?? ""}`}>
         <div className="font-serif text-lg">Talebiniz alındı.</div>
         <p className="mt-2 text-sm text-foreground/80">
-          {quote?.ready ? 'Havale tutarı ve banka bilgileri hesabınızdaki Taleplerim bölümünde hazır. Ödeme, banka hareketi kontrol edildikten sonra onaylanır.' : 'Talebiniz kaydedildi. Hazırlık tamamlanınca size bilgi vereceğiz; henüz ödeme yapmayın.'}
+          {quote?.ready
+            ? "Havale tutarı ve banka bilgileri hesabınızdaki Taleplerim bölümünde hazır. Ödeme, banka hareketi kontrol edildikten sonra onaylanır."
+            : "Talebiniz kaydedildi. Hazırlık tamamlanınca size bilgi vereceğiz; henüz ödeme yapmayın."}
         </p>
-        <Button asChild className="mt-4"><Link to="/hesabim" search={{tab:"waitlist"}}>Taleplerime git</Link></Button>
+        <Button asChild className="mt-4">
+          <Link to="/hesabim" search={{ tab: "waitlist" }}>
+            Taleplerime git
+          </Link>
+        </Button>
       </div>
     );
   }
@@ -227,14 +297,34 @@ export function PurchaseInquiryForm({
         {gift ? (
           <div className="grid gap-3 rounded-md border border-accent/40 bg-accent/5 p-3">
             <div className="text-xs tracking-[0.2em] text-accent">HEDİYE ALICISI</div>
-            <input required value={rName} onChange={(e) => setRName(e.target.value)} aria-label="Hediye alıcısının adı" placeholder="Alıcının adı soyadı (kitap bu isme imzalanır)" className={inputCls} />
-            <input required type="email" value={rEmail} onChange={(e) => setREmail(e.target.value)} aria-label="Hediye alıcısının e-postası" placeholder="Alıcının e-postası" className={inputCls} />
-            <textarea rows={2} maxLength={500} value={rNote} onChange={(e) => setRNote(e.target.value)} placeholder="Hediye notunuz (opsiyonel)" className={inputCls} />
+            <input
+              required
+              value={rName}
+              onChange={(e) => setRName(e.target.value)}
+              aria-label="Hediye alıcısının adı"
+              placeholder="Alıcının adı soyadı (kitap bu isme imzalanır)"
+              className={inputCls}
+            />
+            <input
+              required
+              type="email"
+              value={rEmail}
+              onChange={(e) => setREmail(e.target.value)}
+              aria-label="Hediye alıcısının e-postası"
+              placeholder="Alıcının e-postası"
+              className={inputCls}
+            />
+            <textarea
+              rows={2}
+              maxLength={500}
+              value={rNote}
+              onChange={(e) => setRNote(e.target.value)}
+              placeholder="Hediye notunuz (opsiyonel)"
+              className={inputCls}
+            />
           </div>
         ) : null}
-        {askSlot ? (
-          <SessionSlotPicker value={slot} onChange={setSlot} locale={locale} />
-        ) : null}
+        {askSlot ? <SessionSlotPicker value={slot} onChange={setSlot} locale={locale} /> : null}
         <textarea
           rows={3}
           value={message}
@@ -266,8 +356,7 @@ export function PurchaseInquiryForm({
               <>
                 Add {offer.addon_label} as a package —{" "}
                 <strong>{fmtUsd(offer.bundle_price_cents)}</strong> instead of{" "}
-                {fmtUsd(offer.separate_price_cents)} separately (
-                {fmtUsd(offer.saving_cents)} less).
+                {fmtUsd(offer.separate_price_cents)} separately ({fmtUsd(offer.saving_cents)} less).
               </>
             ) : (
               <>
@@ -282,15 +371,70 @@ export function PurchaseInquiryForm({
 
       {error ? <p className="mt-3 text-xs text-destructive">{error}</p> : null}
 
-      {quoteLoading && <p className="mt-4 text-sm text-muted-foreground">Güncel tutar hesaplanıyor…</p>}
-      {quote && <div className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
-        <div className="flex justify-between gap-4"><span>Ürün / paket</span><strong>{fmtMoney(quote.subtotalCents,'try')}</strong></div>
-        {quote.discountCents>0 && <div className="flex justify-between gap-4 text-accent"><span>Bekleme listesi indirimi · %10</span><strong>−{fmtMoney(quote.discountCents,'try')}</strong></div>}
-        <div className="flex justify-between gap-4"><span>Ödenecek tutar</span><strong>{fmtMoney(quote.totalCents,'try')}</strong></div>
-        {quote.reason && <p className="text-muted-foreground">{quote.reason}</p>}
-      </div>}
-      {!accountEmail ? <div className="mt-4 space-y-3"><p className="text-sm text-muted-foreground">Talebinizi ve teslimatı takip etmek için hesabınıza giriş yapın.</p><Button asChild disabled={!accountLoaded}><Link to="/auth" search={{redirect:typeof window !== 'undefined' ? window.location.pathname+window.location.search : '/kitaplar'}} onClick={saveDraft}>Giriş yap / hesap aç</Link></Button></div> : <Button type="submit" disabled={busy || quoteLoading || (!quote && intent==='purchase' && !['corporate','pro_license'].includes(kind))} className="mt-4">{busy?'Kaydediliyor…':quote?.ready?'Tutarı onayla ve havale bilgilerini göster':'Talebimi kaydet'}</Button>}
-      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{quote?.ready?'Havale, banka hareketi kontrol edildikten sonra onaylanır.':'Hazırlık tamamlanmadan ödeme yapmayın.'}</p>
+      {quoteLoading && (
+        <p className="mt-4 text-sm text-muted-foreground">Güncel tutar hesaplanıyor…</p>
+      )}
+      {quote && (
+        <div className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
+          <div className="flex justify-between gap-4">
+            <span>Ürün / paket</span>
+            <strong>{fmtMoney(quote.subtotalCents, "try")}</strong>
+          </div>
+          {quote.discountCents > 0 && (
+            <div className="flex justify-between gap-4 text-accent">
+              <span>Bekleme listesi indirimi · %10</span>
+              <strong>−{fmtMoney(quote.discountCents, "try")}</strong>
+            </div>
+          )}
+          <div className="flex justify-between gap-4">
+            <span>Ödenecek tutar</span>
+            <strong>{fmtMoney(quote.totalCents, "try")}</strong>
+          </div>
+          {quote.reason && <p className="text-muted-foreground">{quote.reason}</p>}
+        </div>
+      )}
+      {!accountEmail ? (
+        <div className="mt-4 space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Talebinizi ve teslimatı takip etmek için hesabınıza giriş yapın.
+          </p>
+          <Button asChild disabled={!accountLoaded}>
+            <Link
+              to="/auth"
+              search={{
+                redirect:
+                  typeof window !== "undefined"
+                    ? window.location.pathname + window.location.search
+                    : "/kitaplar",
+              }}
+              onClick={saveDraft}
+            >
+              Giriş yap / hesap aç
+            </Link>
+          </Button>
+        </div>
+      ) : (
+        <Button
+          type="submit"
+          disabled={
+            busy ||
+            quoteLoading ||
+            (!quote && intent === "purchase" && !["corporate", "pro_license"].includes(kind))
+          }
+          className="mt-4"
+        >
+          {busy
+            ? "Kaydediliyor…"
+            : quote?.ready
+              ? "Tutarı onayla ve havale bilgilerini göster"
+              : "Talebimi kaydet"}
+        </Button>
+      )}
+      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+        {quote?.ready
+          ? "Havale, banka hareketi kontrol edildikten sonra onaylanır."
+          : "Hazırlık tamamlanmadan ödeme yapmayın."}
+      </p>
     </form>
   );
 }

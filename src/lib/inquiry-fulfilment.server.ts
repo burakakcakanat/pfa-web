@@ -47,44 +47,109 @@ export async function selectionComponentSlugs(sel: FulfilSelection): Promise<str
 
 /** Price of a selection in cents (bundle price for bundles, list price for products). */
 export async function selectionPriceCents(sel: FulfilSelection): Promise<number> {
-  const { loadBundle, bundlePriceCents, priceMapFor } = await import("@/lib/offers.server");
-  if (sel.fulfil_kind === "bundle") {
-    const b = await loadBundle(sel.fulfil_slug);
-    if (!b) return 0;
-    const { bundle } = await bundlePriceCents(b, sel.fulfil_book_lang);
-    return bundle;
+  const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+  const { loadBundle } = await import("@/lib/offers.server");
+  const { transferTotal } = await import("@/lib/transfer-pricing");
+  const bundle = sel.fulfil_kind === "bundle" ? await loadBundle(sel.fulfil_slug) : null;
+  if (sel.fulfil_kind === "bundle" && !bundle) return 0;
+  const { bundleComponents } = await import("@/lib/bundles");
+  const components = bundle
+    ? bundleComponents(bundle, sel.fulfil_book_lang).map((i) => i.slug)
+    : [sel.fulfil_slug];
+  const { data: products } = await db.from("products").select("id,slug").in("slug", components);
+  const { data: rows } = await db
+    .from("product_prices")
+    .select("product_id,price_cents,currency")
+    .in(
+      "product_id",
+      (products ?? []).map((p) => p.id),
+    )
+    .eq("currency", "try")
+    .eq("active", true);
+  const prices: import("@/lib/pricing").CurrencyPriceMap = {};
+  for (const r of rows ?? []) {
+    const slug = products?.find((p) => p.id === r.product_id)?.slug;
+    if (slug) prices[slug] = { try: r.price_cents };
   }
-  const prices = await priceMapFor([sel.fulfil_slug]);
-  return prices[sel.fulfil_slug] ?? 0;
+  return (
+    transferTotal(prices, sel.fulfil_slug, bundle, sel.fulfil_book_lang, false, 0)?.totalCents ?? 0
+  );
 }
 
-export async function fulfilPurchaseInquiry(input: FulfilSelection & {id:string;notify?:boolean}) {
-  const {supabaseAdmin:db}=await import('@/integrations/supabase/client.server');
-  const {data:locked,error}=await db.rpc('acquire_transfer_fulfil_lock',{inquiry_uuid:input.id});
-  if(error || !locked) throw new Error('Teslimat şu anda işleniyor; lütfen daha sonra tekrar deneyin.');
-  try {
-    const {data:inq}=await db.from('purchase_inquiries').select('user_id,quote,fulfil_kind,fulfil_slug,fulfil_book_lang,transfer_amount,status,payment_reported_at,product_slug').eq('id',input.id).single();
-    if(!inq || inq.status==='closed')throw new Error('Talep kapalı veya bulunamadı.');
-    if(inq.user_id && inq.quote){
-      if(input.fulfil_kind!==inq.fulfil_kind || input.fulfil_slug!==inq.fulfil_slug || input.fulfil_book_lang!==inq.fulfil_book_lang)throw new Error('Müşterinin onayladığı ürün değiştirilemez; yeni talep oluşturun.');
-      if(!inq.transfer_amount)throw new Error('Önce ödeme talimatı ve tutarı oluşturun.');
-      const {quoteTransfer}=await import('@/lib/transfer.server');
-      const current=await quoteTransfer(input.fulfil_slug,input.fulfil_kind,input.fulfil_book_lang,inq.user_id);
-      if(!current.ready)throw new Error(current.reason??'Teslimat hazır değil.');
-    }
-    await db.from('purchase_inquiries').update({status:'paid',delivery_error:null}).eq('id',input.id);
-    const result=await fulfilUnlocked(input);
-    await db.from('purchase_inquiries').update({delivery_email_sent:result.emailed,delivery_error:result.emailed?null:'Teslim e-postası gönderilemedi; yeniden deneyin.'}).eq('id',input.id);
-    const {data:row}=await db.from('purchase_inquiries').select('user_id,product_slug,quote').eq('id',input.id).single();
-    if(row?.user_id && row.quote){const quote=row.quote as unknown as {waitlistId?:string};if(quote.waitlistId)await db.from('book_waitlist').update({status:'converted'}).eq('id',quote.waitlistId).eq('user_id',row.user_id);}
-    return result;
-  } catch(e){await db.from('purchase_inquiries').update({delivery_error:e instanceof Error?e.message:'Teslimat tamamlanamadı.'}).eq('id',input.id);throw e;}
-  finally{await db.from('purchase_inquiries').update({fulfil_lock_until:null}).eq('id',input.id);}
-}
-
-async function fulfilUnlocked(
+export async function fulfilPurchaseInquiry(
   input: FulfilSelection & { id: string; notify?: boolean },
-): Promise<{
+) {
+  const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+  const { data: locked, error } = await db.rpc("acquire_transfer_fulfil_lock", {
+    inquiry_uuid: input.id,
+  });
+  if (error || !locked)
+    throw new Error("Teslimat şu anda işleniyor; lütfen daha sonra tekrar deneyin.");
+  try {
+    const { data: inq } = await db
+      .from("purchase_inquiries")
+      .select(
+        "user_id,quote,fulfil_kind,fulfil_slug,fulfil_book_lang,transfer_amount,status,payment_reported_at,product_slug",
+      )
+      .eq("id", input.id)
+      .single();
+    if (!inq || inq.status === "closed") throw new Error("Talep kapalı veya bulunamadı.");
+    if (inq.user_id && inq.quote) {
+      if (
+        input.fulfil_kind !== inq.fulfil_kind ||
+        input.fulfil_slug !== inq.fulfil_slug ||
+        input.fulfil_book_lang !== inq.fulfil_book_lang
+      )
+        throw new Error("Müşterinin onayladığı ürün değiştirilemez; yeni talep oluşturun.");
+      if (!inq.transfer_amount) throw new Error("Önce ödeme talimatı ve tutarı oluşturun.");
+      const { quoteTransfer } = await import("@/lib/transfer.server");
+      const current = await quoteTransfer(
+        input.fulfil_slug,
+        input.fulfil_kind,
+        input.fulfil_book_lang,
+        inq.user_id,
+      );
+      if (!current.ready) throw new Error(current.reason ?? "Teslimat hazır değil.");
+    }
+    await db
+      .from("purchase_inquiries")
+      .update({ status: "paid", delivery_error: null })
+      .eq("id", input.id);
+    const result = await fulfilUnlocked(input);
+    await db
+      .from("purchase_inquiries")
+      .update({
+        delivery_email_sent: result.emailed,
+        delivery_error: result.emailed ? null : "Teslim e-postası gönderilemedi; yeniden deneyin.",
+      })
+      .eq("id", input.id);
+    const { data: row } = await db
+      .from("purchase_inquiries")
+      .select("user_id,product_slug,quote")
+      .eq("id", input.id)
+      .single();
+    if (row?.user_id && row.quote) {
+      const quote = row.quote as unknown as { waitlistId?: string };
+      if (quote.waitlistId)
+        await db
+          .from("book_waitlist")
+          .update({ status: "converted" })
+          .eq("id", quote.waitlistId)
+          .eq("user_id", row.user_id);
+    }
+    return result;
+  } catch (e) {
+    await db
+      .from("purchase_inquiries")
+      .update({ delivery_error: e instanceof Error ? e.message : "Teslimat tamamlanamadı." })
+      .eq("id", input.id);
+    throw e;
+  } finally {
+    await db.from("purchase_inquiries").update({ fulfil_lock_until: null }).eq("id", input.id);
+  }
+}
+
+async function fulfilUnlocked(input: FulfilSelection & { id: string; notify?: boolean }): Promise<{
   ok: boolean;
   granted: GrantedLog;
   pending_account: boolean;
@@ -170,10 +235,33 @@ async function fulfilUnlocked(
     const key = `${type}:${slug}`;
     if (existingTypes.has(key)) {
       already++;
-      if(type==='ebook' && userId){
-        const {data:ents}=await supabaseAdmin.from('user_entitlements').select('id,metadata').eq('user_id',userId).eq('type','ebook');
-        const ent=(ents??[]).find(e=>(e.metadata as Record<string,unknown>)?.inquiry_id===inq.id && (e.metadata as Record<string,unknown>)?.product_slug===slug);
-        if(ent){const {ensurePersonalizedPdf}=await import('@/lib/ebooks.functions');const path=await ensurePersonalizedPdf({entitlementId:ent.id,slug,existingPath:typeof (ent.metadata as Record<string,unknown>)?.personalized_pdf_path==='string'?String((ent.metadata as Record<string,unknown>).personalized_pdf_path):null,fullName:inq.full_name,email,giftNote:null,buyerName:null});if(!path)throw new Error('Kişisel PDF hazır değil; yeniden deneyin.');}
+      if (type === "ebook" && userId) {
+        const { data: ents } = await supabaseAdmin
+          .from("user_entitlements")
+          .select("id,metadata")
+          .eq("user_id", userId)
+          .eq("type", "ebook");
+        const ent = (ents ?? []).find(
+          (e) =>
+            (e.metadata as Record<string, unknown>)?.inquiry_id === inq.id &&
+            (e.metadata as Record<string, unknown>)?.product_slug === slug,
+        );
+        if (ent) {
+          const { ensurePersonalizedPdf } = await import("@/lib/ebooks.functions");
+          const path = await ensurePersonalizedPdf({
+            entitlementId: ent.id,
+            slug,
+            existingPath:
+              typeof (ent.metadata as Record<string, unknown>)?.personalized_pdf_path === "string"
+                ? String((ent.metadata as Record<string, unknown>).personalized_pdf_path)
+                : null,
+            fullName: inq.full_name,
+            email,
+            giftNote: null,
+            buyerName: null,
+          });
+          if (!path) throw new Error("Kişisel PDF hazır değil; yeniden deneyin.");
+        }
       }
       entries.push({ type, slug, ...(pendingAccount ? { pending_account: true } : {}) });
       continue;
@@ -219,7 +307,7 @@ async function fulfilUnlocked(
             giftNote: null,
             buyerName: null,
           });
-          if(!pdfPath)throw new Error("Kişisel PDF hazır değil.");
+          if (!pdfPath) throw new Error("Kişisel PDF hazır değil.");
         } catch (e) {
           throw new Error("Kişisel PDF üretilemedi; teslimatı yeniden deneyin.");
         }
@@ -280,18 +368,13 @@ async function fulfilUnlocked(
   return { ok: true, granted: log, pending_account: pendingAccount, emailed, already };
 }
 
-async function sendDeliveryEmail(
-  inq: AdminPurchaseInquiryRow,
-  log: GrantedLog,
-): Promise<boolean> {
+async function sendDeliveryEmail(inq: AdminPurchaseInquiryRow, log: GrantedLog): Promise<boolean> {
   const { sendEmail } = await import("@/lib/email/send.server");
   const { renderEmail, esc } = await import("@/lib/email/templates");
   const en = inq.locale === "en";
   const firstName = inq.full_name.trim().split(/\s+/)[0] || inq.full_name;
   const labels = en ? TYPE_LABEL_EN : TYPE_LABEL_TR;
-  const items = log.entries
-    .map((e) => `<li>${esc(labels[e.type] ?? e.type)}</li>`)
-    .join("");
+  const items = log.entries.map((e) => `<li>${esc(labels[e.type] ?? e.type)}</li>`).join("");
   const hasSession = log.entries.some((e) => e.type === "session");
 
   const body = en
@@ -344,7 +427,6 @@ async function sendDeliveryEmail(
   return res.ok;
 }
 
-
 /**
  * Gift path for a bank-transfer e-book: records a paid manual order so the
  * existing paid-order trigger creates the gift + claim token (same as card),
@@ -359,8 +441,11 @@ async function fulfilGift(
 ): Promise<{ already: boolean; emailed: boolean }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const recipientName = String(meta.recipient_name ?? "").trim();
-  const recipientEmail = String(meta.recipient_email ?? "").trim().toLowerCase();
-  if (!recipientName || !recipientEmail) throw new Error("Hediye alıcısının adı / e-postası eksik.");
+  const recipientEmail = String(meta.recipient_email ?? "")
+    .trim()
+    .toLowerCase();
+  if (!recipientName || !recipientEmail)
+    throw new Error("Hediye alıcısının adı / e-postası eksik.");
 
   const { data: existing } = await supabaseAdmin
     .from("orders")
@@ -378,35 +463,37 @@ async function fulfilGift(
   if (pErr || !prod) throw new Error(`Ürün bulunamadı: ${slug}`);
 
   const amountCents =
-    inq.transfer_amount != null ? Math.round(Number(inq.transfer_amount) * 100) : (prod.price_cents ?? 0);
+    inq.transfer_amount != null
+      ? Math.round(Number(inq.transfer_amount) * 100)
+      : (prod.price_cents ?? 0);
   let order = existing;
-  if(!order){
-  const { data: createdOrder, error: oErr } = await supabaseAdmin
-    .from("orders")
-    .insert({
-      user_id: buyerId,
-      product_id: prod.id,
-      amount_cents: amountCents,
-      currency: (inq.transfer_currency || "TRY").toLowerCase(),
-      provider: "manual",
-      provider_ref: `inquiry:${inq.id}:${slug}`,
-      status: "pending",
-      locale: inq.locale,
-      metadata: {
-        source: "bank_transfer",
-        inquiry_id: inq.id,
-        is_gift: true,
-        recipient_name: recipientName,
-        recipient_email: recipientEmail,
-        gift_note: (meta.gift_note as string | null) ?? null,
-      },
-    } as never)
-    .select("id")
-    .single();
-  if (oErr || !createdOrder) throw new Error(oErr?.message ?? "Sipariş oluşturulamadı");
-    order=createdOrder;
+  if (!order) {
+    const { data: createdOrder, error: oErr } = await supabaseAdmin
+      .from("orders")
+      .insert({
+        user_id: buyerId,
+        product_id: prod.id,
+        amount_cents: amountCents,
+        currency: (inq.transfer_currency || "TRY").toLowerCase(),
+        provider: "manual",
+        provider_ref: `inquiry:${inq.id}:${slug}`,
+        status: "pending",
+        locale: inq.locale,
+        metadata: {
+          source: "bank_transfer",
+          inquiry_id: inq.id,
+          is_gift: true,
+          recipient_name: recipientName,
+          recipient_email: recipientEmail,
+          gift_note: (meta.gift_note as string | null) ?? null,
+        },
+      } as never)
+      .select("id")
+      .single();
+    if (oErr || !createdOrder) throw new Error(oErr?.message ?? "Sipariş oluşturulamadı");
+    order = createdOrder;
   }
-  if(!order)throw new Error('Sipariş bulunamadı.');
+  if (!order) throw new Error("Sipariş bulunamadı.");
   const { error: payErr } = await supabaseAdmin
     .from("orders")
     .update({ status: "paid" } as never)
@@ -439,7 +526,12 @@ async function fulfilGift(
     const recipientResult = await sendEmail({
       to: recipientEmail,
       subject: "Size imzalı bir kitap hediye edildi",
-      html: renderEmail({ title: "Size bir kitap hediye edildi", bodyHtml: body, ctaLabel: "Hediyemi al", ctaHref: link }),
+      html: renderEmail({
+        title: "Size bir kitap hediye edildi",
+        bodyHtml: body,
+        ctaLabel: "Hediyemi al",
+        ctaHref: link,
+      }),
     });
     // Buyer confirmation
     const buyerResult = await sendEmail({

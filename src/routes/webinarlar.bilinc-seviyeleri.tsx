@@ -16,10 +16,15 @@ export const Route = createFileRoute("/webinarlar/bilinc-seviyeleri")({
       { title: "Bilinç Seviyeleri Çalışmaları — PFA" },
       {
         name: "description",
-        content:
-          "Kendi haritanızı okumayı öğreten 4 canlı online oturumluk PFA gelişim programı.",
+        content: "Kendi haritanızı okumayı öğreten 4 canlı online oturumluk PFA gelişim programı.",
       },
-      {property:'og:title',content:'Bilinç Seviyeleri Çalışmaları — PFA'}, {property:'og:description',content:'Canlı PFA gelişim programı için tarih ve kayıt talepleri.'}, {property:'og:type',content:'website'}, {name:'twitter:card',content:'summary'},
+      { property: "og:title", content: "Bilinç Seviyeleri Çalışmaları — PFA" },
+      {
+        property: "og:description",
+        content: "Canlı PFA gelişim programı için tarih ve kayıt talepleri.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
     scripts: [
       {
@@ -80,24 +85,21 @@ function Page() {
       <div className="mx-auto max-w-3xl">
         <WebinarBanner session={session} />
         <WebinarShowcaseStrip session={session} />
-        <div className="text-xs tracking-[0.3em] text-accent">
-          KENDİ YOLCULUĞUNUZ İÇİN
-        </div>
+        <div className="text-xs tracking-[0.3em] text-accent">KENDİ YOLCULUĞUNUZ İÇİN</div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">Bilinç Seviyeleri Çalışmaları</h1>
         <p className="mt-3 font-serif text-xl italic text-foreground/70">
           Kendi haritanızı okumayı öğrenin.
         </p>
 
         <p className="mt-8 leading-relaxed text-foreground/85">
-          İç dünyamız dağınık bir yer gibi görünebilir. Bu çalışma, o görüntünün altında
-          işleyen düzeni — bilincin yedi işlevsel seviyesini — kendi yaşamınız üzerinden
-          okumayı öğretir.
+          İç dünyamız dağınık bir yer gibi görünebilir. Bu çalışma, o görüntünün altında işleyen
+          düzeni — bilincin yedi işlevsel seviyesini — kendi yaşamınız üzerinden okumayı öğretir.
         </p>
 
         <Section title="Kimin için">
           <p className="text-foreground/85">
-            Kendini anlamaya yola çıkmış herkes; terapiden veya koçluktan bağımsız,
-            kendi gelişimini kendi eline almak isteyenler.
+            Kendini anlamaya yola çıkmış herkes; terapiden veya koçluktan bağımsız, kendi gelişimini
+            kendi eline almak isteyenler.
           </p>
         </Section>
 
@@ -108,9 +110,7 @@ function Page() {
           <ol className="mt-4 space-y-3">
             {PROGRAM.map((p, i) => (
               <li key={p.t} className="rounded-md border border-border bg-card p-4">
-                <div className="text-xs uppercase tracking-[0.2em] text-accent">
-                  Oturum {i + 1}
-                </div>
+                <div className="text-xs uppercase tracking-[0.2em] text-accent">Oturum {i + 1}</div>
                 <div className="mt-1 font-serif text-lg">{p.t}</div>
                 <div className="mt-1 text-sm text-foreground/80">{p.d}</div>
               </li>
@@ -120,7 +120,9 @@ function Page() {
 
         <Section title="Kazanımlar">
           <ul className="list-disc space-y-2 pl-5 text-foreground/85">
-            {KAZANIMLAR.map((k) => <li key={k}>{k}</li>)}
+            {KAZANIMLAR.map((k) => (
+              <li key={k}>{k}</li>
+            ))}
           </ul>
         </Section>
 
@@ -132,14 +134,22 @@ function Page() {
 
         <div className="mt-10 flex flex-wrap items-center gap-6 rounded-lg border border-border bg-card p-6">
           <div className="font-serif text-4xl">{priceLabel}</div>
-          <PurchaseInquiryForm kind="webinar" productSlug="bilinc-seviyeleri-calismalari" productLabel="Bilinç Seviyeleri Çalışmaları" offerAddon={false} buttonLabel={session ? "Havale ile kayıt ol" : "Tarih açıklanınca haber ver"} />
+          <PurchaseInquiryForm
+            kind="webinar"
+            productSlug="bilinc-seviyeleri-calismalari"
+            productLabel="Bilinç Seviyeleri Çalışmaları"
+            offerAddon={false}
+            buttonLabel={session ? "Havale ile kayıt ol" : "Tarih açıklanınca haber ver"}
+          />
         </div>
 
         <p className="mt-8 text-xs text-muted-foreground">
-          Not: Bu çalışma klinik bir terapi programı değildir; işlevsel farkındalık için bir
-          gelişim programıdır.
+          Not: Bu çalışma klinik bir terapi programı değildir; işlevsel farkındalık için bir gelişim
+          programıdır.
         </p>
-        <div><OtherWebinarsLink /></div>
+        <div>
+          <OtherWebinarsLink />
+        </div>
       </div>
     </div>
   );

@@ -63,8 +63,8 @@ export function LocaleBadge({ locale }: { locale?: string | null }) {
 export function AdminPurchaseInquiries() {
   const list = useServerFn(listAdminPurchaseInquiries);
   const getReceipt = useServerFn(receiptUrl);
-  const [receiptFilter,setReceiptFilter]=useState(false);
-  const [confirmPaid,setConfirmPaid]=useState(false);
+  const [receiptFilter, setReceiptFilter] = useState(false);
+  const [confirmPaid, setConfirmPaid] = useState(false);
   const update = useServerFn(updateAdminPurchaseInquiry);
   const sendTransfer = useServerFn(sendTransferInstructionsFn);
   const loadOptions = useServerFn(listFulfilOptions);
@@ -109,10 +109,11 @@ export function AdminPurchaseInquiries() {
     () =>
       rows.filter(
         (r) =>
-          (!receiptFilter || !!r.payment_reported_at) && (statusFilter === "all" || r.status === statusFilter) &&
+          (!receiptFilter || !!r.payment_reported_at) &&
+          (statusFilter === "all" || r.status === statusFilter) &&
           (localeFilter === "all" || (r.locale ?? "tr") === localeFilter),
       ),
-    [rows, statusFilter, localeFilter,receiptFilter],
+    [rows, statusFilter, localeFilter, receiptFilter],
   );
 
   const opened = rows.find((r) => r.id === openId) ?? null;
@@ -169,7 +170,8 @@ export function AdminPurchaseInquiries() {
       } else if (res.already > 0 && res.granted.entries.length === res.already) {
         toast.info("Zaten tanımlıydı — yeni bir hak eklenmedi.");
       } else {
-        if(res.emailed) toast.success("Haklar tanımlandı ve teslim e-postası gönderildi."); else toast.warning("Haklar hazır; teslim e-postası gönderilemedi. Yeniden deneyin.");
+        if (res.emailed) toast.success("Haklar tanımlandı ve teslim e-postası gönderildi.");
+        else toast.warning("Haklar hazır; teslim e-postası gönderilemedi. Yeniden deneyin.");
       }
       reload();
     } catch (e: any) {
@@ -232,7 +234,14 @@ export function AdminPurchaseInquiries() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-3">
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={receiptFilter} onChange={e=>setReceiptFilter(e.target.checked)}/>Dekont gelenler</label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={receiptFilter}
+            onChange={(e) => setReceiptFilter(e.target.checked)}
+          />
+          Dekont gelenler
+        </label>
         <div>
           <Label className="text-xs">Durum</Label>
           <Select
@@ -308,7 +317,8 @@ export function AdminPurchaseInquiries() {
                   ) : null}
                   {(r.metadata as Record<string, unknown> | null)?.is_gift ? (
                     <div className="mt-1 text-xs text-accent">
-                      🎁 Hediye → {String((r.metadata as Record<string, unknown>).recipient_name ?? "")} ·{" "}
+                      🎁 Hediye →{" "}
+                      {String((r.metadata as Record<string, unknown>).recipient_name ?? "")} ·{" "}
                       {String((r.metadata as Record<string, unknown>).recipient_email ?? "")}
                     </div>
                   ) : null}
@@ -373,10 +383,41 @@ export function AdminPurchaseInquiries() {
             <p className="whitespace-pre-wrap text-sm">{opened.message || "—"}</p>
           </div>
 
-          {opened.quote && <div className="space-y-1 border-t border-border pt-4 text-sm"><p>Ürün / paket: {(opened.quote.subtotalCents/100).toLocaleString('tr-TR')} TRY</p><p>Bekleme indirimi: {(opened.quote.discountCents/100).toLocaleString('tr-TR')} TRY</p><p>Onaylanan tutar: {opened.transfer_amount ?? opened.quote.totalCents/100} TRY</p>{opened.quote.reason&&<p className="text-destructive">{opened.quote.reason}</p>}</div>}
-          {opened.receipt_path&&<Button variant="outline" onClick={async()=>{try{window.open(await getReceipt({data:{id:opened.id}}),'_blank','noopener');}catch(e){toast.error(e instanceof Error?e.message:'Dekont açılamadı.');}}}>Dekontu incele</Button>}
-          {opened.delivery_error&&<p className="text-sm text-destructive">{opened.delivery_error}</p>}
-          <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={confirmPaid} onChange={e=>setConfirmPaid(e.target.checked)}/>Banka hareketini kontrol ettim; tutar ve ürün doğru.</label>
+          {opened.quote && (
+            <div className="space-y-1 border-t border-border pt-4 text-sm">
+              <p>Ürün / paket: {(opened.quote.subtotalCents / 100).toLocaleString("tr-TR")} TRY</p>
+              <p>
+                Bekleme indirimi: {(opened.quote.discountCents / 100).toLocaleString("tr-TR")} TRY
+              </p>
+              <p>Onaylanan tutar: {opened.transfer_amount ?? opened.quote.totalCents / 100} TRY</p>
+              {opened.quote.reason && <p className="text-destructive">{opened.quote.reason}</p>}
+            </div>
+          )}
+          {opened.receipt_path && (
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  window.open(await getReceipt({ data: { id: opened.id } }), "_blank", "noopener");
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Dekont açılamadı.");
+                }
+              }}
+            >
+              Dekontu incele
+            </Button>
+          )}
+          {opened.delivery_error && (
+            <p className="text-sm text-destructive">{opened.delivery_error}</p>
+          )}
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={confirmPaid}
+              onChange={(e) => setConfirmPaid(e.target.checked)}
+            />
+            Banka hareketini kontrol ettim; tutar ve ürün doğru.
+          </label>
           <div className="space-y-3 rounded-md border border-accent/40 bg-accent/5 p-4">
             <div className="text-xs tracking-[0.2em] text-accent">ÖDEME VE HAK TANIMLAMA</div>
             <div className="flex flex-wrap items-end gap-3">
@@ -396,12 +437,12 @@ export function AdminPurchaseInquiries() {
                   <SelectContent>
                     {(options?.products ?? []).map((p) => (
                       <SelectItem key={`product:${p.slug}`} value={`product:${p.slug}`}>
-                        Ürün — {p.label} (${(p.price_cents / 100).toFixed(2)})
+                        Ürün — {p.label} ({(p.price_cents / 100).toFixed(2)} TRY)
                       </SelectItem>
                     ))}
                     {(options?.bundles ?? []).map((b) => (
                       <SelectItem key={`bundle:${b.slug}`} value={`bundle:${b.slug}`}>
-                        Paket — {b.label} (${(b.price_cents / 100).toFixed(2)})
+                        Paket — {b.label} ({(b.price_cents / 100).toFixed(2)} TRY)
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -409,7 +450,11 @@ export function AdminPurchaseInquiries() {
               </div>
               <div>
                 <Label className="text-xs">Kitap dili</Label>
-                <Select disabled={!!opened.quote} value={selLang} onValueChange={(v) => setSelLang(v as "tr" | "en")}>
+                <Select
+                  disabled={!!opened.quote}
+                  value={selLang}
+                  onValueChange={(v) => setSelLang(v as "tr" | "en")}
+                >
                   <SelectTrigger className="mt-1 w-24">
                     <SelectValue />
                   </SelectTrigger>
@@ -419,14 +464,22 @@ export function AdminPurchaseInquiries() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button size="sm" onClick={onFulfil} disabled={fulfilling || !selSlug || !confirmPaid}>
-                {fulfilling ? "Tanımlanıyor…" : opened.delivery_error ? "Teslimatı yeniden dene" : "Ödeme alındı ve hakları tanımla"}
+              <Button
+                size="sm"
+                onClick={onFulfil}
+                disabled={fulfilling || !selSlug || !confirmPaid}
+              >
+                {fulfilling
+                  ? "Tanımlanıyor…"
+                  : opened.delivery_error
+                    ? "Teslimatı yeniden dene"
+                    : "Ödeme alındı ve hakları tanımla"}
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
               Seçimin bütün bileşenleri (ölçek erişimi, seans hakkı, imzalı e-kitap) tek seferde
               tanımlanır; tekrar basmak ikinci kez tanımlamaz. Katalog fiyatı:{" "}
-              {selectionPriceCents != null ? `$${(selectionPriceCents / 100).toFixed(2)}` : "—"}
+              {selectionPriceCents != null ? `${(selectionPriceCents / 100).toFixed(2)} TRY` : "—"}
             </p>
             {opened.granted ? (
               <div className="rounded border border-border bg-background p-3 text-xs">
@@ -450,68 +503,67 @@ export function AdminPurchaseInquiries() {
 
           {paymentMode === "card" ? (
             <div className="rounded-md border border-border bg-muted/30 p-4 text-xs text-muted-foreground">
-              Ödeme yöntemi "yalnızca kart" olarak ayarlı — havale bilgisi gönderme adımı
-              gizlendi. Site Ayarları → Ödeme Sistemi bölümünden değiştirebilirsiniz.
+              Ödeme yöntemi "yalnızca kart" olarak ayarlı — havale bilgisi gönderme adımı gizlendi.
+              Site Ayarları → Ödeme Sistemi bölümünden değiştirebilirsiniz.
             </div>
           ) : (
-          <div className="space-y-3 rounded-md border border-border bg-muted/30 p-4">
-            <div className="flex flex-wrap items-end gap-3">
-              <div>
-                <Label className="text-xs">Tutar</Label>
-                <Input
-                  className="mt-1 w-40"
-                  inputMode="decimal"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                />
+            <div className="space-y-3 rounded-md border border-border bg-muted/30 p-4">
+              <div className="flex flex-wrap items-end gap-3">
+                <div>
+                  <Label className="text-xs">Tutar</Label>
+                  <Input
+                    className="mt-1 w-40"
+                    inputMode="decimal"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Para birimi</Label>
+                  <Input
+                    className="mt-1 w-24"
+                    value={currency}
+                    readOnly
+                    onChange={(e) => setCurrency("TRY")}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Ödeme referansı</Label>
+                  <p className="mt-2 text-sm font-medium">
+                    {opened.payment_reference ?? paymentReferenceFor(opened.id)}
+                  </p>
+                </div>
+                <Button size="sm" onClick={onSendTransfer} disabled={sending}>
+                  {sending
+                    ? "Gönderiliyor…"
+                    : opened.transfer_sent_at
+                      ? "Tekrar gönder"
+                      : "Havale bilgilerini gönder"}
+                </Button>
               </div>
-              <div>
-                <Label className="text-xs">Para birimi</Label>
-                <Input
-                  className="mt-1 w-24"
-                  value={currency}
-                  readOnly
-                  onChange={(e) => setCurrency("TRY")}
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Ödeme referansı</Label>
-                <p className="mt-2 text-sm font-medium">
-                  {opened.payment_reference ?? paymentReferenceFor(opened.id)}
+              {opened.transfer_sent_at ? (
+                <p className="text-xs text-amber-700 dark:text-amber-500">
+                  Havale bilgileri gönderildi —{" "}
+                  {opened.transfer_amount != null
+                    ? `${Number(opened.transfer_amount).toLocaleString("tr-TR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })} ${opened.transfer_currency ?? ""}`
+                    : "—"}{" "}
+                  — {fmtDate(opened.transfer_sent_at)}. Tekrar göndermek yeni bir e-posta oluşturur.
                 </p>
-              </div>
-              <Button size="sm" onClick={onSendTransfer} disabled={sending}>
-                {sending
-                  ? "Gönderiliyor…"
-                  : opened.transfer_sent_at
-                    ? "Tekrar gönder"
-                    : "Havale bilgilerini gönder"}
-              </Button>
-            </div>
-            {opened.transfer_sent_at ? (
-              <p className="text-xs text-amber-700 dark:text-amber-500">
-                Havale bilgileri gönderildi —{" "}
-                {opened.transfer_amount != null
-                  ? `${Number(opened.transfer_amount).toLocaleString("tr-TR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })} ${opened.transfer_currency ?? ""}`
-                  : "—"}{" "}
-                — {fmtDate(opened.transfer_sent_at)}. Tekrar göndermek yeni bir e-posta oluşturur.
-              </p>
-            ) : (
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Hazır ürünlerde havale bilgileri otomatik hazırlanır; yeniden gönderim burada
+                  yapılır.
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
-                IBAN yalnızca bu butona bastığınızda, talep sahibine e-posta ile iletilir.
+                Gönderilecek e-posta dili:{" "}
+                <strong>{opened.locale === "en" ? "İngilizce (EN)" : "Türkçe (TR)"}</strong> —
+                talebin geldiği sayfanın diline göre seçilir.
               </p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              Gönderilecek e-posta dili:{" "}
-              <strong>
-                {opened.locale === "en" ? "İngilizce (EN)" : "Türkçe (TR)"}
-              </strong>{" "}
-              — talebin geldiği sayfanın diline göre seçilir.
-            </p>
-          </div>
+            </div>
           )}
 
           <div>
@@ -525,7 +577,7 @@ export function AdminPurchaseInquiries() {
               “Ödeme alındı” işaretlendiğinde talep sahibine kısa bir onay e-postası gönder
             </label>
             <div className="mt-2 flex flex-wrap gap-2">
-              {PURCHASE_STATUS_ORDER.filter(s=>s!=="paid"&&s!=="fulfilled").map((s) => (
+              {PURCHASE_STATUS_ORDER.filter((s) => s !== "paid" && s !== "fulfilled").map((s) => (
                 <Button
                   key={s}
                   size="sm"
@@ -556,7 +608,6 @@ export function AdminPurchaseInquiries() {
             <Button size="sm" variant="outline" asChild>
               <a href={`mailto:${opened.email}`}>E-posta gönder</a>
             </Button>
-
           </div>
         </div>
       ) : null}

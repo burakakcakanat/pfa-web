@@ -11,7 +11,13 @@ export const Route = createFileRoute("/auth")({
       { title: "Giriş Yap — PFA" },
       { name: "description", content: "PFA hesabınıza giriş yapın veya yeni bir hesap oluşturun." },
       { name: "robots", content: "noindex, nofollow" },
-      {property:"og:title",content:"Giriş Yap — PFA"},{property:"og:description",content:"PFA hesabınıza giriş yapın ve satın alma talebinize devam edin."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary"},
+      { property: "og:title", content: "Giriş Yap — PFA" },
+      {
+        property: "og:description",
+        content: "PFA hesabınıza giriş yapın ve satın alma talebinize devam edin.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,
@@ -29,13 +35,15 @@ function AuthPage() {
   const [resetSent, setResetSent] = useState(false);
   const [signupSent, setSignupSent] = useState(false);
 
-  useEffect(()=>{if(isSafeRedirect(redirect))sessionStorage.setItem('pfa.auth.return',redirect??'/hesabim');},[redirect]);
+  useEffect(() => {
+    if (isSafeRedirect(redirect)) sessionStorage.setItem("pfa.auth.return", redirect ?? "/hesabim");
+  }, [redirect]);
   async function onGoogle() {
     setError(null);
     try {
-      const target = isSafeRedirect(redirect) ? redirect ?? "/hesabim" : "/hesabim";
+      const target = isSafeRedirect(redirect) ? (redirect ?? "/hesabim") : "/hesabim";
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/auth${isSafeRedirect(target)?`?redirect=${encodeURIComponent(target)}`:''}`,
+        redirect_uri: `${window.location.origin}/auth${isSafeRedirect(target) ? `?redirect=${encodeURIComponent(target)}` : ""}`,
       });
       if ("error" in result && result.error) throw result.error;
     } catch (err) {
@@ -46,7 +54,7 @@ function AuthPage() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
-        const target = isSafeRedirect(redirect) ? redirect ?? "/hesabim" : "/hesabim";
+        const target = isSafeRedirect(redirect) ? (redirect ?? "/hesabim") : "/hesabim";
         navigate({ href: target, replace: true });
       }
     });
@@ -64,9 +72,7 @@ function AuthPage() {
         if (error) {
           const status = (error as { status?: number }).status;
           if (status === 429 || /rate limit|too many/i.test(error.message)) {
-            setError(
-              "Çok fazla deneme yapıldı. Lütfen bir süre bekleyip yeniden deneyin.",
-            );
+            setError("Çok fazla deneme yapıldı. Lütfen bir süre bekleyip yeniden deneyin.");
             return;
           }
           // Diğer hatalarda hesap varlığını ifşa etmemek için genel onay gösterilir.
@@ -81,7 +87,7 @@ function AuthPage() {
           options: {
             data: { full_name: fullName },
             emailRedirectTo: isSafeRedirect(redirect)
-              ? `${window.location.origin}/auth?redirect=${encodeURIComponent(redirect??'/hesabim')}`
+              ? `${window.location.origin}/auth?redirect=${encodeURIComponent(redirect ?? "/hesabim")}`
               : `${window.location.origin}/auth`,
           },
         });
@@ -94,7 +100,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
-      const target = isSafeRedirect(redirect) ? redirect ?? "/hesabim" : "/hesabim";
+      const target = isSafeRedirect(redirect) ? (redirect ?? "/hesabim") : "/hesabim";
       navigate({ href: target, replace: true });
     } catch (err) {
       setError(trError(err));
@@ -160,7 +166,11 @@ function AuthPage() {
                     {error}
                   </div>
                 )}
-                <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn-primary w-full disabled:opacity-60"
+                >
                   {loading ? "..." : "Sıfırlama bağlantısı gönder"}
                 </button>
               </form>
@@ -180,101 +190,123 @@ function AuthPage() {
             </div>
           </>
         ) : (
-        <>
-        <div className="mb-6 flex gap-2 rounded-md border border-border p-1">
-          <button
-            type="button"
-            onClick={() => setMode("signin")}
-            className={`flex-1 rounded-sm px-3 py-2 text-sm transition-colors ${mode === "signin" ? "bg-accent text-accent-foreground" : "text-muted-foreground"}`}
-          >
-            Giriş Yap
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("signup")}
-            className={`flex-1 rounded-sm px-3 py-2 text-sm transition-colors ${mode === "signup" ? "bg-accent text-accent-foreground" : "text-muted-foreground"}`}
-          >
-            Üye Ol
-          </button>
-        </div>
-
-        <form onSubmit={onSubmit} className="space-y-4">
-          {mode === "signup" && (
-            <label className="block text-sm">
-              <span className="mb-1 block text-foreground/80">Ad Soyad</span>
-              <input
-                type="text"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2"
-              />
-            </label>
-          )}
-          <label className="block text-sm">
-            <span className="mb-1 block text-foreground/80">E-posta</span>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2"
-            />
-          </label>
-          <label className="block text-sm">
-            <span className="mb-1 block text-foreground/80">Şifre</span>
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2"
-            />
-          </label>
-          {mode === "signin" && (
-            <div className="text-right">
+          <>
+            <div className="mb-6 flex gap-2 rounded-md border border-border p-1">
               <button
                 type="button"
-                onClick={() => {
-                  setMode("reset");
-                  setError(null);
-                }}
-                className="text-xs text-muted-foreground hover:text-accent"
+                onClick={() => setMode("signin")}
+                className={`flex-1 rounded-sm px-3 py-2 text-sm transition-colors ${mode === "signin" ? "bg-accent text-accent-foreground" : "text-muted-foreground"}`}
               >
-                Şifremi unuttum
+                Giriş Yap
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("signup")}
+                className={`flex-1 rounded-sm px-3 py-2 text-sm transition-colors ${mode === "signup" ? "bg-accent text-accent-foreground" : "text-muted-foreground"}`}
+              >
+                Üye Ol
               </button>
             </div>
-          )}
-          {error && <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</div>}
-          <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
-            {loading ? "..." : mode === "signin" ? "Giriş Yap" : "Üye Ol"}
-          </button>
-        </form>
 
-        <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-          <div className="h-px flex-1 bg-border" />
-          <span>veya</span>
-          <div className="h-px flex-1 bg-border" />
-        </div>
-        <button
-          type="button"
-          onClick={onGoogle}
-          className="btn-outline flex w-full items-center justify-center gap-2"
-        >
-          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-            <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.2-.1-2.3-.4-3.5z"/>
-            <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
-            <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2c-2 1.4-4.5 2.3-7.2 2.3-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
-            <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.6l6.2 5.2C41 35.1 44 30 44 24c0-1.2-.1-2.3-.4-3.5z"/>
-          </svg>
-          Google ile devam et
-        </button>
+            <form onSubmit={onSubmit} className="space-y-4">
+              {mode === "signup" && (
+                <label className="block text-sm">
+                  <span className="mb-1 block text-foreground/80">Ad Soyad</span>
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full rounded-md border border-border bg-background px-3 py-2"
+                  />
+                </label>
+              )}
+              <label className="block text-sm">
+                <span className="mb-1 block text-foreground/80">E-posta</span>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2"
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="mb-1 block text-foreground/80">Şifre</span>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2"
+                />
+              </label>
+              {mode === "signin" && (
+                <div className="text-right">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode("reset");
+                      setError(null);
+                    }}
+                    className="text-xs text-muted-foreground hover:text-accent"
+                  >
+                    Şifremi unuttum
+                  </button>
+                </div>
+              )}
+              {error && (
+                <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full disabled:opacity-60"
+              >
+                {loading ? "..." : mode === "signin" ? "Giriş Yap" : "Üye Ol"}
+              </button>
+            </form>
 
-        <div className="mt-6 text-center text-xs text-muted-foreground">
-          <Link to="/" className="hover:text-accent">Ana sayfaya dön</Link>
-        </div>
-        </>
+            <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
+              <div className="h-px flex-1 bg-border" />
+              <span>veya</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            <button
+              type="button"
+              onClick={onGoogle}
+              className="btn-outline flex w-full items-center justify-center gap-2"
+            >
+              <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+                <path
+                  fill="#FFC107"
+                  d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.2-.1-2.3-.4-3.5z"
+                />
+                <path
+                  fill="#FF3D00"
+                  d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"
+                />
+                <path
+                  fill="#4CAF50"
+                  d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2c-2 1.4-4.5 2.3-7.2 2.3-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"
+                />
+                <path
+                  fill="#1976D2"
+                  d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.6l6.2 5.2C41 35.1 44 30 44 24c0-1.2-.1-2.3-.4-3.5z"
+                />
+              </svg>
+              Google ile devam et
+            </button>
+
+            <div className="mt-6 text-center text-xs text-muted-foreground">
+              <Link to="/" className="hover:text-accent">
+                Ana sayfaya dön
+              </Link>
+            </div>
+          </>
         )}
       </div>
     </div>

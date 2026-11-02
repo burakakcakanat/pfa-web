@@ -19,7 +19,7 @@ export const Route = createFileRoute("/seanslar")({
       { property: "og:title", content: "Seanslar — PFA" },
       { property: "og:description", content: "Birebir online PFA danışmanlık seansları." },
       { property: "og:type", content: "website" },
-      {name:"twitter:card",content:"summary"},
+      { name: "twitter:card", content: "summary" },
       { property: "og:url", content: "https://psychofunctionalanalysis.com/seanslar" },
     ],
     links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/seanslar" }],
@@ -62,10 +62,9 @@ function SessionsPage() {
         <div className="text-xs uppercase tracking-[0.3em] text-accent">Seanslar</div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">Birebir Danışmanlık</h1>
         <p className="mt-8 text-base leading-relaxed text-foreground/80">
-          Danışan, harita üzerindeki konumunu gördüğünde gelişimin sorumluluğunu
-          sürdürülebilir biçimde almaya başlar. Amaç geçici rahatlama değil;
-          işlevsel farkındalığa sahip, öz yeterli bireyler. 60 dakikalık birebir
-          oturumlar online gerçekleşir.
+          Danışan, harita üzerindeki konumunu gördüğünde gelişimin sorumluluğunu sürdürülebilir
+          biçimde almaya başlar. Amaç geçici rahatlama değil; işlevsel farkındalığa sahip, öz
+          yeterli bireyler. 60 dakikalık birebir oturumlar online gerçekleşir.
         </p>
       </header>
 
@@ -90,7 +89,15 @@ function SessionsPage() {
           </aside>
 
           <div className="bg-background p-8">
-            <PurchaseInquiryForm kind="session" productSlug="danismanlik-oturumu" productLabel="Birebir Danışmanlık Oturumu" askSlot offerAddon={false} buttonLabel="Havale ile satın al" hint="Zaman tercihiniz kesin randevu değildir; sizinle birlikte teyit edilir." />
+            <PurchaseInquiryForm
+              kind="session"
+              productSlug="danismanlik-oturumu"
+              productLabel="Birebir Danışmanlık Oturumu"
+              askSlot
+              offerAddon={false}
+              buttonLabel="Havale ile satın al"
+              hint="Zaman tercihiniz kesin randevu değildir; sizinle birlikte teyit edilir."
+            />
           </div>
         </div>
       </div>

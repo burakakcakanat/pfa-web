@@ -18,17 +18,17 @@ export const submitPurchaseInquiry = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => parseFriendly(purchaseInquirySchema, d))
   .handler(async ({ data, context }) => {
     const { data: user } = await context.supabase.auth.getUser();
-    if (!user.user?.email || !user.user.email_confirmed_at) throw new Error("Önce e-posta adresinizi onaylayın.");
+    if (!user.user?.email || !user.user.email_confirmed_at)
+      throw new Error("Önce e-posta adresinizi onaylayın.");
     const { createPurchaseInquiry } = await import("@/lib/purchase-inquiries.server");
-    return createPurchaseInquiry({...data,email:user.user.email}, context.userId);
+    return createPurchaseInquiry({ ...data, email: user.user.email }, context.userId);
   });
 
 export const listAdminPurchaseInquiries = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<AdminPurchaseInquiryRow[]> => {
-    const { assertPurchaseAdmin, fetchAdminPurchaseInquiries } = await import(
-      "@/lib/purchase-inquiries.server"
-    );
+    const { assertPurchaseAdmin, fetchAdminPurchaseInquiries } =
+      await import("@/lib/purchase-inquiries.server");
     await assertPurchaseAdmin(context.supabase, context.userId);
     return fetchAdminPurchaseInquiries();
   });
@@ -37,9 +37,8 @@ export const updateAdminPurchaseInquiry = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => purchaseInquiryPatchSchema.parse(d))
   .handler(async ({ context, data }) => {
-    const { assertPurchaseAdmin, patchAdminPurchaseInquiry } = await import(
-      "@/lib/purchase-inquiries.server"
-    );
+    const { assertPurchaseAdmin, patchAdminPurchaseInquiry } =
+      await import("@/lib/purchase-inquiries.server");
     await assertPurchaseAdmin(context.supabase, context.userId);
     return patchAdminPurchaseInquiry(data);
   });
@@ -50,9 +49,8 @@ export const updateAdminPurchaseInquiry = createServerFn({ method: "POST" })
 export const getBankTransferDetails = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<BankTransferDetails> => {
-    const { assertPurchaseAdmin, fetchBankTransferDetails } = await import(
-      "@/lib/purchase-inquiries.server"
-    );
+    const { assertPurchaseAdmin, fetchBankTransferDetails } =
+      await import("@/lib/purchase-inquiries.server");
     await assertPurchaseAdmin(context.supabase, context.userId);
     return fetchBankTransferDetails();
   });
@@ -61,9 +59,8 @@ export const saveBankTransferDetailsFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => bankTransferDetailsSchema.parse(d))
   .handler(async ({ context, data }) => {
-    const { assertPurchaseAdmin, saveBankTransferDetails } = await import(
-      "@/lib/purchase-inquiries.server"
-    );
+    const { assertPurchaseAdmin, saveBankTransferDetails } =
+      await import("@/lib/purchase-inquiries.server");
     await assertPurchaseAdmin(context.supabase, context.userId);
     return saveBankTransferDetails(data);
   });
@@ -72,9 +69,8 @@ export const sendTransferInstructionsFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => sendTransferInstructionsSchema.parse(d))
   .handler(async ({ context, data }) => {
-    const { assertPurchaseAdmin, sendTransferInstructions } = await import(
-      "@/lib/purchase-inquiries.server"
-    );
+    const { assertPurchaseAdmin, sendTransferInstructions } =
+      await import("@/lib/purchase-inquiries.server");
     await assertPurchaseAdmin(context.supabase, context.userId);
     return sendTransferInstructions(data);
   });
@@ -86,9 +82,8 @@ export const listFulfilOptions = createServerFn({ method: "POST" })
     z.object({ book_lang: z.enum(["tr", "en"]).optional().default("tr") }).parse(d ?? {}),
   )
   .handler(async ({ context, data }) => {
-    const { assertPurchaseAdmin, fetchFulfilOptions } = await import(
-      "@/lib/purchase-inquiries.server"
-    );
+    const { assertPurchaseAdmin, fetchFulfilOptions } =
+      await import("@/lib/purchase-inquiries.server");
     await assertPurchaseAdmin(context.supabase, context.userId);
     return fetchFulfilOptions(data.book_lang);
   });

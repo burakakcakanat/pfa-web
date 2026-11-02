@@ -41,9 +41,7 @@ export const Route = createFileRoute("/kitaplar")({
         name: p.name_tr,
         inLanguage: p.language,
         author: { "@type": "Person", name: "Burak Akçakanat" },
-        ...(p.book_key === "pfa" && p.language === "en"
-          ? { isbn: "9798188970468" }
-          : {}),
+        ...(p.book_key === "pfa" && p.language === "en" ? { isbn: "9798188970468" } : {}),
         ...(p.cover_image_url ? { image: p.cover_image_url } : {}),
         offers: {
           "@type": "Offer",
@@ -65,7 +63,7 @@ export const Route = createFileRoute("/kitaplar")({
         { property: "og:title", content: "Kitaplar — PFA" },
         { property: "og:description", content: "PFA kitapları ve imzalı nüshalar." },
         { property: "og:type", content: "website" },
-        {name:"twitter:card",content:"summary"},
+        { name: "twitter:card", content: "summary" },
         { property: "og:url", content: url },
       ],
       links: [{ rel: "canonical", href: url }],
@@ -115,7 +113,9 @@ function BooksPage() {
         </p>
       </header>
 
-      <Suspense fallback={<p className="mt-16 text-center text-sm text-muted-foreground">Yükleniyor…</p>}>
+      <Suspense
+        fallback={<p className="mt-16 text-center text-sm text-muted-foreground">Yükleniyor…</p>}
+      >
         <BooksContent />
       </Suspense>
     </div>
@@ -153,11 +153,13 @@ function BooksContent() {
 
   return (
     <div className="mt-16 space-y-24">
-      {([
-        [PFA_TR_META, "tr"],
-        [PFA_META, "en"],
-        [HCD_META, "en"],
-      ] as const).map(([meta, lang]) => (
+      {(
+        [
+          [PFA_TR_META, "tr"],
+          [PFA_META, "en"],
+          [HCD_META, "en"],
+        ] as const
+      ).map(([meta, lang]) => (
         <BookBlock
           key={`${meta.key}-${lang}`}
           meta={meta}
@@ -226,9 +228,16 @@ function BookBlock({
       <div className="mx-auto w-full max-w-[280px] md:mx-0">
         <div className="aspect-[5/8] w-full overflow-hidden rounded-md border border-border bg-card shadow-[0_20px_50px_-30px_rgba(31,78,82,0.4)]">
           {cover ? (
-            <img src={cover} alt={`${meta.title} kapağı`} className="h-full w-full object-cover" loading="lazy" />
+            <img
+              src={cover}
+              alt={`${meta.title} kapağı`}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
           ) : (
-            <div className="flex h-full w-full items-center justify-center font-serif text-foreground/50">{meta.title}</div>
+            <div className="flex h-full w-full items-center justify-center font-serif text-foreground/50">
+              {meta.title}
+            </div>
           )}
         </div>
       </div>
@@ -307,7 +316,9 @@ function BookBlock({
         {/* B — Amazon */}
         {(kindle || paperback) && (
           <div className="mt-6 rounded-lg border border-border bg-card p-5">
-            <div className="text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">Amazon · Standart Baskı (İmzasız)</div>
+            <div className="text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
+              Amazon · Standart Baskı (İmzasız)
+            </div>
             <div className="mt-3 space-y-2">
               {kindle && <AmazonRow label="Kindle" edition={kindle} />}
               {paperback && <AmazonRow label="Karton Kapak" edition={paperback} />}
@@ -339,13 +350,23 @@ function BookBlock({
   );
 }
 
-function LangPill({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
+function LangPill({
+  active,
+  children,
+  onClick,
+}: {
+  active: boolean;
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`rounded-full border px-3 py-1 text-[0.7rem] uppercase tracking-[0.15em] transition ${
-        active ? "border-accent bg-accent/10 text-accent" : "border-border text-foreground/60 hover:text-foreground"
+        active
+          ? "border-accent bg-accent/10 text-accent"
+          : "border-border text-foreground/60 hover:text-foreground"
       }`}
     >
       {children}
@@ -353,7 +374,13 @@ function LangPill({ active, children, onClick }: { active: boolean; children: Re
   );
 }
 
-function AmazonRow({ label, edition }: { label: string; edition: BooksPayload["editions"][number] }) {
+function AmazonRow({
+  label,
+  edition,
+}: {
+  label: string;
+  edition: BooksPayload["editions"][number];
+}) {
   // Safari popup engelini aşmak için: onClick/window.open YOK.
   // Her ülke seçeneği render anında href hesaplanmış gerçek <a target="_blank"> olarak DOM'a giriyor.
   const options = edition.marketplaces
@@ -363,9 +390,7 @@ function AmazonRow({ label, edition }: { label: string; edition: BooksPayload["e
     <div className="flex flex-wrap items-center justify-between gap-3">
       <span className="font-serif text-base">{label}</span>
       <details className="relative">
-        <summary
-          className="cursor-pointer list-none rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground marker:hidden focus:outline-none focus:ring-2 focus:ring-accent"
-        >
+        <summary className="cursor-pointer list-none rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground marker:hidden focus:outline-none focus:ring-2 focus:ring-accent">
           Ülke seç…
         </summary>
         <ul
@@ -408,16 +433,34 @@ function BookBuyLauncher(props: {
     // Tek kitap → bekleme listesi; paketler henüz bekleme listesine girmez.
     if (!props.initialAddons?.length) {
       return (
-        <Link to="/imzali-kitap" search={{ kitap: props.productSlug, kaynak: "kitaplar" }} className="btn-primary hover:btn-primary-hover">
+        <Link
+          to="/imzali-kitap"
+          search={{ kitap: props.productSlug, kaynak: "kitaplar" }}
+          className="btn-primary hover:btn-primary-hover"
+        >
           Yerini ayırt · %10 indirim
         </Link>
       );
     }
-    return props.bundleSlug ? <PurchaseInquiryForm kind="ebook" selectionKind="bundle" productSlug={props.bundleSlug} productLabel={props.productTitle} bookLang={props.productSlug.endsWith('-en')?'en':'tr'} offerAddon={false} buttonLabel="Havale ile satın al" /> : null;
+    return props.bundleSlug ? (
+      <PurchaseInquiryForm
+        kind="ebook"
+        selectionKind="bundle"
+        productSlug={props.bundleSlug}
+        productLabel={props.productTitle}
+        bookLang={props.productSlug.endsWith("-en") ? "en" : "tr"}
+        offerAddon={false}
+        buttonLabel="Havale ile satın al"
+      />
+    ) : null;
   }
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="btn-primary hover:btn-primary-hover">
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="btn-primary hover:btn-primary-hover"
+      >
         {props.label ?? "İmzalı Nüshanı Al"}
       </button>
       <CheckoutPanel
@@ -555,9 +598,7 @@ function BundleRow({
     : null;
   const coverUrl =
     bookProduct?.cover_image_url ||
-    (bundle.book_key === "hcd"
-      ? HCD_META.covers.en
-      : PFA_META.covers[lang] || PFA_META.covers.en);
+    (bundle.book_key === "hcd" ? HCD_META.covers.en : PFA_META.covers[lang] || PFA_META.covers.en);
 
   type Piece =
     | { kind: "book"; label: string }
@@ -576,7 +617,11 @@ function BundleRow({
           {pieces.map((piece, i) => (
             <div key={i} className="flex items-end gap-3">
               {piece.kind === "book" ? (
-                <BookThumb src={coverUrl} alt={bookProduct?.name_tr ?? "Kitap"} label={piece.label} />
+                <BookThumb
+                  src={coverUrl}
+                  alt={bookProduct?.name_tr ?? "Kitap"}
+                  label={piece.label}
+                />
               ) : (
                 <IconBadge
                   icon={piece.kind === "assessment" ? ClipboardList : MessagesSquare}
@@ -613,8 +658,12 @@ function BundleRow({
           {bundle.book_key === "pfa" && bundle.includes_book && (
             <div className="mt-5 flex items-center gap-2 text-xs">
               <span className="text-muted-foreground">Kitap dili:</span>
-              <LangPill active={lang === "tr"} onClick={() => setLang("tr")}>Türkçe</LangPill>
-              <LangPill active={lang === "en"} onClick={() => setLang("en")}>İngilizce</LangPill>
+              <LangPill active={lang === "tr"} onClick={() => setLang("tr")}>
+                Türkçe
+              </LangPill>
+              <LangPill active={lang === "en"} onClick={() => setLang("en")}>
+                İngilizce
+              </LangPill>
             </div>
           )}
 
@@ -663,24 +712,22 @@ function BookThumb({ src, alt, label }: { src: string; alt: string; label: strin
           </div>
         )}
       </div>
-      <span className="text-[0.65rem] uppercase tracking-[0.15em] text-muted-foreground">{label}</span>
+      <span className="text-[0.65rem] uppercase tracking-[0.15em] text-muted-foreground">
+        {label}
+      </span>
     </div>
   );
 }
 
-function IconBadge({
-  icon: Icon,
-  label,
-}: {
-  icon: typeof ClipboardList;
-  label: string;
-}) {
+function IconBadge({ icon: Icon, label }: { icon: typeof ClipboardList; label: string }) {
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="grid h-[72px] w-[72px] place-items-center rounded-full border border-accent/50 bg-accent/5 text-accent shadow-[0_10px_24px_-16px_rgba(31,78,82,0.5)]">
         <Icon className="h-7 w-7" strokeWidth={1.4} aria-hidden />
       </div>
-      <span className="text-[0.65rem] uppercase tracking-[0.15em] text-muted-foreground">{label}</span>
+      <span className="text-[0.65rem] uppercase tracking-[0.15em] text-muted-foreground">
+        {label}
+      </span>
     </div>
   );
 }

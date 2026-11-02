@@ -33,9 +33,13 @@ export const Route = createFileRoute("/degerlendirme")({
           "PFA Bilinç Seviyeleri Ölçeği: yedi bilinç seviyesini kapsayan madde havuzu; farkındalığı işlevsel farkındalığa taşıyan değerlendirme aracı.",
       },
       { property: "og:title", content: "PFA Bilinç Seviyeleri Ölçeği" },
-      { property: "og:description", content: "PFA Bilinç Seviyeleri Ölçeği: bilinç seviyeleri için işlevsel değerlendirme aracı." },
+      {
+        property: "og:description",
+        content:
+          "PFA Bilinç Seviyeleri Ölçeği: bilinç seviyeleri için işlevsel değerlendirme aracı.",
+      },
       { property: "og:type", content: "website" },
-      {name:"twitter:card",content:"summary"},
+      { name: "twitter:card", content: "summary" },
       { property: "og:url", content: "https://psychofunctionalanalysis.com/degerlendirme" },
     ],
     links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/degerlendirme" }],
@@ -88,13 +92,12 @@ function AssessmentPage() {
           PFA Bilinç Seviyeleri Ölçeği: Farkındalıktan İşlevsel Farkındalığa
         </h1>
         <p className="mt-8 text-base leading-relaxed text-foreground/80">
-          Resiflerde dalış yapan herkes anda ve farkındadır; ama yalnızca bir deniz
-          biyoloğu hangi canlının neden renk değiştirdiğini görür. Bu fark,
-          farkındalık ile işlevsel farkındalık arasındaki farktır. PFA Bilinç Seviyeleri Ölçeği bu
-          geçişin aracıdır. Yedi bilinç seviyesini kapsayan {itemCount} maddelik havuz; hangi seviyede işlev
-          aksadığını ve gelişimin nereden destek alacağını gösteren rapor. Bireysel
-          gelişimden psikolojiye, eğitimden kurumsal seçme-yerleştirme-geliştirmeye
-          uygulanabilir.
+          Resiflerde dalış yapan herkes anda ve farkındadır; ama yalnızca bir deniz biyoloğu hangi
+          canlının neden renk değiştirdiğini görür. Bu fark, farkındalık ile işlevsel farkındalık
+          arasındaki farktır. PFA Bilinç Seviyeleri Ölçeği bu geçişin aracıdır. Yedi bilinç
+          seviyesini kapsayan {itemCount} maddelik havuz; hangi seviyede işlev aksadığını ve
+          gelişimin nereden destek alacağını gösteren rapor. Bireysel gelişimden psikolojiye,
+          eğitimden kurumsal seçme-yerleştirme-geliştirmeye uygulanabilir.
         </p>
       </header>
 
@@ -115,8 +118,8 @@ function AssessmentPage() {
 
       <div className="mx-auto mt-12 flex max-w-3xl flex-col items-center gap-4 rounded-lg border border-accent/40 bg-accent/5 p-6 text-center md:flex-row md:justify-between md:text-left">
         <p className="text-sm leading-relaxed text-foreground/85">
-          Başlangıç noktası: Ücretsiz Mini Ölçek ile 7 seviyede kendinize ilk bakışı
-          atın, ardından dilerseniz tam ölçeğe geçin.
+          Başlangıç noktası: Ücretsiz Mini Ölçek ile 7 seviyede kendinize ilk bakışı atın, ardından
+          dilerseniz tam ölçeğe geçin.
         </p>
         <Link to="/degerlendirme/mini" className="btn-primary shrink-0 whitespace-nowrap">
           Ücretsiz Ölçek
@@ -128,7 +131,8 @@ function AssessmentPage() {
           <div className="text-xs tracking-[0.25em] text-accent">ÜCRETSİZ</div>
           <h2 className="mt-2 font-serif text-2xl">Mini Test</h2>
           <p className="mt-3 text-sm text-foreground/80">
-            {itemCount} madde, 7 seviyede kısa bir görünüm. Sonucu görmek için ücretsiz üyelik gerekir.
+            {itemCount} madde, 7 seviyede kısa bir görünüm. Sonucu görmek için ücretsiz üyelik
+            gerekir.
           </p>
           <Link to="/degerlendirme/mini" className="btn-primary mt-6 inline-block">
             Ücretsiz Mini Testi Başlat
@@ -140,7 +144,8 @@ function AssessmentPage() {
           </div>
           <h2 className="mt-2 font-serif text-2xl">Tam Assessment + Bilinç Seviyesi Raporu</h2>
           <p className="mt-3 text-sm text-foreground/80">
-            Tüm aktif sorular, seviye seviye ayrıntılı yorum, zeka türü skorları ve destek alınacak alanların derinlemesine haritası.
+            Tüm aktif sorular, seviye seviye ayrıntılı yorum, zeka türü skorları ve destek alınacak
+            alanların derinlemesine haritası.
           </p>
           <div className="mt-6">
             {hasFull ? (
@@ -152,7 +157,13 @@ function AssessmentPage() {
                 Davetli Ölçeği Başlat
               </Link>
             ) : (
-              <PurchaseInquiryForm kind="assessment" productSlug="tam-assessment-rapor" productLabel="Tam PFA Ölçeği + Bilinç Seviyesi Raporu" offerAddon={false} buttonLabel="Havale ile satın al" />
+              <PurchaseInquiryForm
+                kind="assessment"
+                productSlug="tam-assessment-rapor"
+                productLabel="Tam PFA Ölçeği + Bilinç Seviyesi Raporu"
+                offerAddon={false}
+                buttonLabel="Havale ile satın al"
+              />
             )}
           </div>
         </div>
@@ -164,7 +175,16 @@ function AssessmentPage() {
           Ölçek erişimi ve rapor detayları için formu doldurun.
         </p>
 
-        <div className="mt-6"><PurchaseInquiryForm kind="assessment" intent="information" productSlug="tam-assessment-rapor" productLabel="PFA Ölçeği — bilgi talebi" offerAddon={false} buttonLabel="Bilgi talebi gönder" /></div>
+        <div className="mt-6">
+          <PurchaseInquiryForm
+            kind="assessment"
+            intent="information"
+            productSlug="tam-assessment-rapor"
+            productLabel="PFA Ölçeği — bilgi talebi"
+            offerAddon={false}
+            buttonLabel="Bilgi talebi gönder"
+          />
+        </div>
       </div>
     </div>
   );
