@@ -14,10 +14,13 @@ import { z } from "zod";
 
 // Public: honeypot `website_hp` must be empty; rate limited per e-mail and per IP.
 export const submitPurchaseInquiry = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => parseFriendly(purchaseInquirySchema, d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { data: user } = await context.supabase.auth.getUser();
+    if (!user.user?.email || !user.user.email_confirmed_at) throw new Error("Önce e-posta adresinizi onaylayın.");
     const { createPurchaseInquiry } = await import("@/lib/purchase-inquiries.server");
-    return createPurchaseInquiry(data);
+    return createPurchaseInquiry({...data,email:user.user.email}, context.userId);
   });
 
 export const listAdminPurchaseInquiries = createServerFn({ method: "GET" })

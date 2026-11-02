@@ -46,8 +46,8 @@ export const purchaseInquirySchema = z.object({
   message: z.string().trim().max(3000).optional().default(""),
   // Optional add-on the requester ticked; validated server-side against bundles.
   addon_bundle_slug: z.string().trim().max(120).nullable().optional(),
-  selection_kind: z.enum(['product', 'bundle']).optional().default('product'),
-  intent: z.enum(['purchase', 'information']).optional().default('purchase'),
+  selection_kind: z.enum(['product', 'bundle']).optional(),
+  intent: z.enum(['purchase', 'information']).optional(),
   book_lang: z.enum(["tr", "en"]).optional().default("tr"),
   // Origin locale hint from the page; validated server-side, never trusted raw.
   locale: z.enum(["tr", "en"]).optional().default("tr"),

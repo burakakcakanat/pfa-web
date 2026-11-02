@@ -11,7 +11,7 @@ import {
 } from "@/lib/purchase-inquiries";
 
 const SELECT_COLS =
-  "id, kind, product_slug, product_label, full_name, email, phone, preferred_slot, message, status, admin_note, locale, created_at, updated_at, payment_reference, transfer_amount, transfer_currency, transfer_sent_at, addon_bundle_slug, fulfil_kind, fulfil_slug, fulfil_book_lang, granted, fulfilled_at, metadata";
+  "id, kind, product_slug, product_label, full_name, email, phone, preferred_slot, message, status, admin_note, locale, created_at, updated_at, payment_reference, transfer_amount, transfer_currency, transfer_sent_at, addon_bundle_slug, fulfil_kind, fulfil_slug, fulfil_book_lang, granted, fulfilled_at, metadata, user_id, quote, receipt_path, payment_reported_at, delivery_error, delivery_email_sent";
 
 async function hashIp(ip: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`pfa-purchase:${ip}`));
@@ -39,7 +39,8 @@ export async function assertPurchaseAdmin(supabase: any, userId: string): Promis
 
 export async function createPurchaseInquiry(
   data: PurchaseInquiryInput,
-): Promise<{ ok: boolean }> {
+  userId?: string,
+): Promise<{ ok: boolean; id?: string }> {
   if (data.website_hp && data.website_hp.length > 0) {
     // Silently accept — bot honeypot.
     return { ok: true };
@@ -85,7 +86,14 @@ export async function createPurchaseInquiry(
     }
   }
 
-  const label = (data.product_label || "").trim() || data.product_slug;
+  let quote: import('@/lib/purchase-inquiries').TransferQuote | null = null;
+  const fixedSale = !['pro_license','corporate'].includes(data.kind) && data.intent !== 'information';
+  if (fixedSale) {
+    if (!userId) throw new Error('Satın almak için hesabınıza giriş yapın.');
+    const { quoteTransfer } = await import('@/lib/transfer.server');
+    quote = await quoteTransfer(data.addon_bundle_slug ?? data.product_slug, data.addon_bundle_slug ? 'bundle' : data.selection_kind ?? 'product', data.book_lang, userId);
+  }
+  const label = quote?.label ?? ((data.product_label || "").trim() || data.product_slug);
 
   // The add-on is only honoured when it is a real, live bundle that actually
   // contains the requested product — never a client-supplied discount.
@@ -103,7 +111,9 @@ export async function createPurchaseInquiry(
     }
   }
 
-  const { error: insErr } = await supabaseAdmin.from("purchase_inquiries").insert({
+  const { data: inserted, error: insErr } = await supabaseAdmin.from("purchase_inquiries").insert({
+    user_id: userId ?? null,
+    quote: quote as never,
     kind: data.kind,
     product_slug: data.product_slug,
     product_label: label,
@@ -117,10 +127,11 @@ export async function createPurchaseInquiry(
     locale,
     addon_bundle_slug: addonBundleSlug,
     // Prefill for the admin's one-tap fulfilment; editable there.
-    fulfil_kind: addonBundleSlug ? "bundle" : "product",
+    fulfil_kind: addonBundleSlug ? "bundle" : data.selection_kind ?? "product",
     fulfil_slug: addonBundleSlug ?? data.product_slug,
     fulfil_book_lang: data.book_lang,
     metadata: {
+      intent: data.intent ?? "purchase",
       ...(data.badge_intent ? { badge_intent: data.badge_intent } : {}),
       ...(data.kind === "ebook" && data.gift
         ? {
@@ -131,7 +142,7 @@ export async function createPurchaseInquiry(
           }
         : {}),
     },
-  } as never);
+  } as never).select("id").single();
   if (insErr) throw new Error(insErr.message);
 
   const kindLabel = PURCHASE_KIND_LABEL[data.kind];
@@ -223,7 +234,11 @@ export async function createPurchaseInquiry(
     console.error("[email] purchase inquiry confirmation failed", e);
   }
 
-  return { ok: true };
+  if (inserted && quote?.ready) {
+    try { await sendTransferInstructions({id:inserted.id,amount:quote.totalCents/100,currency:'TRY'}); }
+    catch { await supabaseAdmin.from('purchase_inquiries').update({delivery_error:'Havale e-postası gönderilemedi; bilgileri Taleplerim ekranında görebilirsiniz.'}).eq('id',inserted.id); }
+  }
+  return { ok: true, id: inserted?.id };
 }
 
 export async function fetchAdminPurchaseInquiries(): Promise<AdminPurchaseInquiryRow[]> {
@@ -394,7 +409,15 @@ export async function sendTransferInstructions(input: {
   }
 
   const reference = inq.payment_reference || paymentReferenceFor(inq.id);
-  const currency = (input.currency || bank.currency || "TRY").toUpperCase();
+  if (inq.payment_reported_at || ['paid','fulfilled','closed'].includes(inq.status)) throw new Error('Ödeme bildirilen veya kapanan talebin tutarı değiştirilemez.');
+  if (input.currency.toUpperCase() !== 'TRY' || bank.currency.toUpperCase() !== 'TRY') throw new Error('Bu banka hesabına yalnız TRY havale kabul edilir.');
+  if (inq.user_id && (inq.metadata as Record<string,unknown> | null)?.intent !== 'information' && !['corporate','pro_license'].includes(inq.kind)) {
+    const {quoteTransfer}=await import('@/lib/transfer.server');
+    const quote=await quoteTransfer(inq.fulfil_slug??inq.product_slug,inq.fulfil_kind??'product',inq.fulfil_book_lang,inq.user_id);
+    if(!quote.ready) throw new Error(quote.reason??'Ürün hazır değil.');
+    input.amount=quote.totalCents/100;
+  }
+  const currency = 'TRY';
   const label = inq.product_label || inq.product_slug;
   const firstName = inq.full_name.trim().split(/\s+/)[0] || inq.full_name;
   const en = inq.locale === "en";
@@ -405,6 +428,8 @@ export async function sendTransferInstructions(input: {
     `<tr><td style="padding:6px 0;color:#6b6355;width:170px">${esc(l)}</td><td><strong>${esc(
       v,
     )}</strong></td></tr>`;
+  const {supabaseAdmin: instructionDb}=await import('@/integrations/supabase/client.server');
+  await instructionDb.from('purchase_inquiries').update({transfer_amount:input.amount,transfer_currency:currency,payment_reference:reference,status:'contacted'}).eq('id',inq.id);
   const res = await sendEmail(
     en
       ? {
@@ -538,6 +563,9 @@ export async function patchAdminPurchaseInquiry(input: {
 }): Promise<{ ok: boolean }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const patch: { status?: PurchaseInquiryStatus; admin_note?: string | null } = {};
+  if (input.status === 'fulfilled') throw new Error('Teslimat için ödeme onayı ve hak tanımlama düğmesini kullanın.');
+  const current=await fetchInquiry(input.id);
+  if (input.status && STATUS_RANK[input.status]<STATUS_RANK[current.status]) throw new Error('Tamamlanan adım geri alınamaz.');
   if (input.status !== undefined) patch.status = input.status;
   if (input.admin_note !== undefined) patch.admin_note = input.admin_note;
   if (Object.keys(patch).length === 0) return { ok: true };
