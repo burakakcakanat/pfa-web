@@ -6,6 +6,14 @@ import {validReceipt} from '@/lib/transfer-pricing';
 const selection=z.object({slug:z.string().min(1).max(120),kind:z.enum(['product','bundle']),lang:z.enum(['tr','en'])});
 export const getTransferQuote=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(d=>selection.parse(d)).handler(async({data,context})=>{const {quoteTransfer}=await import('@/lib/transfer.server');return quoteTransfer(data.slug,data.kind,data.lang,context.userId);});
 export const listMyTransfers=createServerFn({method:'GET'}).middleware([requireSupabaseAuth]).handler(async({context})=>{const {customerTransfers}=await import('@/lib/transfer.server');return customerTransfers(context.userId);});
+export const refreshTransferQuote=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(d=>z.object({id:z.string().uuid()}).parse(d)).handler(async({data,context})=>{
+  const {data:inq}=await context.supabase.from('purchase_inquiries').select('id,user_id,status,payment_reported_at,fulfil_slug,fulfil_kind,fulfil_book_lang,product_slug').eq('id',data.id).eq('user_id',context.userId).maybeSingle();
+  if(!inq || inq.payment_reported_at || !['new','contacted'].includes(inq.status))throw new Error('Ödeme bildirilen talep yeniden fiyatlanamaz.');
+  const {quoteTransfer}=await import('@/lib/transfer.server');const quote=await quoteTransfer(inq.fulfil_slug??inq.product_slug,inq.fulfil_kind??'product',inq.fulfil_book_lang,context.userId);
+  const {supabaseAdmin:db}=await import('@/integrations/supabase/client.server');
+  const {error}=await db.from('purchase_inquiries').update({quote:quote as never,transfer_amount:quote.ready?quote.totalCents/100:null}).eq('id',inq.id).is('payment_reported_at',null).in('status',['new','contacted']);if(error)throw new Error('Tutar güncellenemedi.');
+  if(quote.ready){const {sendTransferInstructions}=await import('@/lib/purchase-inquiries.server');await sendTransferInstructions({id:inq.id,amount:quote.totalCents/100,currency:'TRY'});}return quote;
+});
 export const reportTransfer=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(d=>z.object({id:z.string().uuid(),path:z.string().max(500)}).parse(d)).handler(async({data,context})=>{
   const {data:inq}=await context.supabase.from('purchase_inquiries').select('id,status,transfer_amount,user_id,payment_reported_at,quote,fulfil_kind,fulfil_slug,fulfil_book_lang,product_slug').eq('id',data.id).eq('user_id',context.userId).maybeSingle();
   if(!inq || !inq.transfer_amount || !['new','contacted'].includes(inq.status)) throw new Error('Bu talep için ödeme bildirimi yapılamaz.');
