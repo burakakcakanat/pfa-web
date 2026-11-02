@@ -8,4 +8,7 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
-- Book waitlist discount logic lives only in `src/lib/waitlist.ts` (pure) and is applied in checkout for single-book orders; why: one source, never stacked on packages.
+- Book waitlist discount logic lives only in `src/lib/waitlist.ts` (pure) and is applied in card checkout and bank-transfer quotes for single-book orders; why: one source, never stacked on packages.
+
+- Bank-transfer sales reuse purchase inquiries and canonical product/bundle pricing; client actions never approve payment, and fulfilment uses a database lock so concurrent retries cannot duplicate delivery.
+- Transfer receipts use private storage paths scoped to authenticated owner and inquiry; protected server functions expose bank details only for the owner's payable request.

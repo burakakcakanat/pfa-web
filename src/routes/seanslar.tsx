@@ -19,6 +19,7 @@ export const Route = createFileRoute("/seanslar")({
       { property: "og:title", content: "Seanslar — PFA" },
       { property: "og:description", content: "Birebir online PFA danışmanlık seansları." },
       { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { property: "og:url", content: "https://psychofunctionalanalysis.com/seanslar" },
     ],
     links: [{ rel: "canonical", href: "https://psychofunctionalanalysis.com/seanslar" }],
@@ -61,10 +62,9 @@ function SessionsPage() {
         <div className="text-xs uppercase tracking-[0.3em] text-accent">Seanslar</div>
         <h1 className="mt-4 font-serif text-4xl md:text-5xl">Birebir Danışmanlık</h1>
         <p className="mt-8 text-base leading-relaxed text-foreground/80">
-          Danışan, harita üzerindeki konumunu gördüğünde gelişimin sorumluluğunu
-          sürdürülebilir biçimde almaya başlar. Amaç geçici rahatlama değil;
-          işlevsel farkındalığa sahip, öz yeterli bireyler. 60 dakikalık birebir
-          oturumlar online gerçekleşir.
+          Danışan, harita üzerindeki konumunu gördüğünde gelişimin sorumluluğunu sürdürülebilir
+          biçimde almaya başlar. Amaç geçici rahatlama değil; işlevsel farkındalığa sahip, öz
+          yeterli bireyler. 60 dakikalık birebir oturumlar online gerçekleşir.
         </p>
       </header>
 
@@ -89,25 +89,15 @@ function SessionsPage() {
           </aside>
 
           <div className="bg-background p-8">
-            {/* One single flow: the preferred day/time lives inside the request
-                form (SessionSlotPicker) — no competing date widget above it.
-                Slots come from admin-managed availability; the selection is a
-                preference, confirmation comes from Burak by e-mail. */}
-            {/* Seans artık kartlı ödeme ile satılır; havale akışı yalnızca
-                uygulayıcı lisansında kaldı. Tercih edilen gün/saat ödemeden
-                sonra e-posta ile netleşir. */}
-            <div className="grid gap-3">
-              <div className="text-xs tracking-[0.25em] text-muted-foreground">
-                SATIN AL
-              </div>
-              <p className="text-sm leading-relaxed text-foreground/75">
-                Oturumu buradan satın alın; ardından tercih ettiğiniz gün ve saati
-                Hesabım → Seanslarım bölümünden seçebilirsiniz.
-              </p>
-              <div>
-                <BuyButton productSlug="danismanlik-oturumu" label="Oturumu Satın Al" />
-              </div>
-            </div>
+            <PurchaseInquiryForm
+              kind="session"
+              productSlug="danismanlik-oturumu"
+              productLabel="Birebir Danışmanlık Oturumu"
+              askSlot
+              offerAddon={false}
+              buttonLabel="Havale ile satın al"
+              hint="Zaman tercihiniz kesin randevu değildir; sizinle birlikte teyit edilir."
+            />
           </div>
         </div>
       </div>

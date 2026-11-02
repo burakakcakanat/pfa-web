@@ -1,0 +1,16 @@
+ALTER TABLE public.purchase_inquiries ADD COLUMN IF NOT EXISTS user_id uuid, ADD COLUMN IF NOT EXISTS payment_reported_at timestamptz, ADD COLUMN IF NOT EXISTS receipt_path text, ADD COLUMN IF NOT EXISTS quote jsonb, ADD COLUMN IF NOT EXISTS delivery_error text, ADD COLUMN IF NOT EXISTS delivery_email_sent boolean DEFAULT false, ADD COLUMN IF NOT EXISTS fulfil_lock_until timestamptz;
+UPDATE public.purchase_inquiries i SET user_id=p.id FROM public.profiles p WHERE i.user_id IS NULL AND lower(i.email)=lower(p.email);
+GRANT SELECT ON public.purchase_inquiries TO authenticated;
+REVOKE INSERT ON public.purchase_inquiries FROM anon, authenticated;
+CREATE POLICY "Owners read transfer inquiries" ON public.purchase_inquiries FOR SELECT TO authenticated USING (user_id=auth.uid());
+CREATE TABLE public.transfer_receipts (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), inquiry_id uuid NOT NULL REFERENCES public.purchase_inquiries(id), user_id uuid NOT NULL, path text NOT NULL UNIQUE, created_at timestamptz NOT NULL DEFAULT now());
+GRANT SELECT ON public.transfer_receipts TO authenticated;
+GRANT ALL ON public.transfer_receipts TO service_role;
+ALTER TABLE public.transfer_receipts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Owners and admins read receipts" ON public.transfer_receipts FOR SELECT TO authenticated USING (user_id=auth.uid() OR public.has_role(auth.uid(),'admin'));
+CREATE POLICY "Owners upload transfer receipts" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id='transfer-receipts' AND (storage.foldername(name))[1]=auth.uid()::text AND EXISTS (SELECT 1 FROM public.purchase_inquiries i WHERE i.id::text=(storage.foldername(name))[2] AND i.user_id=auth.uid() AND i.status IN ('new','contacted')));
+CREATE POLICY "Owners and admins read transfer receipts" ON storage.objects FOR SELECT TO authenticated USING (bucket_id='transfer-receipts' AND ((storage.foldername(name))[1]=auth.uid()::text OR public.has_role(auth.uid(),'admin')));
+CREATE UNIQUE INDEX IF NOT EXISTS purchase_inquiries_reference_unique ON public.purchase_inquiries(payment_reference) WHERE payment_reference IS NOT NULL;
+CREATE OR REPLACE FUNCTION public.acquire_transfer_fulfil_lock(inquiry_uuid uuid) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ BEGIN UPDATE public.purchase_inquiries SET fulfil_lock_until=now()+interval '5 minutes' WHERE id=inquiry_uuid AND (fulfil_lock_until IS NULL OR fulfil_lock_until<now()); RETURN FOUND; END $$;
+REVOKE ALL ON FUNCTION public.acquire_transfer_fulfil_lock(uuid) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.acquire_transfer_fulfil_lock(uuid) TO service_role;

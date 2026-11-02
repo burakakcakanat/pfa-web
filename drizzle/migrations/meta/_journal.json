@@ -8,6 +8,20 @@
       "when": 1793385390157,
       "tag": "0000_book_waitlist",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793646618706,
+      "tag": "0001_transfer_inquiry_tracking",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793647093984,
+      "tag": "0002_gift_recipient_email_guard",
+      "breakpoints": true
     }
   ]
 }

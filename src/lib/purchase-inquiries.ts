@@ -46,6 +46,8 @@ export const purchaseInquirySchema = z.object({
   message: z.string().trim().max(3000).optional().default(""),
   // Optional add-on the requester ticked; validated server-side against bundles.
   addon_bundle_slug: z.string().trim().max(120).nullable().optional(),
+  selection_kind: z.enum(["product", "bundle"]).optional(),
+  intent: z.enum(["purchase", "information"]).optional(),
   book_lang: z.enum(["tr", "en"]).optional().default("tr"),
   // Origin locale hint from the page; validated server-side, never trusted raw.
   locale: z.enum(["tr", "en"]).optional().default("tr"),
@@ -56,7 +58,11 @@ export const purchaseInquirySchema = z.object({
   gift: z
     .object({
       recipient_name: z.string().trim().min(2, { message: "Alıcının adını yazın." }).max(200),
-      recipient_email: z.string().trim().email({ message: "Alıcının e-posta adresini kontrol edin." }).max(200),
+      recipient_email: z
+        .string()
+        .trim()
+        .email({ message: "Alıcının e-posta adresini kontrol edin." })
+        .max(200),
       gift_note: z.string().trim().max(500).optional().default(""),
     })
     .nullable()
@@ -124,7 +130,7 @@ export const sendTransferInstructionsSchema = z.object({
 });
 
 export function paymentReferenceFor(id: string): string {
-  return `PFA-${id.replace(/-/g, "").slice(0, 4).toUpperCase()}`;
+  return `PFA-${id.replace(/-/g, "").toUpperCase()}`;
 }
 
 export type AdminPurchaseInquiryRow = {
@@ -156,4 +162,27 @@ export type AdminPurchaseInquiryRow = {
   metadata: { badge_intent?: "practitioner" | "fellow" } | null;
   /** Resolved price of the current fulfilment selection, in cents. */
   selection_price_cents?: number | null;
+  user_id?: string | null;
+  receipt_path?: string | null;
+  payment_reported_at?: string | null;
+  quote?: TransferQuote | null;
+  delivery_error?: string | null;
+  delivery_email_sent?: boolean | null;
+};
+
+export type TransferQuote = {
+  subtotalCents: number;
+  discountCents: number;
+  totalCents: number;
+  currency: "try";
+  ready: boolean;
+  reason: string | null;
+  waitlistId: string | null;
+  label: string;
+  components: string[];
+};
+export type CustomerTransfer = Omit<AdminPurchaseInquiryRow, "admin_note" | "metadata"> & {
+  metadata: { is_gift?: boolean; recipient_name?: string; recipient_email?: string } | null;
+  bank: BankTransferDetails | null;
+  gifts: Array<{ recipient_name: string; status: string }>;
 };
