@@ -45,9 +45,15 @@ export async function customerTransfers(userId:string):Promise<CustomerTransfer[
   if(error) throw new Error('Talepler yüklenemedi.');
   const {fetchBankTransferDetails}=await import('@/lib/purchase-inquiries.server'); const bank=await fetchBankTransferDetails();
   const {data:gifts}=await db.from('ebook_gifts').select('recipient_name,status,orders!inner(metadata)').eq('buyer_user_id',userId);
-  return (data??[]).map(row=>{
+  const out:CustomerTransfer[]=[];
+  for(const row of data??[]){
+    let fresh=true;
+    if(row.quote && !row.payment_reported_at && !['paid','fulfilled','closed'].includes(row.status)){
+      try{const q=await quoteTransfer(row.fulfil_slug??row.product_slug,row.fulfil_kind==='bundle'?'bundle':'product',row.fulfil_book_lang==='en'?'en':'tr',userId);fresh=q.ready && q.totalCents===Math.round(Number(row.transfer_amount)*100);if(!fresh)row.quote={...q,reason:q.reason??'Ödeme öncesi güncel tutarı onaylayın.'} as never;}catch{fresh=false;}
+    }
     const m=(row.metadata??{}) as Record<string,unknown>;
     const {admin_note: _note,ip_hash:_ip,fulfil_lock_until:_lock,...safe}=row;
-    return {...safe,metadata:{is_gift:m.is_gift===true,recipient_name:typeof m.recipient_name==='string'?m.recipient_name:undefined,recipient_email:typeof m.recipient_email==='string'?m.recipient_email:undefined},bank:row.transfer_amount && !row.payment_reported_at && !['paid','fulfilled','closed'].includes(row.status)?bank:null,gifts:(gifts??[]).filter(g=>((g.orders as unknown as {metadata:Record<string,unknown>})?.metadata)?.inquiry_id===row.id).map(g=>({recipient_name:g.recipient_name,status:g.status}))} as unknown as CustomerTransfer;
-  });
+    out.push({...safe,metadata:{is_gift:m.is_gift===true,recipient_name:typeof m.recipient_name==='string'?m.recipient_name:undefined,recipient_email:typeof m.recipient_email==='string'?m.recipient_email:undefined},bank:fresh && row.transfer_amount && !row.payment_reported_at && !['paid','fulfilled','closed'].includes(row.status)?bank:null,gifts:(gifts??[]).filter(g=>((g.orders as unknown as {metadata:Record<string,unknown>})?.metadata)?.inquiry_id===row.id).map(g=>({recipient_name:g.recipient_name,status:g.status}))} as unknown as CustomerTransfer);
+  }
+  return out;
 }

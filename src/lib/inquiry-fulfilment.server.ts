@@ -173,7 +173,7 @@ async function fulfilUnlocked(
       if(type==='ebook' && userId){
         const {data:ents}=await supabaseAdmin.from('user_entitlements').select('id,metadata').eq('user_id',userId).eq('type','ebook');
         const ent=(ents??[]).find(e=>(e.metadata as Record<string,unknown>)?.inquiry_id===inq.id && (e.metadata as Record<string,unknown>)?.product_slug===slug);
-        if(ent){const {ensurePersonalizedPdf}=await import('@/lib/ebooks.functions');await ensurePersonalizedPdf({entitlementId:ent.id,slug,existingPath:null,fullName:inq.full_name,email,giftNote:null,buyerName:null});}
+        if(ent){const {ensurePersonalizedPdf}=await import('@/lib/ebooks.functions');const path=await ensurePersonalizedPdf({entitlementId:ent.id,slug,existingPath:typeof (ent.metadata as Record<string,unknown>)?.personalized_pdf_path==='string'?String((ent.metadata as Record<string,unknown>).personalized_pdf_path):null,fullName:inq.full_name,email,giftNote:null,buyerName:null});if(!path)throw new Error('Kişisel PDF hazır değil; yeniden deneyin.');}
       }
       entries.push({ type, slug, ...(pendingAccount ? { pending_account: true } : {}) });
       continue;
@@ -210,7 +210,7 @@ async function fulfilUnlocked(
         // fatal — the admin "Bekleyen Kişisel PDF'leri Üret" tool retries.
         try {
           const { ensurePersonalizedPdf } = await import("@/lib/ebooks.functions");
-          await ensurePersonalizedPdf({
+          const pdfPath = await ensurePersonalizedPdf({
             entitlementId: entId,
             slug,
             existingPath: null,
@@ -219,6 +219,7 @@ async function fulfilUnlocked(
             giftNote: null,
             buyerName: null,
           });
+          if(!pdfPath)throw new Error("Kişisel PDF hazır değil.");
         } catch (e) {
           throw new Error("Kişisel PDF üretilemedi; teslimatı yeniden deneyin.");
         }

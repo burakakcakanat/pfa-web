@@ -274,7 +274,7 @@ export async function fetchAdminPurchaseInquiries(): Promise<AdminPurchaseInquir
       try {
         cache.set(
           key,
-          await selectionPriceCents({
+          r.quote?.totalCents ?? await selectionPriceCents({
             fulfil_kind: kind,
             fulfil_slug: slug,
             fulfil_book_lang: lang,
@@ -416,6 +416,7 @@ export async function sendTransferInstructions(input: {
     const quote=await quoteTransfer(inq.fulfil_slug??inq.product_slug,inq.fulfil_kind??'product',inq.fulfil_book_lang,inq.user_id);
     if(!quote.ready) throw new Error(quote.reason??'Ürün hazır değil.');
     input.amount=quote.totalCents/100;
+    const {supabaseAdmin:quoteDb}=await import('@/integrations/supabase/client.server');await quoteDb.from('purchase_inquiries').update({quote:quote as never}).eq('id',inq.id);
   }
   const currency = 'TRY';
   const label = inq.product_label || inq.product_slug;
